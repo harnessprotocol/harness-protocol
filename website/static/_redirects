@@ -1,0 +1,5 @@
+# Internal redirects for the Harness Protocol site.
+# The harnessprotocol.io → harnessprotocol.ai redirect is handled
+# at the Cloudflare DNS level (bulk redirect rule), not here.
+
+/docs /docs/intro 301
