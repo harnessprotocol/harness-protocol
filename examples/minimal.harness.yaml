@@ -1,0 +1,9 @@
+# Minimal valid Harness Protocol v1 profile.
+# This is the smallest possible harness.yaml that passes schema validation.
+# All other fields (plugins, mcp-servers, env, instructions, permissions, extends) are optional.
+
+$schema: https://harnessprotocol.ai/schema/v1/harness.schema.json
+version: "1"
+metadata:
+  name: minimal
+  description: The simplest valid Harness Protocol v1 profile.

@@ -1,0 +1,401 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harnessprotocol.ai/schema/v1/harness.schema.json",
+  "title": "Harness Protocol v1",
+  "description": "Schema for harness.yaml profiles following the Harness Protocol v1 specification. Validates both full profiles and partial fragments.",
+  "type": "object",
+  "required": ["version"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema URI for editor tooling. Recommended value: 'https://harnessprotocol.ai/schema/v1/harness.schema.json'."
+    },
+    "version": {
+      "type": "string",
+      "const": "1",
+      "description": "Harness Protocol format version. Must be the string '1' (not the integer 1). The string form distinguishes this document as Harness Protocol format rather than the legacy harness-kit format."
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["profile", "fragment"],
+      "default": "profile",
+      "description": "Document type. 'profile' is a complete, self-contained harness configuration. 'fragment' is a partial piece intended for sharing or composition. Fragments skip required-field validation that applies to full profiles."
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["name", "description"],
+      "description": "Profile identity and discovery metadata. Required for profiles; optional for fragments.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$",
+          "description": "Lowercase kebab-case profile identifier. Max 64 characters. Characters: [a-z0-9-]. Must start and end with alphanumeric."
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 256,
+          "description": "Human-readable description of this harness profile. Max 256 characters."
+        },
+        "author": {
+          "type": "object",
+          "description": "Profile author information.",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Author display name."
+            },
+            "url": {
+              "type": "string",
+              "format": "uri",
+              "description": "Author URL (personal homepage, GitHub profile, etc.)."
+            }
+          },
+          "additionalProperties": false
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+          "description": "Semantic version of this profile (not the protocol version). Follows semver 2.0.0. Used for dependency resolution when this profile is extended by others."
+        },
+        "license": {
+          "type": "string",
+          "description": "SPDX license expression. Examples: 'Apache-2.0', 'MIT', 'CC-BY-4.0'."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "maxItems": 10,
+          "uniqueItems": true,
+          "description": "Discovery and classification tags. Max 10 tags, each max 32 characters."
+        }
+      },
+      "additionalProperties": false
+    },
+    "plugins": {
+      "type": "array",
+      "description": "Plugins to install into the harness. Plugins extend harness capabilities with skills, agents, and configuration.",
+      "items": {
+        "type": "object",
+        "required": ["name", "source"],
+        "description": "A plugin declaration.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Plugin identifier. Must match the plugin's declared name in its manifest."
+          },
+          "source": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$",
+            "description": "Source repository in 'owner/repo' format. Example: 'siracusa5/harness-kit'. Used to locate and fetch the plugin. Replaces the legacy 'marketplace' indirection."
+          },
+          "version": {
+            "type": "string",
+            "description": "Semver range constraint. Examples: '>=0.2.0', '^1.0.0', '1.2.3'. If absent, the implementation selects the latest compatible version."
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description for this plugin in this profile's context. Overrides the plugin's own description for display purposes."
+          },
+          "config": {
+            "type": "object",
+            "description": "Plugin-specific configuration. The shape of this object is defined by the plugin manifest.",
+            "additionalProperties": true
+          },
+          "integrity": {
+            "type": "object",
+            "description": "Content integrity verification. Optional in v1; required in v2. Implementations SHOULD verify the hash when present and WARN when absent.",
+            "properties": {
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$",
+                "description": "Lowercase hex-encoded SHA-256 hash of the plugin archive."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "mcp-servers": {
+      "type": "object",
+      "description": "MCP (Model Context Protocol) server declarations. Keys are server names used to reference them in the harness. Values describe how to connect to the server.",
+      "additionalProperties": {
+        "description": "An MCP server declaration. The 'transport' field discriminates between local (stdio) and remote (http/sse/ws) servers.",
+        "oneOf": [
+          {
+            "title": "stdio transport",
+            "description": "MCP server communicating via standard I/O. The harness launches this as a local process.",
+            "type": "object",
+            "required": ["transport", "command"],
+            "properties": {
+              "transport": {
+                "type": "string",
+                "const": "stdio",
+                "description": "Transport type. 'stdio' starts a local subprocess and communicates over stdin/stdout."
+              },
+              "command": {
+                "type": "string",
+                "description": "Executable to launch. May be a PATH-resolved binary (e.g., 'uvx', 'npx') or an absolute path."
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Command-line arguments. Values may reference env[] declarations as ${VAR_NAME}."
+              },
+              "env": {
+                "type": "object",
+                "description": "Additional environment variables for the server process. Values may reference env[] declarations as ${VAR_NAME}. Every ${VAR} reference must have a corresponding env[] entry.",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          {
+            "title": "HTTP/SSE/WebSocket transport",
+            "description": "MCP server communicating over a network transport. Treated as untrusted remote content.",
+            "type": "object",
+            "required": ["transport", "url"],
+            "properties": {
+              "transport": {
+                "type": "string",
+                "enum": ["http", "sse", "ws"],
+                "description": "Transport type. 'http' for HTTP, 'sse' for Server-Sent Events, 'ws' for WebSocket."
+              },
+              "url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Server endpoint URL. Implementations MUST treat the server as untrusted remote content."
+              },
+              "headers": {
+                "type": "object",
+                "description": "HTTP headers to include in requests. Values may reference env[] declarations as ${VAR_NAME}.",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "env": {
+      "type": "array",
+      "description": "Environment variable declarations. Declares every variable the harness needs — for documentation, user prompting, and security validation.",
+      "items": {
+        "type": "object",
+        "required": ["name", "description"],
+        "description": "An environment variable declaration.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Z_][A-Z0-9_]*$",
+            "description": "Variable name in SCREAMING_SNAKE_CASE. Every ${VAR} reference in mcp-servers must have a matching entry here."
+          },
+          "description": {
+            "type": "string",
+            "description": "REQUIRED. Human-readable explanation of what this variable is for. Shown to users when they need to provide it."
+          },
+          "required": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether the harness will fail if this variable is absent. Default: false (optional)."
+          },
+          "sensitive": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether this variable contains sensitive data (API keys, credentials, tokens). Default: true. When true, 'default' is FORBIDDEN — implementations MUST reject sensitive variables with defaults."
+          },
+          "when": {
+            "type": "string",
+            "description": "Conditional usage. Describes when this variable is needed. Example: 'When processing private GitHub repositories'."
+          },
+          "default": {
+            "type": "string",
+            "description": "Default value for non-sensitive variables only. FORBIDDEN when sensitive is true (which is the default). Only valid when sensitive: false is explicitly set."
+          }
+        },
+        "if": {
+          "required": ["sensitive"],
+          "properties": {
+            "sensitive": {
+              "const": false
+            }
+          }
+        },
+        "then": {},
+        "else": {
+          "properties": {
+            "default": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "instructions": {
+      "type": "object",
+      "description": "Instruction content to inject into the AI harness. Maps to harness-specific instruction files. All imported instructions receive provenance markers and are subordinate to the user's core safety rules.",
+      "properties": {
+        "operational": {
+          "description": "Operational instructions. Maps to CLAUDE.md (Claude Code) or equivalent. Inline text, a file:// path to a local file, or an https:// URL to a remote file.",
+          "oneOf": [
+            {
+              "type": "string",
+              "description": "Inline text, 'file://relative/path', or 'https://...' URL."
+            },
+            {
+              "type": "null",
+              "description": "Explicitly skip this instruction slot."
+            }
+          ]
+        },
+        "behavioral": {
+          "description": "Behavioral preferences. Maps to AGENT.md (Claude Code) or equivalent. Inline text, file:// path, or https:// URL.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "identity": {
+          "description": "Identity context. Maps to SOUL.md (Claude Code). Set to null to skip. Not all harnesses support this slot — implementations that lack an identity slot SHOULD treat this as 'operational'.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "import-mode": {
+          "type": "string",
+          "enum": ["merge", "replace", "skip"],
+          "default": "merge",
+          "description": "How instructions are applied. 'merge' (default) appends to existing instructions, preserving user's safety rules. 'replace' overwrites — requires explicit user confirmation at apply time. 'skip' ignores all instructions in this profile."
+        }
+      },
+      "additionalProperties": false
+    },
+    "permissions": {
+      "type": "object",
+      "description": "Declarative capability intent. Self-documents what access this harness requires. Implementations enforce their own permission model — this is defense-in-depth documentation, not the enforcement boundary.",
+      "properties": {
+        "tools": {
+          "type": "object",
+          "description": "Tool access declarations.",
+          "properties": {
+            "allow": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Tools this harness needs. Exact names or glob patterns. Examples: 'Read', 'Bash', 'mcp__*', 'mcp__github__*'."
+            },
+            "deny": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Tools this harness explicitly does not use. Glob patterns supported. Deny overrides allow when both match."
+            },
+            "ask": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Tools that should prompt for user confirmation before each use."
+            }
+          },
+          "additionalProperties": false
+        },
+        "paths": {
+          "type": "object",
+          "description": "Filesystem path access declarations.",
+          "properties": {
+            "writable": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Paths this harness may write to. Glob patterns supported. Example: 'src/', 'tests/'."
+            },
+            "readonly": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Paths this harness reads but should not modify. Example: 'config/', '.env.example'."
+            }
+          },
+          "additionalProperties": false
+        },
+        "network": {
+          "type": "object",
+          "description": "Network access declarations.",
+          "properties": {
+            "allowed-hosts": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Hostnames or glob patterns this harness may contact. Examples: '*.github.com', 'api.openai.com'."
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "extends": {
+      "type": "array",
+      "description": "Parent profiles to inherit from. The child's values override parents. Multiple parents merge left-to-right. See protocol/inheritance.md for full semantics.",
+      "items": {
+        "type": "object",
+        "required": ["source"],
+        "description": "A parent profile reference.",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "Parent profile location. Format: 'owner/repo' (root harness.yaml) or 'owner/repo/path/to/harness.yaml'."
+          },
+          "version": {
+            "type": "string",
+            "description": "Semver range constraint for the parent profile version. Example: '>=1.0.0'."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "if": {
+    "not": {
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "const": "fragment"
+        }
+      }
+    }
+  },
+  "then": {
+    "required": ["version", "metadata"]
+  },
+  "patternProperties": {
+    "^x-": {
+      "description": "Implementation-specific extension field. The x- prefix signals a non-standard field. Implementations MUST ignore unrecognized x- fields to ensure forward compatibility."
+    }
+  },
+  "additionalProperties": false
+}

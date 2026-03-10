@@ -1,0 +1,43 @@
+# Harness Protocol v1 fragment — a partial profile for sharing and composition.
+#
+# Fragments are reusable pieces of a harness configuration. They are not
+# complete profiles: they skip required-field validation (so metadata is optional)
+# and are intended to be imported into a full profile via an 'extends' reference
+# or a harness registry import.
+#
+# This fragment declares a PostgreSQL MCP server via uvx. To use it, reference
+# this file from a full profile:
+#
+#   extends:
+#     - source: siracusa5/harness-kit/examples/fragment-mcp-server.harness.yaml
+#
+# The consuming profile is responsible for satisfying the env[] declarations
+# (e.g., providing DB_CONNECTION_STRING) if it does not already declare them.
+
+$schema: https://harnessprotocol.ai/schema/v1/harness.schema.json
+version: "1"
+kind: fragment
+
+# metadata is optional for fragments, but including it aids discovery and attribution.
+metadata:
+  name: postgres-mcp
+  description: PostgreSQL MCP server via uvx. Import this fragment to add database tooling to any profile.
+
+# The MCP server this fragment contributes.
+# Consumers must supply DB_CONNECTION_STRING via their own env[] section
+# or rely on the declaration below being merged in.
+mcp-servers:
+  postgres:
+    transport: stdio
+    command: uvx
+    args:
+      - mcp-server-postgres
+      - ${DB_CONNECTION_STRING}
+
+# Environment variable required by the postgres MCP server above.
+# sensitive: true (the default) — harness will prompt the user; no default allowed.
+env:
+  - name: DB_CONNECTION_STRING
+    description: "PostgreSQL connection string for the target database. Example: postgresql://user:pass@localhost:5432/mydb"
+    required: true
+    sensitive: true

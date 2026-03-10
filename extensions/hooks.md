@@ -1,0 +1,346 @@
+# Hooks (v2)
+
+**Status:** Design Sketch (pre-HEP)
+**Target:** Harness Protocol v2
+**Last updated:** 2026-03-09
+
+---
+
+## Purpose
+
+Hooks let a harness profile react to events in the agent session lifecycle. Without hooks, a harness is a static configuration document: it declares what tools are available, what instructions are active, and what environment variables are required — but it has no way to run code when the harness loads, after a tool executes, or when the session ends.
+
+Hooks fill this gap. They are the harness's way of saying: when this thing happens, run this script.
+
+Common uses:
+
+- **Pre-session initialization**: check that required tools are installed, verify environment configuration, run a quick smoke test against the database before allowing the agent to query it
+- **Post-tool logging**: append tool call summaries to a session log, push metrics to a local service, validate that a file written by the agent passes linting before the next tool call
+- **Pre-commit validation**: run a test suite before the agent writes to any files in a protected path; block the write if tests fail
+- **Post-session cleanup**: archive the session log, send a summary to a webhook, clean up temporary files created during the session
+
+Hooks are not a general-purpose scripting system. They are narrow lifecycle callbacks with explicit trigger points and explicit failure modes. The design deliberately avoids building a full plugin execution model — that is what plugins are for.
+
+---
+
+## Reserved Field in v1
+
+The `hooks:` top-level key is **reserved** in the v1 schema. It is not a recognized field (and therefore not usable in v1 documents), but it is explicitly blocked from use as an `x-` extension:
+
+- `x-hooks:` is treated as an implementation extension and will continue to be ignored by conformant implementations.
+- `hooks:` as a bare top-level key is a **validation error** in v1, with a clear message indicating that the field is reserved for v2.
+
+This reservation prevents community implementations from evolving incompatible `hooks:` schemas in the wild before the v2 HEP formalizes the format. If `hooks:` were allowed as an unrecognized field (subject to the normal "unknown fields are an error" rule), early adopters could not use it at all. By reserving it with a targeted error, we signal intent while blocking premature adoption.
+
+```
+Error: 'hooks' is a reserved field. The hooks system is specified in Harness Protocol v2.
+Upgrade to a v2-compatible implementation to use hooks.
+```
+
+---
+
+## Planned Hook Points
+
+v2 defines four hook trigger points, corresponding to distinct moments in the session lifecycle:
+
+### `pre-session`
+
+Triggered once when the harness is fully loaded and before the agent accepts its first prompt. This is the initialization hook.
+
+Runs after:
+- Schema validation completes
+- `extends` inheritance is resolved
+- Plugins are loaded
+- MCP servers are started
+- Required env variables are verified
+
+Runs before:
+- The agent accepts user input
+
+If a `pre-session` hook fails, the session does not start. The failure message is surfaced to the user with the hook's name and exit code. The user can then fix the environment problem and re-apply.
+
+**Intended for**: environment validation, connectivity checks, setup scripts that must succeed before the agent can be trusted to work correctly.
+
+### `post-tool`
+
+Triggered after each tool call completes, with access to the tool name, the call parameters, and the tool's return value.
+
+Runs after: the tool returns a result to the agent.
+Runs before: the agent processes the result and decides on its next action.
+
+`post-tool` hooks can examine but cannot modify the tool result. They are observers, not interceptors. If a `post-tool` hook fails, the behavior depends on `on-failure`: `warn` allows the session to continue; `error` halts the session.
+
+**Intended for**: logging, metrics, output validation (e.g., lint a file that was just written), rate-limit enforcement.
+
+### `pre-commit`
+
+Triggered before any write operation that modifies a file on disk. The "commit" terminology here is harness-level — it means "before persisting a change," not git commit specifically.
+
+This hook receives the target file path. It can be used to run tests before allowing the write, check that the file is in a permitted path, or validate the file format.
+
+If a `pre-commit` hook fails with `on-failure: error`, the write is blocked. The agent receives an error from the tool and may retry with a different approach.
+
+**Intended for**: pre-write test suites, lint-before-write enforcement, schema validation for configuration files.
+
+### `post-session`
+
+Triggered when the session ends, either normally (user closes the session) or by timeout. This is the cleanup hook.
+
+`post-session` hooks run in a best-effort mode. If the process is killed abruptly, there is no guarantee that `post-session` runs. Implementations should design post-session hooks to be idempotent — safe to run multiple times, and safe to skip.
+
+**Intended for**: session log archiving, summary generation, temporary file cleanup.
+
+---
+
+## Hook Definition Format
+
+```yaml
+hooks:
+  pre-session:
+    - name: validate-env
+      run: scripts/check-env.sh
+      on-failure: error
+
+    - name: test-db-connectivity
+      run: scripts/test-db.sh
+      timeout: 30s
+      on-failure: warn
+
+  post-tool:
+    - name: log-tool-call
+      run: scripts/log-tool.sh
+      on-failure: skip
+
+  pre-commit:
+    - name: run-tests
+      run: scripts/run-tests.sh
+      timeout: 120s
+      on-failure: error
+
+  post-session:
+    - name: archive-session-log
+      run: scripts/archive-log.sh
+      on-failure: skip
+```
+
+### Hook entry fields
+
+| Field | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `name` | string | Yes | — | Identifier for this hook. Used in error messages and logs. Must be unique within a hook point. |
+| `run` | string | Yes | — | Command to execute. Relative to the harness file directory. |
+| `args` | array of strings | No | `[]` | Additional arguments appended to the command. |
+| `env` | object | No | `{}` | Environment variables passed to the hook process. Values may reference harness env declarations via `${VAR_NAME}` syntax. |
+| `timeout` | string | No | `30s` | Maximum execution time. Format: Go duration string (`30s`, `2m`, `1m30s`). Hook is killed and treated as failed if it exceeds this. |
+| `on-failure` | enum | No | `warn` | What to do if the hook exits with a non-zero code. Values: `warn`, `error`, `skip`. |
+
+### `on-failure` values
+
+**`warn`**: The hook failure is reported to the user as a warning, but the session continues. The failure is logged.
+
+**`error`**: The hook failure halts the current operation. For `pre-session`: the session does not start. For `pre-commit`: the write is blocked. For `post-tool`: the session halts. For `post-session`: the failure is logged but cannot halt a session that is already ending.
+
+**`skip`**: The hook failure is silently ignored. Use only for hooks whose failure is genuinely inconsequential (e.g., a best-effort metrics push).
+
+### Multiple hooks at one trigger point
+
+Multiple hooks at the same trigger point are executed in order, sequentially. If an earlier hook fails with `on-failure: error`, subsequent hooks at the same point are not executed.
+
+---
+
+## Hook Execution Environment
+
+Hooks run as subprocesses, not as in-process functions. This is by design: subprocesses provide a clear boundary, a predictable environment, and a measurable exit code. The implementation does not need to load arbitrary code into its own process.
+
+### Working directory
+
+Hook processes run with the project root as their working directory (the directory containing `harness.yaml`).
+
+### Environment variables
+
+Hooks receive a controlled environment. Implementations must:
+
+1. Pass all non-sensitive env declarations from the harness `env[]` array that have values available.
+2. Pass a set of harness-specific context variables:
+
+| Variable | Description |
+|---|---|
+| `HARNESS_PROFILE_NAME` | The `metadata.name` of the active profile |
+| `HARNESS_HOOK_POINT` | The hook trigger: `pre-session`, `post-tool`, `pre-commit`, `post-session` |
+| `HARNESS_TOOL_NAME` | (post-tool only) The name of the tool that was called |
+| `HARNESS_FILE_PATH` | (pre-commit only) The file path that is about to be written |
+| `HARNESS_SESSION_ID` | A stable identifier for the current session |
+
+Sensitive env vars (marked `sensitive: true`) are **not** passed to hooks unless the hook entry explicitly lists them by name:
+
+```yaml
+hooks:
+  pre-session:
+    - name: test-db-connectivity
+      run: scripts/test-db.sh
+      sensitive-env:
+        - DB_CONNECTION_STRING
+```
+
+The `sensitive-env` field opts specific sensitive variables into the hook's environment. Implementations must display which sensitive variables are being passed to which hooks during the apply-time security review.
+
+### Exit codes
+
+- `0`: Success. The hook ran and completed normally.
+- Non-zero: Failure. The `on-failure` rule applies.
+
+Hooks should write human-readable error messages to stderr. The implementation captures and displays stderr on failure.
+
+---
+
+## Security Model
+
+### Hooks run with harness permissions
+
+A hook script runs with the same operating-system-level permissions as the harness session itself. The harness permission system (`permissions.tools`, `permissions.paths`, `permissions.network`) does not restrict what hook processes can do at the OS level — those constraints apply to the agent's tool calls, not to subprocess execution.
+
+This means a `pre-session` hook can, in principle, read any file accessible to the user running the agent. The hook is trusted code, and the user must explicitly trust it.
+
+### Mandatory display before execution
+
+**Implementations must display all hook commands to the user at apply time, before executing any hooks.** The display must show the full resolved command (after path resolution) and the sensitive-env list. Users must explicitly confirm hook execution.
+
+This is a hard requirement, not a suggestion. The threat model for hooks is identical to the threat model for arbitrary shell execution: a malicious harness could include hook scripts that exfiltrate data, modify system files, or establish persistence. User confirmation at apply time is the primary defense.
+
+The confirmation prompt must display:
+
+```
+This harness declares lifecycle hooks that will execute scripts on your machine:
+
+  pre-session:
+    validate-env       → scripts/check-env.sh
+                         (no sensitive env)
+    test-db-connectivity → scripts/test-db.sh
+                         sensitive env: DB_CONNECTION_STRING
+                         timeout: 30s
+
+  pre-commit:
+    run-tests          → scripts/run-tests.sh
+                         timeout: 120s
+
+Allow hooks? [y/N]
+```
+
+### Hooks from inherited profiles
+
+When a child profile inherits hooks from a parent via `extends`, the inherited hooks must be included in the confirmation display with their source indicated:
+
+```
+  pre-session (from my-org/base-harness@^1.0.0):
+    validate-org-tools → scripts/check-org-tools.sh
+
+  pre-session (local):
+    validate-env       → scripts/check-env.sh
+```
+
+The user confirms the full set, not just the child profile's hooks. Inherited hooks cannot be silently injected.
+
+### `import-mode` for hooks
+
+Hook inheritance follows the same `import-mode` semantics as instructions:
+
+- `merge` (default): child hooks are added to parent hooks at each trigger point. Both run.
+- `replace`: child hook declarations replace parent hook declarations at trigger points the child declares.
+- `skip`: the child does not declare hooks; parent hooks pass through.
+
+---
+
+## v1 Manual Workarounds
+
+While `hooks:` is reserved in v1 and not yet available, some harness implementations provide their own hook mechanisms. Harness profiles can use the `instructions.operational` block to guide users through manual configuration.
+
+### Claude Code hooks (settings.json)
+
+Claude Code supports a hooks system in `.claude/settings.json`. A harness profile's operational instructions can document the manual setup:
+
+```markdown
+## Lifecycle Hooks (Manual Setup Required)
+
+This harness uses lifecycle hooks for test enforcement. Configure them in
+`.claude/settings.json`:
+
+\`\`\`json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/run-tests.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/log-tool.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+\`\`\`
+
+When the v2 Exchange layer ships, this manual setup will be replaced by the
+`hooks:` field in this harness file.
+```
+
+The Claude Code hooks format uses a `matcher` field (a glob or regex pattern matched against the tool name) and a `hooks` array of commands to execute.
+
+**Mapping from the planned v2 format to Claude Code's current format:**
+
+| Planned v2 hook point | Claude Code hooks equivalent |
+|---|---|
+| `pre-session` | No direct equivalent. Use `PostToolUse` matcher `".*"` with a state check, or configure manually outside the harness. |
+| `post-tool` | `PostToolUse` with matcher `".*"` (all tools) or a specific pattern |
+| `pre-commit` | `PreToolUse` with matcher `"Write\|Edit\|MultiEdit"` |
+| `post-session` | No direct equivalent in Claude Code hooks. |
+
+### Other harness tools
+
+GitHub Copilot and Cursor do not have a hooks system equivalent to what v2 will define. Until those implementations add hook support, harnesses targeting those tools should note in `instructions.operational` that lifecycle automation requires manual setup and reference the tool's own automation mechanisms (e.g., VS Code tasks for pre-save validation).
+
+### Plugin-based workaround
+
+For harness authors who need hook-like behavior today, plugins offer a complete solution. A plugin can implement `pre-session` initialization, `post-tool` logging, or pre-write validation as tool calls that the harness instructions direct the agent to invoke at appropriate moments:
+
+```yaml
+# Instructions that simulate a pre-session hook
+instructions:
+  operational: |
+    ## Session Initialization
+    At the start of every session, before doing any other work, run:
+    `bash scripts/check-env.sh`
+    If it fails, stop and report the error. Do not proceed until the
+    environment check passes.
+```
+
+This is brittle — it relies on the agent following the instruction rather than a hard implementation-enforced callback. The v2 `hooks:` system replaces this pattern with a guaranteed execution model.
+
+---
+
+## Open Questions for HEP
+
+1. **Hook script location security**: Should hooks be restricted to the project directory? A hook that runs `/usr/local/bin/my-tool` is running arbitrary system code without any harness-relative path validation. Should `run:` paths be required to be relative to the harness directory, or should absolute paths be permitted?
+
+2. **Hook output streaming**: Should hook stdout/stderr be streamed to the user during execution, or buffered and shown only on failure? Streaming is more transparent but produces noise for low-latency post-tool hooks.
+
+3. **Conditional hooks**: Should hooks support an `if:` condition (e.g., `if: "env.DB_ENV == 'production'"`)? This would allow hooks that only run in specific contexts without requiring separate profiles.
+
+4. **`post-tool` parameter access**: What format does the hook receive tool call parameters in? Environment variables (limited by env var syntax constraints), JSON on stdin, or a temp file? Tool response values can be large — passing them to hooks requires a defined serialization format.
+
+5. **Inheritance and hook ordering**: When multiple parents each declare hooks at the same trigger point, what is the execution order? Is it the same as the `extends` resolution order (left to right, child last)?
+
+6. **Sensitive env disclosure**: The current design requires authors to explicitly opt in sensitive env vars per hook (`sensitive-env:`). Should the default instead be that all harness env vars (including sensitive) are available to hooks, with an explicit exclusion mechanism? The current design is safer but more verbose for scripts that legitimately need database credentials.

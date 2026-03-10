@@ -1,0 +1,150 @@
+# Harness Protocol v1 profile — team overlay example.
+#
+# Scenario: The Acme backend engineering team inherits from a shared base
+# profile and overlays team-specific MCP servers, additional plugins, and
+# stricter destructive-operation guards.
+#
+# Inheritance chain:
+#   harnessprotocol/profiles/backend-dev (base)
+#     └── acme-backend-team (this file)
+#
+# Install with: harness apply team-overlay.harness.yaml
+
+$schema: https://harnessprotocol.ai/schema/v1/harness.schema.json
+version: "1"
+
+# ----------------------------------------------------------------------------
+# Profile identity
+# ----------------------------------------------------------------------------
+metadata:
+  name: acme-backend-team
+  description: Backend team overlay for Acme Engineering. Adds GHE tooling, team Postgres, and stricter permission guards.
+  version: 1.0.0
+  tags:
+    - backend
+    - team
+    - acme
+
+# ----------------------------------------------------------------------------
+# Base profile — the shared backend-dev profile maintained by the platform team.
+# This overlay's fields are merged on top; see protocol/inheritance.md.
+# ----------------------------------------------------------------------------
+extends:
+  - source: harnessprotocol/profiles/backend-dev
+    version: ">=1.0.0"
+
+# ----------------------------------------------------------------------------
+# Additional plugins beyond what backend-dev provides.
+# Plugin names must be unique within this array; any name that collides with
+# the base profile's plugins will override the base version.
+# ----------------------------------------------------------------------------
+plugins:
+  # Generates API documentation from source code and OpenAPI annotations.
+  - name: docgen
+    source: siracusa5/harness-kit
+    version: ">=0.4.0"
+    description: Generate and update API documentation from source annotations.
+
+  # Lightweight code review assistant focused on backend patterns.
+  - name: code-review
+    source: siracusa5/harness-kit
+    version: ">=0.3.0"
+    description: Backend-focused code review — consistency, error handling, and API contract checks.
+
+# ----------------------------------------------------------------------------
+# MCP servers added by this overlay.
+# The base profile's servers are inherited unchanged; these are unioned in.
+# ----------------------------------------------------------------------------
+mcp-servers:
+  # GitHub Enterprise MCP server for internal repository and PR tooling.
+  # transport: http — harness connects to the remote GHE MCP endpoint.
+  github-enterprise:
+    transport: http
+    url: "${GITHUB_ENTERPRISE_URL}/mcp/v1"
+    headers:
+      Authorization: Bearer ${GHE_TOKEN}
+      X-Harness-Client: acme-backend-team
+
+  # Team Postgres replica — read-heavy workloads and schema introspection.
+  # transport: stdio — harness launches a local uvx subprocess.
+  team-postgres:
+    transport: stdio
+    command: uvx
+    args:
+      - mcp-server-postgres
+      - ${TEAM_DB_URL}
+
+# ----------------------------------------------------------------------------
+# Environment variable declarations.
+# sensitive: true (the default) — harness prompts the user; default is FORBIDDEN.
+# sensitive: false — non-secret value; default is allowed.
+# ----------------------------------------------------------------------------
+env:
+  # Base URL for the GitHub Enterprise instance.
+  # This is a URL, not a credential — safe to carry a company default.
+  - name: GITHUB_ENTERPRISE_URL
+    description: "Base URL of the Acme GitHub Enterprise instance (e.g., https://github.acme.internal)."
+    required: true
+    sensitive: false
+    default: "https://github.acme.internal"
+
+  # Personal access token for GitHub Enterprise.
+  - name: GHE_TOKEN
+    description: Personal access token for GitHub Enterprise API authentication.
+    required: true
+    sensitive: true  # Secret — default is forbidden.
+
+  # Connection string for the team Postgres replica.
+  - name: TEAM_DB_URL
+    description: "PostgreSQL connection string for the Acme backend team replica. Example: postgresql://user:pass@db.acme.internal:5432/backend"
+    required: true
+    sensitive: true  # Credentials in the connection string — default is forbidden.
+
+# ----------------------------------------------------------------------------
+# Instructions — appended after the base profile's instructions (import-mode: merge).
+# ----------------------------------------------------------------------------
+instructions:
+  operational: |
+    Follow the Acme backend engineering standards at https://wiki.acme.internal/backend/standards.
+    All PRs must reference a JIRA ticket; use the GHE MCP server to open and update PRs directly.
+  import-mode: merge
+
+# ----------------------------------------------------------------------------
+# Permissions — layered on top of what the base profile grants.
+# allow: intersected (most restrictive wins across chain).
+# deny:  unioned (any ancestor's denial propagates — these can only tighten).
+# ----------------------------------------------------------------------------
+permissions:
+  tools:
+    allow:
+      - Read
+      - Glob
+      - Grep
+      - Write
+      - Edit
+      - Bash
+      - mcp__github-enterprise__*
+      - mcp__team-postgres__*
+    deny:
+      # Prevent any destructive delete or drop operations through any MCP server.
+      - mcp__*__delete_*
+      - mcp__*__drop_*
+    ask:
+      # Confirm before running schema migrations against the team database.
+      - mcp__team-postgres__execute_migration
+
+  paths:
+    writable:
+      - src/          # Application source
+      - tests/        # Test files
+      - migrations/   # Schema migration files
+    readonly:
+      - infra/        # Infrastructure configs — read only, never modify locally
+
+  network:
+    allowed-hosts:
+      - "github.acme.internal"    # GitHub Enterprise instance
+      - "db.acme.internal"        # Team Postgres host
+      - "wiki.acme.internal"      # Internal documentation
+      - "*.github.com"            # Public GitHub (package resolution)
+      - "pypi.org"                # uvx / pip package resolution

@@ -1,0 +1,53 @@
+# Harness Protocol Overview
+
+## What Is the Harness Protocol?
+
+AI coding tools like Claude Code, Cursor, and GitHub Copilot each have their own proprietary formats for configuring an agent's context: which tools it can use, what MCP servers are connected, what instructions govern its behavior, what environment variables it needs. A developer who crafts a well-tuned configuration for one tool cannot share it, publish it, or carry it to another team without manual translation. There is no portable unit of "how this agent should work."
+
+The Harness Protocol defines that unit. A **harness** is the complete operational context for an AI coding agent: its plugins, MCP server declarations, environment requirements, behavioral instructions, permissions, and inheritance chain. The Harness Protocol specifies a vendor-neutral `harness.yaml` format for describing a harness, a validation model for ensuring it is well-formed and safe, and a layered architecture for exchange and discovery. It is to AI coding harnesses what the Model Context Protocol (MCP) is to tool communication — an open specification that implementations can build against, rather than a product any single vendor owns.
+
+## Protocol Layers
+
+The Harness Protocol is organized into three layers, each building on the previous. Version 1 delivers the Schema layer. Exchange and Registry are planned for subsequent versions.
+
+| Layer | Description | Status |
+|-------|-------------|--------|
+| **Schema** | The `harness.yaml` format: structure, validation rules, security model, inheritance semantics | v1 (current) |
+| **Exchange** | Harness-to-harness sharing — a protocol for publishing, fetching, and composing harnesses between tools and teams ("AirDrop for harnesses") | v2 (planned) |
+| **Registry** | Hosted discovery at harnessprotocol.ai — search, publish, version resolution, integrity verification for the broader ecosystem | v2/v3 (planned) |
+
+The layers are intentionally decoupled. A tool can implement Schema-layer validation today without any dependency on exchange or registry infrastructure. When Exchange ships, tools opt in incrementally.
+
+## What v1 Delivers
+
+Version 1 of the Harness Protocol specifies the **Schema layer**:
+
+- **The `harness.yaml` format** — a structured YAML document with top-level sections for metadata, plugins, MCP servers, environment declarations, instructions, permissions, and inheritance. See [Profile Schema](./profile-schema.md) for the full specification.
+- **The JSON Schema** — a machine-readable schema at `https://harnessprotocol.ai/schema/v1/harness.schema.json` that implementations use to validate harness files. The JSON Schema is the authoritative source of truth; this documentation is normative prose on top of it.
+- **The security model** — rules for sensitive environment variables, permission inheritance, integrity verification, and trust boundaries. See [Security](../security/) for details.
+- **The plugin manifest format** — the `plugin.json` format that plugin authors use to declare what their plugin provides and requires. See [Plugin Manifest](./plugin-manifest.md).
+- **The `kind: fragment` mechanism** — a partial harness document that intentionally omits required top-level fields, used as a building block for Exchange-layer composition.
+
+## How It Relates to harness-kit
+
+[harness-kit](https://github.com/siracusa5/harness-kit) is the **reference implementation** of the Harness Protocol. The relationship mirrors MCP and Claude Desktop: the protocol is the open specification; harness-kit is the first complete implementation that exercises and validates it.
+
+harness-kit provides:
+- A parser and validator for `harness.yaml` against the v1 JSON Schema
+- Plugin resolution and loading via the `source: owner/repo` mechanism
+- MCP server lifecycle management
+- Instruction file merging with the configured `import-mode`
+- Permission enforcement at the tool boundary
+
+Conformance to the Harness Protocol does not require using harness-kit. Any implementation that correctly validates and applies `harness.yaml` according to this specification is a conformant implementation.
+
+## Document Map
+
+| Document | Content |
+|----------|---------|
+| [Terminology](./terminology.md) | Glossary of all terms used in the spec |
+| [Architecture](./architecture.md) | System diagram, layer interactions, trust model |
+| [Profile Schema](./profile-schema.md) | Full `harness.yaml` field reference |
+| [Plugin Manifest](./plugin-manifest.md) | `plugin.json` format for plugin authors |
+| [Security](../security/) | Permission model, integrity verification, sensitive data rules |
+| [Extensions](../extensions/) | `x-` prefix fields and implementation-specific extensions |

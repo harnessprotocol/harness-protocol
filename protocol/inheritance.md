@@ -1,0 +1,365 @@
+# Inheritance
+
+This document specifies how `extends` works in `harness.yaml`: how parent harnesses are resolved, how their fields are merged, and the security constraints that govern the inheritance chain.
+
+---
+
+## Overview
+
+The `extends` field lets a child harness build on one or more parent harnesses. The child declares what to add or override; everything it does not override is inherited from the parent. This makes it practical to maintain shared base profiles for teams or organizations while allowing individual developers to customize without duplicating the full configuration.
+
+```yaml
+extends:
+  - source: my-org/base-harness
+    version: "^1.0.0"
+```
+
+The child harness is the document containing the `extends` field. The parents are the harnesses referenced in that array. A parent may itself have its own `extends` — the chain is resolved recursively before merging.
+
+---
+
+## Single vs. Multiple Inheritance
+
+A harness may extend a single parent or multiple parents.
+
+### Single Parent
+
+```yaml
+extends:
+  - source: my-org/base-harness
+    version: "^1.0.0"
+```
+
+The child inherits everything from `base-harness` and applies its own fields on top.
+
+### Multiple Parents
+
+```yaml
+extends:
+  - source: my-org/base-harness
+    version: "^1.0.0"
+  - source: my-org/security-fragment
+    version: "^2.0.0"
+```
+
+Parents are resolved and merged **left to right**: `base-harness` is applied first, then `security-fragment` is merged on top of it (later entries override earlier entries on conflict), and finally the child's own fields are merged on top of the result.
+
+For a harness with `extends: [A, B]`:
+
+1. Resolve and validate A.
+2. Resolve and validate B.
+3. Merge B on top of A (B wins on conflicts).
+4. Merge the child's own fields on top of the A+B result (child wins on all conflicts).
+
+The child always takes final precedence. No parent can override a field the child explicitly declares.
+
+---
+
+## Resolution Rules by Section
+
+Different sections of `harness.yaml` follow different merge semantics when inheritance is applied. The rules are designed with security in mind: permissions follow a least-privilege model, while additive sections (plugins, MCP servers) follow a union model.
+
+### `plugins`
+
+**Merge behavior: union by `name`; child/later wins on conflict.**
+
+All plugins from all parents are included in the effective plugin set. If two harnesses declare a plugin with the same `name`, the child's (or later parent's) declaration is used entirely — including its `version`, `config`, and `integrity` fields. There is no field-level merge within a single plugin entry.
+
+```
+parent: data-lineage@>=0.2.0, sql-formatter@^1.0.0
+child:   data-lineage@>=0.3.0
+
+effective: data-lineage@>=0.3.0 (child's version), sql-formatter@^1.0.0 (from parent)
+```
+
+### `mcp-servers`
+
+**Merge behavior: union by server name; child/later wins on conflict.**
+
+All MCP server entries from all parents are included. If two harnesses declare a server with the same name, the child's (or later parent's) full server declaration is used. There is no field-level merge within a single server declaration — the entire object (transport, command, args, env, url, headers) is replaced, not patched.
+
+```
+parent declares: postgres (uvx, basic connection string)
+child declares:  postgres (uvx, connection string + schema flag)
+
+effective postgres: child's full declaration
+```
+
+### `env`
+
+**Merge behavior: union by `name`; child/later wins on conflict.**
+
+All env entries from all parents are included. If two harnesses declare the same variable name, the child's (or later parent's) declaration is used entirely. This allows a child to strengthen constraints (e.g., changing `required: false` to `required: true`) or update a description without the parent's declaration shadowing it.
+
+### `instructions`
+
+**Merge behavior: governed by the child's `import-mode`.**
+
+Instructions do not follow the simple union/intersection model. Instead, the child's `import-mode` field controls how its instructions relate to the cumulative parent instructions. See [Instructions: Import Modes](./instructions.md#import-modes) for the full specification.
+
+Summary:
+- `merge` (default): child's instruction content is appended after parent's.
+- `replace`: child's instruction content replaces parent's for declared slots.
+- `skip`: parent's instructions pass through unchanged; child contributes nothing.
+
+`import-mode` in the child governs the child's relationship to its parents. It does not retroactively change how parent harnesses combined with their own parents.
+
+### `permissions.tools.allow`
+
+**Merge behavior: intersection (most restrictive wins).**
+
+A tool is in the effective allow list only if **every ancestor that defines a `permissions.tools.allow` list** includes that tool (directly or via a pattern match). If any ancestor's allow list omits a tool, that tool is not allowed in the effective set — regardless of what the child declares.
+
+This rule prevents inheritance escalation: a child cannot grant itself permissions that a parent did not provide. A child can only further restrict the tool set, not expand it.
+
+```
+parent allows: Read, Glob, Grep, Write, Edit, Bash
+child allows:  Read, Glob, Grep, Write
+
+effective allow: Read, Glob, Grep, Write (intersection — child cannot grant Bash back)
+```
+
+If a parent declares no `permissions.tools.allow` list (the field is absent), it imposes no restriction — only parents that actively define an allow list participate in the intersection.
+
+### `permissions.tools.deny`
+
+**Merge behavior: union (any ancestor's denial propagates).**
+
+A tool is denied if **any ancestor** in the inheritance chain denies it. A child cannot undo a parent's denial.
+
+```
+parent denies: mcp__postgres__drop_*
+child denies:  (nothing additional)
+
+effective deny: mcp__postgres__drop_* (parent's denial propagates)
+```
+
+This ensures that a security team's base profile can deny dangerous tools and no child harness can quietly re-enable them.
+
+### `permissions.tools.ask`
+
+**Merge behavior: union (any ancestor's ask propagates).**
+
+If any ancestor requires confirmation for a tool, confirmation is required in the child session. A child cannot remove a parent's ask requirement.
+
+### `permissions.paths`
+
+**Merge behavior: union for `writable`; union for `readonly`.**
+
+Path lists are additive across the inheritance chain. A child can add writable or readonly path patterns but cannot remove paths that a parent has declared. The effective path set is the union of all ancestors' path lists.
+
+To remove a path restriction that a parent imposed, use the team overlay syntax — an explicit `add`/`remove`/`override` operation that makes the intent unambiguous. Team overlay semantics are a v2 Exchange layer feature; in v1, path lists are strictly additive.
+
+### `permissions.network.allowed-hosts`
+
+**Merge behavior: union (additive).**
+
+The effective `allowed-hosts` is the union of all ancestors' lists. A child can add permitted hosts but cannot remove hosts that a parent permitted.
+
+### `metadata`
+
+**Merge behavior: child's metadata is used as-is; parent metadata is not inherited.**
+
+Metadata (`name`, `description`, `author`, `version`, `tags`) describes the harness document itself, not the session it produces. Inheriting parent metadata would make the child misrepresent its own identity. The child's metadata (if present) is used entirely; parent metadata is discarded.
+
+For `kind: fragment` documents, metadata is optional. A fragment that omits metadata may be extended by a child that declares its own metadata.
+
+### `kind`
+
+The child's `kind` is used. Parent `kind` values are not inherited.
+
+---
+
+## Summary Table
+
+| Section | Merge Rule |
+|---------|------------|
+| `plugins` | Union by `name`; child/later wins |
+| `mcp-servers` | Union by server name; child/later wins |
+| `env` | Union by `name`; child/later wins |
+| `instructions` | Governed by child's `import-mode` |
+| `permissions.tools.allow` | Intersection (most restrictive wins) |
+| `permissions.tools.deny` | Union (any denial propagates) |
+| `permissions.tools.ask` | Union (any ask propagates) |
+| `permissions.paths.writable` | Union (additive) |
+| `permissions.paths.readonly` | Union (additive) |
+| `permissions.network.allowed-hosts` | Union (additive) |
+| `metadata` | Child's metadata; parent not inherited |
+| `kind` | Child's kind |
+
+---
+
+## Team Overlays (v2 Preview)
+
+When a child profile extends a team base profile, there are scenarios where the child legitimately needs to undo or adjust something the base profile declared — for example, a developer-mode profile that re-enables `Bash` that the org base profile put behind `ask`, or a specialized service profile that uses a different database host.
+
+In v1, the inheritance rules are strictly additive or most-restrictive. Removing a path restriction, unlocking a tool from the ask list, or overriding a specific env entry requires the child to re-declare the entire section.
+
+The **v2 Exchange layer** will formalize team overlay semantics with explicit `add`, `remove`, and `override` operations. These make the intent unambiguous and allow implementations to verify that overlays are within permitted bounds. The design of the v1 schema (particularly the section-specific merge rules) is intentionally structured to compose cleanly with v2 overlay semantics when they arrive. No v1 schema changes are expected.
+
+---
+
+## Security: Inheritance Chain as Trust Boundary
+
+Extending a harness means trusting it to contribute plugins, MCP server configurations, environment requirements, instructions, and permissions to your session. Each harness in the inheritance chain is effectively given partial control over your agent's behavior.
+
+**Implementations must warn users when `extends` references a source they have not previously explicitly trusted.** "Explicitly trusted" means the user confirmed the source during a prior import — not just that the harness validates. A valid harness from an untrusted source is still an untrusted harness.
+
+For harnesses imported from the v2 Registry, registry metadata (audit status, publisher identity, download counts) provides additional signal. In v1, without a registry, implementations should surface the full `source: owner/repo` path and ask the user to confirm before resolving.
+
+---
+
+## Depth Limit
+
+Deeply nested inheritance chains are difficult to audit and can produce surprising effective configurations by the time all ancestor contributions are merged. They also create a denial-of-service vector if a chain is constructed to require many network fetches.
+
+**Implementations should enforce a maximum inheritance depth of 5 levels.** A chain deeper than 5 levels must fail with a clear error:
+
+```
+Error: inheritance depth limit exceeded (5).
+Harness chain: child → A → B → C → D → E
+Reduce the inheritance depth or flatten intermediate profiles.
+```
+
+The limit of 5 is a recommendation, not a hard protocol requirement. Implementations may choose a different limit but must document it.
+
+---
+
+## Circular Dependency Detection
+
+A harness must not extend itself directly or transitively. A circular inheritance chain is a fatal error.
+
+**Implementations must detect circular `extends` chains and fail validation with a clear error** that identifies the cycle:
+
+```
+Error: circular extends chain detected.
+Cycle: my-harness → base-harness → my-harness
+```
+
+Detection algorithm: as each parent is resolved, add it to a visited set. If the current harness's source appears in the visited set before resolution is complete, a cycle is present. Fail immediately — do not attempt partial resolution.
+
+---
+
+## Example: Team Harness Extending an Org Base Profile
+
+A three-level inheritance chain: a developer's personal profile extends a team fragment, which extends an org base profile.
+
+### Org base profile (`my-org/base`)
+
+```yaml
+$schema: https://harnessprotocol.ai/schema/v1/harness.schema.json
+version: "1"
+kind: profile
+
+metadata:
+  name: org-base
+  description: "Baseline harness for all my-org engineering projects"
+
+plugins:
+  - name: code-review
+    source: my-org/harness-plugins
+    version: "^1.0.0"
+
+permissions:
+  tools:
+    allow: [Read, Glob, Grep, Write, Edit]
+    deny: ["mcp__*__drop_*", "mcp__*__delete_*"]
+    ask: [Bash]
+
+instructions:
+  operational: |
+    ## my-org Engineering Standards
+    - All database migrations must be backward-compatible.
+    - Never hardcode environment-specific values.
+    - Follow the my-org contribution guide at https://wiki.my-org.com/contributing
+  import-mode: merge
+```
+
+### Team fragment (`my-org/data-team`)
+
+```yaml
+$schema: https://harnessprotocol.ai/schema/v1/harness.schema.json
+version: "1"
+kind: fragment
+
+metadata:
+  name: data-team
+  description: "Data team additions: postgres MCP, lineage plugin"
+
+extends:
+  - source: my-org/base
+    version: "^1.0.0"
+
+plugins:
+  - name: data-lineage
+    source: siracusa5/harness-kit
+    version: ">=0.2.0"
+
+mcp-servers:
+  postgres:
+    transport: stdio
+    command: uvx
+    args: [mcp-server-postgres, --connection-string, "${DB_CONNECTION_STRING}"]
+
+env:
+  - name: DB_CONNECTION_STRING
+    description: "PostgreSQL connection string for the data team replica"
+    required: true
+    sensitive: true
+
+permissions:
+  paths:
+    writable: [sql/, migrations/, dbt/]
+    readonly: [config/]
+```
+
+### Developer's personal profile
+
+```yaml
+$schema: https://harnessprotocol.ai/schema/v1/harness.schema.json
+version: "1"
+kind: profile
+
+metadata:
+  name: john-data-engineer
+  description: "Personal data engineering harness"
+  author:
+    name: John Siracusa
+    url: https://github.com/siracusa5
+
+extends:
+  - source: my-org/data-team
+    version: "^1.2.0"
+
+instructions:
+  operational: file://./instructions/local-ops.md
+  import-mode: merge
+
+# Adds a personal tool without affecting team-inherited restrictions
+mcp-servers:
+  local-search:
+    transport: stdio
+    command: npx
+    args: ["-y", "@modelcontextprotocol/server-filesystem", "${LOCAL_NOTES_PATH}"]
+
+env:
+  - name: LOCAL_NOTES_PATH
+    description: "Path to local notes directory"
+    required: false
+    sensitive: false
+    default: "~/notes"
+```
+
+**Effective configuration for the developer's profile:**
+
+| Section | Result |
+|---------|--------|
+| `plugins` | `code-review` (org), `data-lineage` (team) |
+| `mcp-servers` | `postgres` (team), `local-search` (personal) |
+| `env` | `DB_CONNECTION_STRING` (team), `LOCAL_NOTES_PATH` (personal) |
+| `permissions.tools.allow` | `Read, Glob, Grep, Write, Edit` (org — personal profile adds nothing; intersection of org set and no additional child list = org set) |
+| `permissions.tools.deny` | `mcp__*__drop_*`, `mcp__*__delete_*` (org — unioned, propagates) |
+| `permissions.tools.ask` | `Bash` (org — unioned, propagates) |
+| `permissions.paths.writable` | `sql/`, `migrations/`, `dbt/` (team — unioned) |
+| `permissions.paths.readonly` | `config/` (team — unioned) |
+| `instructions.operational` | org base standards + team's (merged) + local-ops.md (merged) |
