@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Harness Protocol</title>
+  <meta name="description" content="An open specification for portable AI coding harnesses." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131c;
+      --border: #1e1e2e;
+      --blue: #60a5fa;
+      --blue-dim: #3b82f6;
+      --blue-glow: rgba(96, 165, 250, 0.12);
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --mono: 'SF Mono', 'Cascadia Code', 'Fira Code', Menlo, Consolas, monospace;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Subtle dot-grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle, #1e1e2e 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* Logo mark */
+    .logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 2rem;
+      box-shadow: 0 0 24px var(--blue-glow);
+    }
+
+    .logo svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #e2e8f0 0%, var(--blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .tagline {
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      color: var(--muted);
+      max-width: 480px;
+      line-height: 1.6;
+      margin-bottom: 2.5rem;
+    }
+
+    /* Schema line */
+    .schema-line {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--blue);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--blue-dim);
+      border-radius: 6px;
+      padding: 0.7rem 1.2rem;
+      margin-bottom: 2.5rem;
+      letter-spacing: 0.01em;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Status badge */
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: var(--blue-glow);
+      border: 1px solid rgba(96, 165, 250, 0.2);
+      border-radius: 999px;
+      padding: 0.35rem 0.9rem;
+      margin-bottom: 3rem;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--blue);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* Links */
+    .links {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-decoration: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      transition: all 0.15s ease;
+    }
+
+    .link-primary {
+      background: var(--blue-dim);
+      color: #fff;
+      border: 1px solid transparent;
+    }
+
+    .link-primary:hover {
+      background: var(--blue);
+    }
+
+    .link-ghost {
+      color: var(--muted);
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .link-ghost:hover {
+      color: var(--text);
+      border-color: var(--blue-dim);
+    }
+
+    /* Footer */
+    footer {
+      position: absolute;
+      bottom: 2rem;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    footer a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <div class="logo">
+      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Harness buckle icon: two horizontal bars with a center pin -->
+        <rect x="4" y="8" width="20" height="3" rx="1.5" fill="#60a5fa"/>
+        <rect x="4" y="17" width="20" height="3" rx="1.5" fill="#60a5fa"/>
+        <rect x="12.5" y="4" width="3" height="20" rx="1.5" fill="#3b82f6" opacity="0.7"/>
+      </svg>
+    </div>
+
+    <div class="status">
+      <span class="status-dot"></span>
+      Coming soon
+    </div>
+
+    <h1>Harness Protocol</h1>
+
+    <p class="tagline">
+      An open specification for portable AI coding harnesses — one validated
+      <code style="font-family: var(--mono); font-size: 0.9em; color: var(--blue);">harness.yaml</code>
+      that works across every tool.
+    </p>
+
+    <div class="schema-line">
+      $schema: https://harnessprotocol.ai/schema/v1/harness.schema.json
+    </div>
+
+    <div class="links">
+      <a class="link link-primary" href="https://github.com/siracusa5/harness-protocol">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+        View on GitHub
+      </a>
+      <a class="link link-ghost" href="https://harnesskit.ai">
+        harness-kit ↗
+      </a>
+    </div>
+
+  </div>
+
+  <footer>
+    <a href="https://github.com/siracusa5/harness-protocol">Apache 2.0</a>
+    &nbsp;·&nbsp;
+    <a href="/schema/v1/harness.schema.json">JSON Schema</a>
+  </footer>
+</body>
+</html>
