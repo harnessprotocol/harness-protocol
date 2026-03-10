@@ -37,7 +37,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy coming-soon --project-name=harness-protocol
+          command: pages deploy coming-soon --project-name=harness-protocol --branch main
 
       # -------------------------------------------------------------------------
       # FULL SITE (uncomment when ready to launch)
@@ -61,4 +61,4 @@ jobs:
       #   with:
       #     apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       #     accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      #     command: pages deploy website/build --project-name=harness-protocol
+      #     command: pages deploy website/build --project-name=harness-protocol --branch main
