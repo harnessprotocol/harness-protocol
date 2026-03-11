@@ -3,7 +3,7 @@
 This document covers the security policy for the **Harness Protocol specification** — the format definition, JSON Schema, and normative behavioral rules for conforming implementations.
 
 If you are looking for:
-- **harness-kit implementation bugs** → [github.com/siracusa5/harness-kit/security/advisories](https://github.com/siracusa5/harness-kit/security/advisories)
+- **harness-kit implementation bugs** → [github.com/harnessprotocol/harness-kit/security/advisories](https://github.com/harnessprotocol/harness-kit/security/advisories)
 - **MCP server vulnerabilities** → contact the MCP server operator
 - **Plugin vulnerabilities** → contact the plugin author
 
@@ -99,7 +99,7 @@ Do not report this here: "The MCP server at X is doing Y."
 
 ### Implementation Bugs in harness-kit or Other Implementations
 
-If harness-kit fails to enforce a confirmation gate, incorrectly validates a hash, or silently applies a profile — those are harness-kit bugs. Report them to [github.com/siracusa5/harness-kit/security/advisories](https://github.com/siracusa5/harness-kit/security/advisories).
+If harness-kit fails to enforce a confirmation gate, incorrectly validates a hash, or silently applies a profile — those are harness-kit bugs. Report them to [github.com/harnessprotocol/harness-kit/security/advisories](https://github.com/harnessprotocol/harness-kit/security/advisories).
 
 The spec defines the required behavior. Whether a specific implementation correctly implements that behavior is the implementation's concern.
 
@@ -150,7 +150,7 @@ If you believe you have found a vulnerability in the Harness Protocol specificat
 **How to report:**
 
 Use GitHub Security Advisories at:
-[github.com/harnessprotocol/spec/security/advisories](https://github.com/harnessprotocol/spec/security/advisories)
+[github.com/harnessprotocol/harness-protocol/security/advisories](https://github.com/harnessprotocol/harness-protocol/security/advisories)
 
 Do not open a public GitHub issue for security vulnerabilities. Public disclosure before a fix is available puts all users of conforming implementations at risk.
 

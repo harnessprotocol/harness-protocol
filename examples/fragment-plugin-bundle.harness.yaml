@@ -8,7 +8,7 @@
 # Usage — reference this fragment from a full profile or another fragment:
 #
 #   extends:
-#     - source: siracusa5/harness-kit/examples/fragment-plugin-bundle.harness.yaml
+#     - source: harnessprotocol/harness-kit/examples/fragment-plugin-bundle.harness.yaml
 #
 # The consuming profile inherits all four plugins below and can override any
 # entry by declaring a plugin with the same name.
@@ -28,20 +28,20 @@ metadata:
 plugins:
   # Traces column-level lineage across dbt models and raw tables.
   - name: data-lineage
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
     version: ">=0.3.0"
 
   # Explains SQL query plans and dbt model DAG dependencies in plain language.
   - name: explain
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
     version: ">=0.2.0"
 
   # Research skill for querying documentation and package registries.
   - name: research
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
     version: ">=0.2.0"
 
   # Generates and updates data model documentation from source annotations.
   - name: docgen
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
     version: ">=0.2.0"

@@ -58,7 +58,7 @@ metadata:
 ```yaml
 plugins:
   - name: data-lineage
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
     version: ">=0.3.0"
     description: Trace column-level lineage across dbt models and raw tables.
 ```

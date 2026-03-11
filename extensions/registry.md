@@ -82,7 +82,7 @@ POST /api/v1/register
 Content-Type: application/json
 
 {
-  "repo": "siracusa5/harness-kit",
+  "repo": "harnessprotocol/harness-kit",
   "ref": "v1.2.0",
   "path": "harness.yaml"
 }
@@ -92,8 +92,8 @@ Response on success:
 
 ```json
 {
-  "id": "siracusa5/harness-kit@v1.2.0",
-  "url": "https://harnessprotocol.ai/profiles/siracusa5/harness-kit",
+  "id": "harnessprotocol/harness-kit@v1.2.0",
+  "url": "https://harnessprotocol.ai/profiles/harnessprotocol/harness-kit",
   "sha256": "a3f1e2b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2",
   "indexed-at": "2026-03-09T14:30:22Z"
 }
@@ -146,7 +146,7 @@ Response:
 {
   "results": [
     {
-      "id": "siracusa5/harness-kit",
+      "id": "harnessprotocol/harness-kit",
       "latest-version": "1.2.0",
       "metadata": {
         "name": "data-engineer",
@@ -157,7 +157,7 @@ Response:
       },
       "downloads-30d": 142,
       "indexed-at": "2026-03-09T14:30:22Z",
-      "url": "https://harnessprotocol.ai/profiles/siracusa5/harness-kit"
+      "url": "https://harnessprotocol.ai/profiles/harnessprotocol/harness-kit"
     }
   ],
   "total": 1,
@@ -176,9 +176,9 @@ Returns the registry entry for the latest indexed version, including all metadat
 
 ```json
 {
-  "id": "siracusa5/harness-kit",
-  "github-url": "https://github.com/siracusa5/harness-kit",
-  "harness-url": "https://raw.githubusercontent.com/siracusa5/harness-kit/v1.2.0/harness.yaml",
+  "id": "harnessprotocol/harness-kit",
+  "github-url": "https://github.com/harnessprotocol/harness-kit",
+  "harness-url": "https://raw.githubusercontent.com/harnessprotocol/harness-kit/v1.2.0/harness.yaml",
   "latest-version": "1.2.0",
   "sha256": "a3f1e2b4c5d6e7f8...",
   "metadata": { ... },
@@ -233,7 +233,7 @@ Scoped to `plugin.json` manifests.
 ### Integrity verification
 
 ```http
-GET /api/v1/verify?repo=siracusa5/harness-kit&ref=v1.2.0
+GET /api/v1/verify?repo=harnessprotocol/harness-kit&ref=v1.2.0
 ```
 
 Returns the registry's stored SHA-256 for the given `owner/repo@ref`. Clients can fetch the document from GitHub, compute the SHA-256 locally, and compare. A mismatch between the registry hash and the locally-computed hash indicates either a registry integrity problem or that the GitHub ref was altered after indexing (force-push or tag replacement).
@@ -251,9 +251,9 @@ Profiles are addressed by `owner/repo` — the same namespace as GitHub. This is
 Multiple harness documents can live in one repository (e.g., `harness.yaml` at the root, `harness/python.harness.yaml`, `harness/go.harness.yaml`). The registry addresses these by the `path` field:
 
 ```
-siracusa5/harness-kit                      → root harness.yaml
-siracusa5/harness-kit/harness/go.yaml      → go-specific profile
-siracusa5/harness-kit/harness/python.yaml  → python-specific profile
+harnessprotocol/harness-kit                      → root harness.yaml
+harnessprotocol/harness-kit/harness/go.yaml      → go-specific profile
+harnessprotocol/harness-kit/harness/python.yaml  → python-specific profile
 ```
 
 The default path is `harness.yaml` at the repository root.
@@ -288,7 +288,7 @@ The transparency log is append-only by construction. Log entries are structured:
   "seq": 1042,
   "timestamp": "2026-03-09T14:30:22Z",
   "event": "index",
-  "id": "siracusa5/harness-kit@v1.2.0",
+  "id": "harnessprotocol/harness-kit@v1.2.0",
   "sha256": "a3f1e2b4c5d6e7f8...",
   "kind": "profile",
   "schema-version": "1"

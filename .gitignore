@@ -3,3 +3,5 @@
 *.swo
 node_modules/
 .venv/
+.claude.local.md
+.wrangler/

@@ -46,9 +46,9 @@ kind: fragment
 
 plugins:
   - name: data-lineage
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
   - name: explain
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
 ```
 
 ## Composition

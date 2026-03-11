@@ -100,7 +100,7 @@ Schema snapshots in `schema/YYYY-MM-DD/` are permanent — once published, they 
 
 ## Relationship to harness-kit
 
-[harness-kit](https://github.com/siracusa5/harness-kit) is the reference implementation of the Harness Protocol. It exercises the spec, validates the design, and provides a working implementation that others can study.
+[harness-kit](https://github.com/harnessprotocol/harness-kit) is the reference implementation of the Harness Protocol. It exercises the spec, validates the design, and provides a working implementation that others can study.
 
 harness-kit does not govern the spec. Decisions about what the spec should say are made through the HEP process in this repository, independent of harness-kit's implementation priorities.
 

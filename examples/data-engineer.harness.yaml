@@ -33,18 +33,18 @@ metadata:
 plugins:
   # Traces data lineage across models, tables, and upstream sources.
   - name: data-lineage
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
     version: ">=0.3.0"
     description: Trace column-level lineage across dbt models and raw tables.
 
   # Explains SQL queries and dbt model DAG decisions in plain language.
   - name: explain
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
     description: Explain SQL query plans and dbt model dependencies.
 
   # Research skill for querying documentation and package registries.
   - name: research
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
 
 # ----------------------------------------------------------------------------
 # MCP servers — local and remote tool servers.

@@ -41,13 +41,13 @@ extends:
 plugins:
   # Generates API documentation from source code and OpenAPI annotations.
   - name: docgen
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
     version: ">=0.4.0"
     description: Generate and update API documentation from source annotations.
 
   # Lightweight code review assistant focused on backend patterns.
   - name: code-review
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
     version: ">=0.3.0"
     description: Backend-focused code review — consistency, error handling, and API contract checks.
 

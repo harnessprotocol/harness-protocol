@@ -6,7 +6,7 @@ Thank you for your interest in contributing. The Harness Protocol is a vendor-ne
 
 ## Scope of Contributions
 
-This repository contains the **specification** — the normative documents, JSON Schema, and examples that define what a conformant implementation must do. It does not contain the harness-kit implementation (that lives at [github.com/siracusa5/harness-kit](https://github.com/siracusa5/harness-kit)).
+This repository contains the **specification** — the normative documents, JSON Schema, and examples that define what a conformant implementation must do. It does not contain the harness-kit implementation (that lives at [github.com/harnessprotocol/harness-kit](https://github.com/harnessprotocol/harness-kit)).
 
 Contributions fall into two categories:
 

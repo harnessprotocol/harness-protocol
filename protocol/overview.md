@@ -30,7 +30,7 @@ Version 1 of the Harness Protocol specifies the **Schema layer**:
 
 ## How It Relates to harness-kit
 
-[harness-kit](https://github.com/siracusa5/harness-kit) is the **reference implementation** of the Harness Protocol. The relationship mirrors MCP and Claude Desktop: the protocol is the open specification; harness-kit is the first complete implementation that exercises and validates it.
+[harness-kit](https://github.com/harnessprotocol/harness-kit) is the **reference implementation** of the Harness Protocol. The relationship mirrors MCP and Claude Desktop: the protocol is the open specification; harness-kit is the first complete implementation that exercises and validates it.
 
 harness-kit provides:
 - A parser and validator for `harness.yaml` against the v1 JSON Schema

@@ -112,7 +112,7 @@ metadata:
 
 plugins:
   - name: data-lineage
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
 
 mcp-servers:
   postgres:

@@ -86,7 +86,7 @@ Implementations that generate typed data structures (e.g., Go structs, TypeScrip
 
 ## harness-kit as the Reference Implementation
 
-[harness-kit](https://github.com/siracusa5/harness-kit) is the reference implementation of the Harness Protocol. Its role in the ecosystem is analogous to Claude Desktop's role in the MCP ecosystem: it exercises the full spec, serves as a conformance reference, and is the first implementation that users interact with directly.
+[harness-kit](https://github.com/harnessprotocol/harness-kit) is the reference implementation of the Harness Protocol. Its role in the ecosystem is analogous to Claude Desktop's role in the MCP ecosystem: it exercises the full spec, serves as a conformance reference, and is the first implementation that users interact with directly.
 
 The reference implementation has two obligations beyond a typical implementation:
 

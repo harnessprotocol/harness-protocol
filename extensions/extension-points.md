@@ -72,7 +72,7 @@ For implementation-specific features beyond simple hints, use a vendor-namespace
 
 ```yaml
 # harness-kit marketplace integration
-x-harness-kit-marketplace: siracusa5/harness-kit
+x-harness-kit-marketplace: harnessprotocol/harness-kit
 
 # A hypothetical Cursor-specific override
 x-cursor-model-override: gpt-4o

@@ -11,12 +11,12 @@ Plugins extend the harness with skills, agents, hooks, and MCP servers from exte
 ```yaml
 plugins:
   - name: data-lineage
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
     version: ">=0.3.0"
     description: Trace column-level lineage across dbt models and raw tables.
 
   - name: explain
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
 ```
 
 Each plugin entry identifies what to install (`name`), where to fetch it from (`source`), and optionally constrains the version.
@@ -26,10 +26,10 @@ Each plugin entry identifies what to install (`name`), where to fetch it from (`
 `source` is an `owner/repo` path resolved via GitHub by default:
 
 ```
-source: siracusa5/harness-kit
+source: harnessprotocol/harness-kit
 ```
 
-resolves to `https://github.com/siracusa5/harness-kit`. The harness runtime fetches the plugin manifest from the repository's registered marketplace path.
+resolves to `https://github.com/harnessprotocol/harness-kit`. The harness runtime fetches the plugin manifest from the repository's registered marketplace path.
 
 ## Version constraints
 

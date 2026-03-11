@@ -29,16 +29,16 @@ metadata:
 
 plugins:
   - name: data-lineage
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
     version: ">=0.3.0"
     description: Trace column-level lineage across dbt models and raw tables.
 
   - name: explain
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
     description: Explain SQL query plans and dbt model dependencies.
 
   - name: research
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
 
 mcp-servers:
   postgres:

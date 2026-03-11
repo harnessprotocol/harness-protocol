@@ -292,7 +292,7 @@ extends:
 
 plugins:
   - name: data-lineage
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
     version: ">=0.2.0"
 
 mcp-servers:

@@ -135,7 +135,7 @@ metadata:
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `name` | string | Yes | Local name for this plugin within the harness. Used for override targeting in team overlays. |
-| `source` | string | Yes | Plugin source in `owner/repo` format (e.g., `siracusa5/harness-kit`). |
+| `source` | string | Yes | Plugin source in `owner/repo` format (e.g., `harnessprotocol/harness-kit`). |
 | `version` | string | Yes | Semver range specifying the required plugin version (e.g., `">=0.2.0"`, `"^1.0.0"`). |
 | `description` | string | No | Human-readable note about why this plugin is included. Informational only. |
 | `config` | object | No | Plugin-specific configuration. Schema is defined by the individual plugin's `plugin.json`. |
@@ -159,7 +159,7 @@ When a child harness extends a parent, plugin lists are **unioned**. If both dec
 ```yaml
 plugins:
   - name: data-lineage
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
     version: ">=0.2.0"
     description: "SQL lineage tracking and impact analysis"
     config:
@@ -505,7 +505,7 @@ metadata:
 
 plugins:
   - name: data-lineage
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
     version: ">=0.2.0"
     config:
       default-schema: public

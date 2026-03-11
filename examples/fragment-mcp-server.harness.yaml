@@ -9,7 +9,7 @@
 # this file from a full profile:
 #
 #   extends:
-#     - source: siracusa5/harness-kit/examples/fragment-mcp-server.harness.yaml
+#     - source: harnessprotocol/harness-kit/examples/fragment-mcp-server.harness.yaml
 #
 # The consuming profile is responsible for satisfying the env[] declarations
 # (e.g., providing DB_CONNECTION_STRING) if it does not already declare them.

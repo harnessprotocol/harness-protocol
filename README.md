@@ -77,7 +77,7 @@ The full field reference is in [protocol/profile-schema.md](protocol/profile-sch
 
 ## Getting Started
 
-[harness-kit](https://github.com/siracusa5/harness-kit) is the reference implementation of the Harness Protocol. It provides a parser, validator, plugin loader, MCP server lifecycle manager, and CLI for working with `harness.yaml` profiles. Start there to use the protocol today.
+[harness-kit](https://github.com/harnessprotocol/harness-kit) is the reference implementation of the Harness Protocol. It provides a parser, validator, plugin loader, MCP server lifecycle manager, and CLI for working with `harness.yaml` profiles. Start there to use the protocol today.
 
 Conformance does not require harness-kit — any implementation that correctly validates and applies `harness.yaml` per this specification is conformant.
 

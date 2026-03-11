@@ -74,7 +74,7 @@ Import mode applies to the `instructions` section only, not to plugins, permissi
 
 ## Source
 
-The canonical reference for a plugin's origin, using `owner/repo` format (e.g., `siracusa5/harness-kit`). The `source` field in a `plugins[]` entry replaces the legacy `marketplace` indirection by pointing directly to the repository where the plugin lives.
+The canonical reference for a plugin's origin, using `owner/repo` format (e.g., `harnessprotocol/harness-kit`). The `source` field in a `plugins[]` entry replaces the legacy `marketplace` indirection by pointing directly to the repository where the plugin lives.
 
 A conformant implementation resolves a plugin source by fetching the `plugin.json` manifest from the specified repository at the specified version. The protocol does not mandate a specific hosting provider; GitHub is conventional but not required.
 

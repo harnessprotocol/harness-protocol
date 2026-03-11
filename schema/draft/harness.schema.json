@@ -89,7 +89,7 @@
           "source": {
             "type": "string",
             "pattern": "^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$",
-            "description": "Source repository in 'owner/repo' format. Example: 'siracusa5/harness-kit'. Used to locate and fetch the plugin. Replaces the legacy 'marketplace' indirection."
+            "description": "Source repository in 'owner/repo' format. Example: 'harnessprotocol/harness-kit'. Used to locate and fetch the plugin. Replaces the legacy 'marketplace' indirection."
           },
           "version": {
             "type": "string",

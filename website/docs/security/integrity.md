@@ -23,7 +23,7 @@ The Exchange layer will add:
 # Future: integrity fields on plugin declarations
 plugins:
   - name: data-lineage
-    source: siracusa5/harness-kit
+    source: harnessprotocol/harness-kit
     version: "0.3.1"
     integrity: sha256-abc123...   # hash of plugin.json at that version
 ```
