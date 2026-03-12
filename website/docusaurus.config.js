@@ -65,7 +65,13 @@ const config = {
         respectPrefersColorScheme: true,
       },
       navbar: {
-        title: 'Harness Protocol',
+        title: '',
+        logo: {
+          alt: 'Harness Protocol',
+          src: 'img/logo-wordmark-light.svg',
+          srcDark: 'img/logo-wordmark.svg',
+          height: 32,
+        },
         items: [
           {
             type: 'docSidebar',

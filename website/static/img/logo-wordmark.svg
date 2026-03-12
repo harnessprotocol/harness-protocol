@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 200">
+  <!-- Mark -->
+  <circle cx="100" cy="100" r="62" fill="none" stroke="#60a5fa" stroke-width="5.5"/>
+  <line x1="100" y1="58" x2="63.63" y2="121" stroke="#a78bfa" stroke-width="2.5" opacity="0.55"/>
+  <line x1="63.63" y1="121" x2="136.37" y2="121" stroke="#a78bfa" stroke-width="2.5" opacity="0.55"/>
+  <line x1="136.37" y1="121" x2="100" y2="58" stroke="#a78bfa" stroke-width="2.5" opacity="0.55"/>
+  <circle cx="100" cy="58" r="9.5" fill="#e2e8f0"/>
+  <circle cx="63.63" cy="121" r="9.5" fill="#e2e8f0"/>
+  <circle cx="136.37" cy="121" r="9.5" fill="#e2e8f0"/>
+
+  <!-- Separator -->
+  <line x1="192" y1="64" x2="192" y2="136" stroke="#1e2030" stroke-width="1.5"/>
+
+  <!-- Single-line wordmark -->
+  <text y="112" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif" font-size="44">
+    <tspan x="214" font-weight="700" fill="#e2e8f0">harness</tspan><tspan font-weight="400" fill="#60a5fa"> protocol</tspan>
+  </text>
+</svg>
