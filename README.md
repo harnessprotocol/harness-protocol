@@ -14,7 +14,7 @@ The specification is organized into three layers, each building on the previous.
 |-------|-------------|--------|
 | **Schema** | The `harness.yaml` format, JSON Schema validation, security model, plugin manifest | v1 — current |
 | **Exchange** | Harness-to-harness sharing: publish, fetch, and compose harnesses across tools and teams | v2 — planned |
-| **Registry** | Hosted discovery at harnessprotocol.io: search, publish, version resolution, integrity verification | v2/v3 — planned |
+| **Registry** | Hosted discovery at harnessprotocol.ai: search, publish, version resolution, integrity verification | v2/v3 — planned |
 
 Layers are intentionally decoupled. A tool can implement Schema-layer validation today without any dependency on exchange or registry infrastructure.
 
@@ -25,7 +25,7 @@ Layers are intentionally decoupled. A tool can implement Schema-layer validation
 A harness profile is a YAML file validated against the Harness Protocol JSON Schema. The minimal valid profile:
 
 ```yaml
-$schema: https://harnessprotocol.io/schema/v1/harness.schema.json
+$schema: https://harnessprotocol.ai/schema/v1/harness.schema.json
 version: "1"
 metadata:
   name: my-harness
@@ -35,7 +35,7 @@ metadata:
 A fuller example showing common fields:
 
 ```yaml
-$schema: https://harnessprotocol.io/schema/v1/harness.schema.json
+$schema: https://harnessprotocol.ai/schema/v1/harness.schema.json
 version: "1"
 metadata:
   name: data-engineer
