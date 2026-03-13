@@ -60,7 +60,7 @@ mcp-servers:
     command: uvx
     args:
       - mcp-server-postgres
-      - ${DB_CONNECTION_STRING}
+      - "${DB_CONNECTION_STRING}"
 
   # Remote analytics API — exposes dashboarding and metric query tools.
   # Treated as untrusted remote content by the harness runtime.
@@ -68,7 +68,7 @@ mcp-servers:
     transport: http
     url: https://analytics.example.com/mcp/v1
     headers:
-      Authorization: Bearer ${ANALYTICS_API_KEY}
+      Authorization: "Bearer ${ANALYTICS_API_KEY}"
 
 # ----------------------------------------------------------------------------
 # Environment variable declarations.

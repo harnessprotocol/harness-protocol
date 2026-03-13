@@ -32,7 +32,7 @@ mcp-servers:
     command: uvx
     args:
       - mcp-server-postgres
-      - ${DB_CONNECTION_STRING}
+      - "${DB_CONNECTION_STRING}"
 
 # Environment variable required by the postgres MCP server above.
 # sensitive: true (the default) — harness will prompt the user; no default allowed.

@@ -49,5 +49,10 @@ Conformance to the Harness Protocol does not require using harness-kit. Any impl
 | [Architecture](./architecture.md) | System diagram, layer interactions, trust model |
 | [Profile Schema](./profile-schema.md) | Full `harness.yaml` field reference |
 | [Plugin Manifest](./plugin-manifest.md) | `plugin.json` format for plugin authors |
+| [MCP Declarations](./mcp-declarations.md) | MCP server transport types, variable substitution, security |
+| [Instructions](./instructions.md) | Instruction slots, content sources, import modes |
+| [Environment](./environment.md) | Environment variable declarations, sensitive handling |
+| [Fragments](./fragments.md) | `kind: fragment` — partial harness documents for composition |
+| [Inheritance](./inheritance.md) | `extends` resolution order and per-section merge rules |
 | [Security](../security/) | Permission model, integrity verification, sensitive data rules |
 | [Extensions](../extensions/) | `x-` prefix fields and implementation-specific extensions |

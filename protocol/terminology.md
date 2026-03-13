@@ -118,6 +118,6 @@ Example: `x-claude-model: claude-opus-4` is a valid extension field that a Claud
 
 **Harness Enhancement Proposal.** The process for proposing changes to the Harness Protocol specification. An HEP is a structured document describing a proposed change, its motivation, design, backward compatibility impact, and security considerations. The HEP process gates all changes to the core schema and protocol layers.
 
-HEPs are authored against the `harnessprotocol` GitHub organization and follow a numbered sequence (HEP-001, HEP-002, ...). A change is not part of the specification until the corresponding HEP is accepted and merged.
+HEPs are authored against the `harnessprotocol` GitHub organization and follow a numbered sequence (HEP-1, HEP-2, ...). A change is not part of the specification until the corresponding HEP is accepted and merged.
 
 The HEP process does not govern implementation-specific behavior, `x-` extension fields, or blog/example content.

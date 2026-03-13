@@ -94,8 +94,17 @@ Full documentation is available at [harnessprotocol.io](https://harnessprotocol.
 | [protocol/architecture.md](protocol/architecture.md) | System diagram, layer interactions, trust model |
 | [protocol/profile-schema.md](protocol/profile-schema.md) | Full `harness.yaml` field reference |
 | [protocol/plugin-manifest.md](protocol/plugin-manifest.md) | `plugin.json` format for plugin authors |
+| [protocol/mcp-declarations.md](protocol/mcp-declarations.md) | MCP server transport types, variable substitution, security |
+| [protocol/instructions.md](protocol/instructions.md) | Instruction slots, content sources, import modes |
+| [protocol/environment.md](protocol/environment.md) | Environment variable declarations and sensitive data handling |
+| [protocol/fragments.md](protocol/fragments.md) | `kind: fragment` — partial harness documents for composition |
+| [protocol/inheritance.md](protocol/inheritance.md) | `extends` resolution order and per-section merge rules |
 | [security/threat-model.md](security/threat-model.md) | Threat model and security design |
 | [security/trust-boundaries.md](security/trust-boundaries.md) | Trust boundaries between spec, implementations, profiles, and remote content |
+| [security/secrets.md](security/secrets.md) | Sensitive variable handling and secrets patterns |
+| [security/permissions.md](security/permissions.md) | Permission model and enforcement |
+| [security/integrity.md](security/integrity.md) | Content integrity verification |
+| [security/instruction-injection.md](security/instruction-injection.md) | Instruction injection threat and mitigations |
 
 ---
 

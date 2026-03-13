@@ -62,7 +62,7 @@ mcp-servers:
     transport: http
     url: "${GITHUB_ENTERPRISE_URL}/mcp/v1"
     headers:
-      Authorization: Bearer ${GHE_TOKEN}
+      Authorization: "Bearer ${GHE_TOKEN}"
       X-Harness-Client: acme-backend-team
 
   # Team Postgres replica — read-heavy workloads and schema introspection.
@@ -72,7 +72,7 @@ mcp-servers:
     command: uvx
     args:
       - mcp-server-postgres
-      - ${TEAM_DB_URL}
+      - "${TEAM_DB_URL}"
 
 # ----------------------------------------------------------------------------
 # Environment variable declarations.
