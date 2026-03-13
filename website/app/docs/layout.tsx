@@ -11,13 +11,16 @@ export default function Layout({ children }: { children: ReactNode }) {
           <span className="flex items-center gap-2 font-bold">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 32 32"
+              viewBox="0 0 200 200"
               className="size-6"
             >
-              <rect width="32" height="32" rx="6" fill="#080d18" />
-              <rect x="6" y="8" width="20" height="3" rx="1.5" fill="#3dd6cc" />
-              <rect x="6" y="14.5" width="14" height="3" rx="1.5" fill="#3dd6cc" opacity="0.7" />
-              <rect x="6" y="21" width="8" height="3" rx="1.5" fill="#3dd6cc" opacity="0.4" />
+              <circle cx="100" cy="100" r="62" fill="none" stroke="#60a5fa" strokeWidth="5.5" />
+              <line x1="100" y1="58" x2="63.63" y2="121" stroke="#a78bfa" strokeWidth="2.5" opacity="0.55" />
+              <line x1="63.63" y1="121" x2="136.37" y2="121" stroke="#a78bfa" strokeWidth="2.5" opacity="0.55" />
+              <line x1="136.37" y1="121" x2="100" y2="58" stroke="#a78bfa" strokeWidth="2.5" opacity="0.55" />
+              <circle cx="100" cy="58" r="9.5" fill="#e2e8f0" />
+              <circle cx="63.63" cy="121" r="9.5" fill="#e2e8f0" />
+              <circle cx="136.37" cy="121" r="9.5" fill="#e2e8f0" />
             </svg>
             <span className="font-display">Harness Protocol</span>
           </span>

@@ -12,7 +12,7 @@ body {
 
 /* ── Light theme ── */
 :root {
-  --color-fd-primary: 192 75% 38%;
+  --color-fd-primary: 217 91% 60%;
   --color-fd-primary-foreground: 0 0% 100%;
   --color-fd-background: 210 20% 99%;
   --color-fd-foreground: 220 20% 12%;
@@ -21,39 +21,39 @@ body {
   --color-fd-muted: 210 10% 93%;
   --color-fd-muted-foreground: 220 8% 44%;
   --color-fd-border: 210 10% 88%;
-  --color-fd-accent: 192 55% 94%;
-  --color-fd-accent-foreground: 192 75% 28%;
+  --color-fd-accent: 213 60% 94%;
+  --color-fd-accent-foreground: 217 70% 35%;
   --color-fd-popover: 0 0% 100%;
   --color-fd-popover-foreground: 220 20% 12%;
   --color-fd-secondary: 210 10% 95%;
   --color-fd-secondary-foreground: 220 20% 12%;
-  --color-fd-ring: 192 75% 38%;
+  --color-fd-ring: 217 91% 60%;
 }
 
-/* ── Dark theme — deep navy, cyan accent ── */
+/* ── Dark theme — HP Blue accent ── */
 .dark {
-  --color-fd-primary: 186 80% 62%;
-  --color-fd-primary-foreground: 222 25% 6%;
-  --color-fd-background: 222 25% 5%;
+  --color-fd-primary: 213 94% 68%;
+  --color-fd-primary-foreground: 240 16% 6%;
+  --color-fd-background: 240 16% 6%;
   --color-fd-foreground: 0 0% 93%;
-  --color-fd-card: 222 20% 8%;
+  --color-fd-card: 240 16% 9%;
   --color-fd-card-foreground: 0 0% 93%;
-  --color-fd-muted: 222 14% 13%;
-  --color-fd-muted-foreground: 222 6% 56%;
-  --color-fd-border: 222 18% 15%;
-  --color-fd-accent: 186 35% 12%;
-  --color-fd-accent-foreground: 186 65% 72%;
-  --color-fd-popover: 222 20% 7%;
+  --color-fd-muted: 240 12% 13%;
+  --color-fd-muted-foreground: 240 6% 56%;
+  --color-fd-border: 240 14% 16%;
+  --color-fd-accent: 213 35% 12%;
+  --color-fd-accent-foreground: 213 94% 72%;
+  --color-fd-popover: 240 16% 7%;
   --color-fd-popover-foreground: 0 0% 93%;
-  --color-fd-secondary: 222 14% 10%;
+  --color-fd-secondary: 240 12% 10%;
   --color-fd-secondary-foreground: 0 0% 93%;
-  --color-fd-ring: 186 80% 62%;
+  --color-fd-ring: 213 94% 68%;
 }
 
 /* ── Utility classes ── */
 .glass {
   backdrop-filter: blur(12px);
-  background: hsla(222, 22%, 8%, 0.7);
+  background: hsla(240, 16%, 8%, 0.7);
 }
 
 /* ── Page fade-in ── */
@@ -79,7 +79,7 @@ h1, h2, h3 {
 /* ── Nav bar ── */
 .dark [data-fumadocs-nav] {
   border-bottom: none;
-  background: hsla(222, 25%, 5%, 0.88);
+  background: hsla(240, 16%, 6%, 0.88);
   backdrop-filter: blur(16px);
 }
 .dark [data-fumadocs-nav]::after {
@@ -89,33 +89,32 @@ h1, h2, h3 {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, hsla(186, 80%, 62%, 0.18), transparent);
+  background: linear-gradient(90deg, transparent, hsla(213, 94%, 68%, 0.18), transparent);
 }
 
 /* ── Sidebar active item ── */
 .dark [data-fumadocs-sidebar] [aria-current="page"],
 .dark [data-fumadocs-sidebar] [data-active="true"] {
-  border-left: 2px solid hsl(186, 80%, 62%);
-  background: hsla(186, 35%, 12%, 0.5);
+  border-left: 2px solid hsl(213, 94%, 68%);
+  background: hsla(213, 35%, 12%, 0.5);
   padding-left: 10px;
 }
 
 /* ── TOC active item ── */
 .dark [data-fumadocs-toc] [data-active="true"] {
-  color: hsl(186, 80%, 62%);
+  color: hsl(213, 94%, 68%);
 }
 
 /* ── Code blocks ── */
 .dark pre {
-  background: hsl(222, 20%, 6%) !important;
-  border: 1px solid hsla(222, 18%, 20%, 0.35);
+  background: hsl(240, 16%, 7%) !important;
   border-radius: 0.75rem;
 }
 
 /* ── Blockquotes as callouts ── */
 .dark blockquote {
-  border-left: 3px solid hsl(186, 80%, 62%);
-  background: hsla(186, 25%, 10%, 0.35);
+  border-left: 3px solid hsl(213, 94%, 68%);
+  background: hsla(213, 25%, 10%, 0.35);
   border-radius: 0 0.5rem 0.5rem 0;
   padding: 0.75rem 1rem;
 }

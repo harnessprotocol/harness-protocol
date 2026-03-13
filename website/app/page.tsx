@@ -1,11 +1,14 @@
 import Link from 'next/link';
 
 const LogoIcon = ({ className }: { className?: string }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className={className}>
-    <rect width="32" height="32" rx="6" fill="#080d18" />
-    <rect x="6" y="8" width="20" height="3" rx="1.5" fill="#3dd6cc" />
-    <rect x="6" y="14.5" width="14" height="3" rx="1.5" fill="#3dd6cc" opacity="0.7" />
-    <rect x="6" y="21" width="8" height="3" rx="1.5" fill="#3dd6cc" opacity="0.4" />
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" className={className}>
+    <circle cx="100" cy="100" r="62" fill="none" stroke="#60a5fa" strokeWidth="5.5" />
+    <line x1="100" y1="58" x2="63.63" y2="121" stroke="#a78bfa" strokeWidth="2.5" opacity="0.55" />
+    <line x1="63.63" y1="121" x2="136.37" y2="121" stroke="#a78bfa" strokeWidth="2.5" opacity="0.55" />
+    <line x1="136.37" y1="121" x2="100" y2="58" stroke="#a78bfa" strokeWidth="2.5" opacity="0.55" />
+    <circle cx="100" cy="58" r="9.5" fill="#e2e8f0" />
+    <circle cx="63.63" cy="121" r="9.5" fill="#e2e8f0" />
+    <circle cx="136.37" cy="121" r="9.5" fill="#e2e8f0" />
   </svg>
 );
 
@@ -60,21 +63,21 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        {/* Ambient glow — cyan, not purple */}
+        {/* Ambient glow */}
         <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/3">
-          <div className="h-[400px] w-[600px] rounded-full bg-cyan-500/10 blur-[100px]" />
+          <div className="h-[400px] w-[600px] rounded-full bg-blue-500/10 blur-[100px]" />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/4 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-500/4 via-transparent to-transparent" />
 
         <div className="relative mx-auto max-w-4xl px-6 pb-16 pt-28 text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-fd-border/50 bg-fd-card/80 px-4 py-1.5 text-sm text-fd-muted-foreground backdrop-blur-sm">
-            <span className="size-1.5 rounded-full bg-cyan-400" />
+            <span className="size-1.5 rounded-full bg-blue-400" />
             v1 Schema layer — draft
           </div>
           <h1 className="font-display mb-5 text-5xl font-bold tracking-tight text-fd-foreground sm:text-6xl lg:text-7xl">
-            Portable AI{' '}
-            <span className="bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
-              harnesses
+            AI coding context,{' '}
+            <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">
+              standardized.
             </span>
           </h1>
           <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-fd-muted-foreground">
@@ -84,7 +87,7 @@ export default function HomePage() {
           </p>
 
           <div className="relative mx-auto mb-8 inline-block">
-            <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-r from-cyan-500/25 via-teal-500/15 to-cyan-500/25 blur-[1px]" />
+            <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-r from-blue-500/25 via-blue-500/15 to-blue-500/25 blur-[1px]" />
             <div className="relative rounded-xl border border-white/5 bg-fd-card px-6 py-3.5 font-mono text-sm text-fd-foreground">
               <span className="text-fd-muted-foreground">$schema:</span>{' '}
               https://harnessprotocol.ai/schema/v1/harness.schema.json
@@ -94,7 +97,7 @@ export default function HomePage() {
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/docs/getting-started"
-              className="rounded-lg bg-fd-primary px-6 py-2.5 text-sm font-medium text-fd-primary-foreground no-underline shadow-lg shadow-cyan-500/20 transition-all hover:opacity-90"
+              className="rounded-lg bg-fd-primary px-6 py-2.5 text-sm font-medium text-fd-primary-foreground no-underline shadow-lg shadow-blue-500/20 transition-all hover:opacity-90"
             >
               Read the Spec
             </Link>
@@ -117,9 +120,9 @@ export default function HomePage() {
             <Link
               key={card.title}
               href={card.href}
-              className="group relative overflow-hidden rounded-xl border border-fd-border/50 bg-fd-card/80 p-6 no-underline backdrop-blur-sm transition-all duration-300 hover:border-fd-primary/30 hover:shadow-lg hover:shadow-cyan-500/8"
+              className="group relative overflow-hidden rounded-xl border border-fd-border/50 bg-fd-card/80 p-6 no-underline backdrop-blur-sm transition-all duration-300 hover:border-fd-primary/30 hover:shadow-lg hover:shadow-blue-500/8"
             >
-              <div className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ background: 'linear-gradient(164deg, rgba(61,214,204,0.06), transparent 60%)' }} />
+              <div className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ background: 'linear-gradient(164deg, rgba(96,165,250,0.06), transparent 60%)' }} />
               <div className="relative">
                 <h3 className="font-display mb-2 text-lg font-semibold text-fd-foreground">{card.title}</h3>
                 <p className="text-sm leading-relaxed text-fd-muted-foreground">{card.description}</p>
