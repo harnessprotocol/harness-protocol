@@ -217,7 +217,7 @@
           },
           "when": {
             "type": "string",
-            "description": "Conditional usage. Describes when this variable is needed. Example: 'When processing private GitHub repositories'."
+            "description": "Human-readable description of when this variable is needed. Displayed to users when prompting. Implementations MAY evaluate it as a condition expression (e.g., 'plugins contains data-lineage') to suppress prompting when false; when not evaluated, it is shown as informational text. Example: 'When accessing private GitHub repositories'."
           },
           "default": {
             "type": "string",

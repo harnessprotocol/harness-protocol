@@ -89,7 +89,7 @@
               },
               "when": {
                 "type": "string",
-                "description": "Conditional usage description."
+                "description": "Human-readable description of when this variable is needed. Displayed to users when prompting. Implementations MAY evaluate it as a condition expression to suppress prompting when false; when not evaluated, it is shown as informational text."
               },
               "default": {
                 "type": "string",

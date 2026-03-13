@@ -150,9 +150,9 @@ Implementations MUST enforce the structural rule separately: every `${VAR}` refe
 
 ---
 
-## The `when` Field as Documentation
+## The `when` Field
 
-The `when` field on an `env[]` entry describes the conditions under which a variable is needed:
+The `when` field on an `env[]` entry is a human-readable description of when a variable is needed:
 
 ```yaml
 env:
@@ -169,8 +169,10 @@ env:
     when: "When the sql-explain plugin's model is set to 'openai'"
 ```
 
-In v1, `when` is informational text — implementations display it to users but do not evaluate it programmatically. Its purpose is to help users understand which secrets they actually need to configure for their specific use of the harness, rather than requiring every secret upfront.
+Its primary purpose is to help users understand which secrets they actually need to configure for their specific use of the harness. Implementations display it when prompting for or listing variables.
+
+Implementations MAY also evaluate `when` as a condition expression — for example, `"plugins contains 'data-lineage'"` — to suppress prompting when the condition is false. When an implementation does evaluate it as a condition, a false result relaxes the `required` constraint for that variable. When an implementation does not evaluate it programmatically, it is displayed as informational text. Either behavior is conformant in v1.
 
 `when` is particularly useful when a harness has optional capabilities that require different credentials. A user who does not use a particular feature can skip setting up its credential. `when` makes the conditional nature of the requirement explicit.
 
-`when` does not affect schema validation or the `sensitive: true` + `default` prohibition. A variable with `when` text and `sensitive: true` still cannot have a `default`.
+`when` does not affect schema validation or the `sensitive: true` + `default` prohibition. A variable with a `when` value and `sensitive: true` still cannot have a `default`.

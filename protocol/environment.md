@@ -86,14 +86,9 @@ Implementations must apply the following rules to all variables declared `sensit
 
 ## The `when` Field
 
-The `when` field suspends the `required` constraint when its condition evaluates to false. Use it for variables that are only needed in specific configurations — for example, a variable needed only when a particular plugin is active, or only in production environments.
+The `when` field is a human-readable description of when a variable is needed. Its primary purpose is display: implementations show it to users when prompting for or listing variables, so users understand which variables apply to their specific use of the harness.
 
-Condition syntax in v1 is implementation-defined. Implementations must document the condition syntax they support. A recommended minimal syntax:
-
-```
-plugins contains 'plugin-name'
-env.VAR_NAME == 'value'
-```
+Implementations MAY also evaluate `when` as a condition expression — for example, `"plugins contains 'data-lineage'"` — to suspend the `required` constraint when the condition is false. When an implementation evaluates `when` as a condition and the condition is false, the variable is treated as entirely optional: the implementation does not prompt for it and does not fail if it is absent. When an implementation does not evaluate `when` programmatically, it is displayed as informational text alongside the variable name and description. Either behavior is conformant in v1.
 
 Examples:
 
@@ -109,10 +104,10 @@ env:
     description: "Sentry DSN for error reporting"
     required: false
     sensitive: true
-    when: "env.ENVIRONMENT == 'production'"
+    when: "When ENVIRONMENT is set to 'production'"
 ```
 
-When `when` is present and the condition evaluates to false, the variable is treated as entirely optional — the implementation does not prompt for it and does not fail if it is absent. When `when` is absent or evaluates to true, normal `required` enforcement applies.
+When `when` is absent, normal `required` enforcement applies unconditionally.
 
 ---
 
