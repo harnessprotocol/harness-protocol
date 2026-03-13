@@ -6,6 +6,10 @@ AI coding tools like Claude Code, Cursor, and GitHub Copilot each have their own
 
 The Harness Protocol defines that unit. A **harness** is the complete operational context for an AI coding agent: its plugins, MCP server declarations, environment requirements, behavioral instructions, permissions, and inheritance chain. The Harness Protocol specifies a vendor-neutral `harness.yaml` format for describing a harness, a validation model for ensuring it is well-formed and safe, and a layered architecture for exchange and discovery. It is to AI coding harnesses what the Model Context Protocol (MCP) is to tool communication — an open specification that implementations can build against, rather than a product any single vendor owns.
 
+## Notational Conventions
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [BCP 14](https://www.rfc-editor.org/info/bcp14) [[RFC 2119](https://www.rfc-editor.org/rfc/rfc2119)] [[RFC 8174](https://www.rfc-editor.org/rfc/rfc8174)] when, and only when, they appear in all capitals, as shown here.
+
 ## Protocol Layers
 
 The Harness Protocol is organized into three layers, each building on the previous. Version 1 delivers the Schema layer. Exchange and Registry are planned for subsequent versions.
@@ -30,7 +34,7 @@ Version 1 of the Harness Protocol specifies the **Schema layer**:
 
 ## How It Relates to harness-kit
 
-[harness-kit](https://github.com/harnessprotocol/harness-kit) is the **reference implementation** of the Harness Protocol. The relationship mirrors MCP and Claude Desktop: the protocol is the open specification; harness-kit is the first complete implementation that exercises and validates it.
+*Non-normative:* [harness-kit](https://github.com/harnessprotocol/harness-kit) is the **reference implementation** of the Harness Protocol. The relationship mirrors MCP and Claude Desktop: the protocol is the open specification; harness-kit is the first complete implementation that exercises and validates it.
 
 harness-kit provides:
 - A parser and validator for `harness.yaml` against the v1 JSON Schema
@@ -56,3 +60,18 @@ Conformance to the Harness Protocol does not require using harness-kit. Any impl
 | [Inheritance](./inheritance.md) | `extends` resolution order and per-section merge rules |
 | [Security](../security/) | Permission model, integrity verification, sensitive data rules |
 | [Extensions](../extensions/) | `x-` prefix fields and implementation-specific extensions |
+
+## Conformance
+
+This specification defines two conformance classes.
+
+**Conforming Document.** A `harness.yaml` file is a conforming document if it:
+1. Validates successfully against the Harness Protocol v1 JSON Schema at `https://harnessprotocol.ai/schema/v1/harness.schema.json`, and
+2. Satisfies all behavioral constraints stated in normative (MUST/MUST NOT) terms in this specification that are not fully expressible as JSON Schema constraints (e.g., cross-field declaration coverage for `${VAR_NAME}` references).
+
+**Conforming Implementation.** A tool or library is a conforming implementation if it:
+1. Correctly parses and validates `harness.yaml` documents against the v1 JSON Schema,
+2. Enforces all MUST-level behavioral requirements stated in this specification (including cross-field validation not covered by the schema), and
+3. Applies conforming documents to AI coding sessions in accordance with the semantics defined for each section (plugins, MCP servers, env, instructions, permissions, extends).
+
+Conformance does not require use of any specific library, registry, or hosting provider. An implementation that satisfies the above requirements on any platform is conformant.

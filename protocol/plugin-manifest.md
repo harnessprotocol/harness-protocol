@@ -20,13 +20,13 @@ The `plugin.json` is for plugin **authors**. Harness authors reference plugins v
 
 ## File Location
 
-The `plugin.json` manifest must be located at the repository root. An implementation resolves a plugin by:
+The `plugin.json` manifest MUST be located at the repository root. An implementation resolves a plugin by:
 
 1. Resolving the `source: owner/repo` to a repository.
 2. Checking out the ref that satisfies the `version` semver range.
 3. Reading `plugin.json` from the repository root.
 
-If `plugin.json` is absent from the repository root, the plugin cannot be loaded and the implementation must surface an error.
+If `plugin.json` is absent from the repository root, the plugin cannot be loaded and the implementation MUST surface an error.
 
 ---
 
@@ -40,7 +40,7 @@ If `plugin.json` is absent from the repository root, the plugin cannot be loaded
 
 The canonical name of the plugin. Must be lowercase letters, digits, and hyphens only. Max 64 characters. Pattern: `^[a-z0-9-]{1,64}$`.
 
-The `name` in `plugin.json` does not need to match the `name` the harness author uses in their `plugins[]` entry — the harness `name` is a local alias. However, by convention, they should match for clarity.
+The `name` in `plugin.json` does not need to match the `name` the harness author uses in their `plugins[]` entry — the harness `name` is a local alias. However, by convention, they SHOULD match for clarity.
 
 ```json
 "name": "data-lineage"
@@ -189,7 +189,7 @@ When an implementation loads a plugin, it merges `requires.env` into the harness
 |-------|------|----------|
 | `requires.min-protocol` | string | No |
 
-The minimum Harness Protocol version this plugin is compatible with. Implementations must check this against the protocol version they implement and refuse to load the plugin if the requirement is not met.
+The minimum Harness Protocol version this plugin is compatible with. Implementations MUST check this against the protocol version they implement and MUST refuse to load the plugin if the requirement is not met.
 
 ```json
 "requires": {
@@ -254,15 +254,15 @@ If a plugin accepts `config` values (via `plugins[].config` in the consuming har
 
 | Rule | Severity |
 |------|----------|
-| `name` is required and must match `^[a-z0-9-]{1,64}$` | Error |
+| `name` is required and MUST match `^[a-z0-9-]{1,64}$` | Error |
 | `description` is required | Error |
-| `version` is required and must be valid semver | Error |
+| `version` is required and MUST be valid semver | Error |
 | `requires.env[].sensitive: true` + `default` is forbidden | Error |
-| `requires.min-protocol` must be a known protocol version string | Error |
+| `requires.min-protocol` MUST be a known protocol version string | Error |
 | `author.name` is required if `author` object is present | Error |
-| `license` must be a valid SPDX expression if present | Warning |
-| Skill and agent name strings must be lowercase, hyphens allowed | Error |
-| Unknown top-level fields (not `x-` prefixed) | Warning (implementations should surface but not fail) |
+| `license` MUST be a valid SPDX expression if present | Warning |
+| Skill and agent name strings MUST be lowercase, hyphens allowed | Error |
+| Unknown top-level fields (not `x-` prefixed) | Warning (implementations SHOULD surface but not fail) |
 
 ---
 

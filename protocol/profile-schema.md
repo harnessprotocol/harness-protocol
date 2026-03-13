@@ -50,14 +50,14 @@ The presence or absence of `$schema` does not affect runtime validation. Impleme
 |-------|------|----------|---------|
 | `version` | string | Yes | — |
 
-The Harness Protocol version. For v1, this must be the string `"1"` — not the integer `1`.
+The Harness Protocol version. For v1, this MUST be the string `"1"` — not the integer `1`.
 
 ```yaml
 version: "1"   # CORRECT: string
 version: 1     # INCORRECT: integer (legacy format, pre-protocol)
 ```
 
-**Backward compatibility.** The legacy harness-kit format used `version: 1` (integer) alongside `marketplaces:` and list-form `plugins:`. Implementations that need to support both formats should branch on `typeof version`: string signals Harness Protocol format; integer signals legacy format. Legacy format behavior is outside this specification.
+*Non-normative:* The legacy harness-kit format used `version: 1` (integer) alongside `marketplaces:` and list-form `plugins:`. Implementations that need to support both formats SHOULD branch on `typeof version`: string signals Harness Protocol format; integer signals legacy format. Legacy format behavior is outside this specification.
 
 **Validation rule:** If `version` is present and is not the string `"1"`, validation fails with a clear error indicating the unsupported version.
 
@@ -83,7 +83,7 @@ Declares the document type:
 | `profile` | Yes | Yes | Yes |
 | `fragment` | No | Yes | Yes |
 
-A fragment that is referenced in `extends` must be structurally valid (correct types, valid enums, no forbidden field combinations) even though it may be incomplete.
+A fragment that is referenced in `extends` MUST be structurally valid (correct types, valid enums, no forbidden field combinations) even though it may be incomplete.
 
 ---
 
@@ -106,9 +106,9 @@ A fragment that is referenced in `extends` must be structurally valid (correct t
 
 ### Constraints
 
-- `metadata.name` must match the pattern `^[a-z0-9-]{1,64}$`.
-- `metadata.version`, if present, must be a valid semver string.
-- `metadata.license`, if present, must be a valid SPDX expression.
+- `metadata.name` MUST match the pattern `^[a-z0-9-]{1,64}$`.
+- `metadata.version`, if present, MUST be a valid semver string.
+- `metadata.license`, if present, MUST be a valid SPDX expression.
 
 ### Example
 
@@ -144,11 +144,11 @@ metadata:
 
 ### Constraints
 
-- `source` must match the pattern `^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$`.
-- `version` must be a valid semver range expression.
-- `integrity.sha256`, if present, must be a 64-character lowercase hex string.
-- Plugin `name` values must be unique within the `plugins` array.
-- If `integrity.sha256` is declared, implementations must verify the resolved plugin archive against this hash before loading. A mismatch is a fatal error.
+- `source` MUST match the pattern `^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$`.
+- `version`, if present, MUST be a valid semver range expression.
+- `integrity.sha256`, if present, MUST be a 64-character lowercase hex string.
+- Plugin `name` values MUST be unique within the `plugins` array.
+- If `integrity.sha256` is declared, implementations MUST verify the resolved plugin archive against this hash before loading. A mismatch is a fatal error.
 
 ### Inheritance (via `extends`)
 
@@ -199,7 +199,7 @@ plugins:
 
 Values in `env` (for stdio) and `headers` (for http) may use `${VAR_NAME}` syntax to reference variables declared in the harness `env` array.
 
-**Validation rule:** Every `${VAR_NAME}` reference in `mcp-servers` must correspond to a declared entry in the top-level `env` array. Referencing an undeclared variable name is a validation error. This rule ensures that all variable dependencies are visible in the harness document and that implementations can prompt for missing values before attempting to start servers.
+**Validation rule:** Every `${VAR_NAME}` reference in `mcp-servers` MUST correspond to a declared entry in the top-level `env` array. Referencing an undeclared variable name is a validation error. This rule ensures that all variable dependencies are visible in the harness document and that implementations can prompt for missing values before attempting to start servers.
 
 ### Inheritance (via `extends`)
 
@@ -239,20 +239,20 @@ mcp-servers:
 |-------|------|----------|---------|-------------|
 | `name` | string | Yes | — | Variable name. Uppercase letters, digits, underscores. |
 | `description` | string | Yes | — | Human-readable description of the variable's purpose and expected format. Shown to users when prompting for a value. |
-| `required` | boolean | No | `false` | If `true`, the implementation must verify the variable is set before applying the harness. Missing required variables are a fatal error. |
+| `required` | boolean | No | `false` | If `true`, the implementation MUST verify the variable is set before applying the harness. Missing required variables are a fatal error. |
 | `sensitive` | boolean | No | `true` | If `true`, the variable contains secret data. See security constraints below. |
-| `when` | string | No | — | Human-readable description of when this variable is needed (e.g., `"When accessing private GitHub repositories"`). Implementations MAY evaluate it as a condition expression but are not required to do so; when not evaluated, it is displayed as informational text. |
+| `when` | string | No | — | Human-readable description of when this variable is needed (e.g., `"When accessing private GitHub repositories"`). Implementations MAY evaluate it as a condition expression but are NOT REQUIRED to do so; when not evaluated, it is displayed as informational text. |
 | `default` | string | No | — | Default value used when the variable is not set in the environment. **Forbidden when `sensitive: true`.** |
 
 ### Security Constraints
 
-- **`sensitive: true` + `default` is FORBIDDEN.** A harness with both `sensitive: true` and a `default` value on the same env entry must fail validation. Providing a default for a sensitive variable defeats the purpose of keeping it out of the harness file.
-- Sensitive variable values must not appear in logs, error messages, or stored configuration.
-- Implementations must treat env entries as `sensitive: true` by default. A variable is only non-sensitive when explicitly declared `sensitive: false`.
+- **`sensitive: true` + `default` is FORBIDDEN.** A harness with both `sensitive: true` and a `default` value on the same env entry MUST fail validation. Providing a default for a sensitive variable defeats the purpose of keeping it out of the harness file.
+- Sensitive variable values MUST NOT appear in logs, error messages, or stored configuration.
+- Implementations MUST treat env entries as `sensitive: true` by default. A variable is only non-sensitive when explicitly declared `sensitive: false`.
 
 ### Constraint: Declaration Coverage
 
-Every variable referenced via `${VAR_NAME}` in `mcp-servers` must have a corresponding entry in `env`. The reverse is not required — `env` may declare variables that are not used in `mcp-servers` (they may be used by plugins or instructions).
+Every variable referenced via `${VAR_NAME}` in `mcp-servers` MUST have a corresponding entry in `env`. The reverse is not required — `env` may declare variables that are not used in `mcp-servers` (they may be used by plugins or instructions).
 
 ### Inheritance (via `extends`)
 
@@ -315,7 +315,7 @@ Each instruction field accepts three content formats:
 
 **`merge` (default):** The child's instruction content is appended after the parent's instruction content for each field. Both sets of instructions are active. This is the safe default — it never silently discards parent instructions.
 
-**`replace`:** The child's instruction content replaces the parent's entirely for fields the child declares. Fields the child does not declare pass through unchanged from the parent. Because `replace` discards parent instructions — which may include safety or policy constraints — conformant implementations **must require explicit user confirmation** before applying a profile that uses `import-mode: replace`.
+**`replace`:** The child's instruction content replaces the parent's entirely for fields the child declares. Fields the child does not declare pass through unchanged from the parent. Because `replace` discards parent instructions — which may include safety or policy constraints — conformant implementations **MUST require explicit user confirmation** before applying a profile that uses `import-mode: replace`.
 
 **`skip`:** The child declares no instructions. The parent's instructions pass through to the session unchanged. Useful for fragments that are purely additive (plugins, MCP servers) and intentionally defer to whatever instructions the consuming profile uses.
 
@@ -454,7 +454,7 @@ For a harness with `extends: [A, B]`:
 
 ### Circular Dependency
 
-A harness must not extend itself directly or transitively. Implementations must detect circular `extends` chains and fail validation with a clear error.
+A harness MUST NOT extend itself directly or transitively. Implementations MUST detect circular `extends` chains and fail validation with a clear error.
 
 ### Example
 
@@ -470,13 +470,13 @@ extends:
 
 ## `x-` Extension Fields
 
-Any top-level key or nested key prefixed with `x-` is an implementation extension field. The core schema does not define their structure. Conformant implementations must:
+Any top-level key or nested key prefixed with `x-` is an implementation extension field. The core schema does not define their structure. Conformant implementations MUST:
 
 1. **Not reject** a harness document solely because it contains unrecognized `x-` fields.
 2. **Ignore** `x-` fields they do not support.
 3. **Not allow** `x-` fields to shadow or override core schema fields.
 
-Extension fields are not portable. Authors who use `x-` fields must document which implementation(s) support them.
+Extension fields are not portable. Authors who use `x-` fields SHOULD document which implementation(s) support them.
 
 ```yaml
 # Example: Claude Code-specific model hint (ignored by other implementations)

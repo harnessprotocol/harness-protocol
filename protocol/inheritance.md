@@ -191,7 +191,7 @@ The child's `kind` is used. Parent `kind` values are not inherited.
 
 ## Team Overlays (v2 Preview)
 
-When a child profile extends a team base profile, there are scenarios where the child legitimately needs to undo or adjust something the base profile declared — for example, a developer-mode profile that re-enables `Bash` that the org base profile put behind `ask`, or a specialized service profile that uses a different database host.
+*Non-normative:* When a child profile extends a team base profile, there are scenarios where the child legitimately needs to undo or adjust something the base profile declared — for example, a developer-mode profile that re-enables `Bash` that the org base profile put behind `ask`, or a specialized service profile that uses a different database host.
 
 In v1, the inheritance rules are strictly additive or most-restrictive. Removing a path restriction, unlocking a tool from the ask list, or overriding a specific env entry requires the child to re-declare the entire section.
 
@@ -203,9 +203,9 @@ The **v2 Exchange layer** will formalize team overlay semantics with explicit `a
 
 Extending a harness means trusting it to contribute plugins, MCP server configurations, environment requirements, instructions, and permissions to your session. Each harness in the inheritance chain is effectively given partial control over your agent's behavior.
 
-**Implementations must warn users when `extends` references a source they have not previously explicitly trusted.** "Explicitly trusted" means the user confirmed the source during a prior import — not just that the harness validates. A valid harness from an untrusted source is still an untrusted harness.
+**Implementations MUST warn users when `extends` references a source they have not previously explicitly trusted.** "Explicitly trusted" means the user confirmed the source during a prior import — not just that the harness validates. A valid harness from an untrusted source is still an untrusted harness.
 
-For harnesses imported from the v2 Registry, registry metadata (audit status, publisher identity, download counts) provides additional signal. In v1, without a registry, implementations should surface the full `source: owner/repo` path and ask the user to confirm before resolving.
+For harnesses imported from the v2 Registry, registry metadata (audit status, publisher identity, download counts) provides additional signal. In v1, without a registry, implementations SHOULD surface the full `source: owner/repo` path and ask the user to confirm before resolving.
 
 ---
 
@@ -213,7 +213,7 @@ For harnesses imported from the v2 Registry, registry metadata (audit status, pu
 
 Deeply nested inheritance chains are difficult to audit and can produce surprising effective configurations by the time all ancestor contributions are merged. They also create a denial-of-service vector if a chain is constructed to require many network fetches.
 
-**Implementations should enforce a maximum inheritance depth of 5 levels.** A chain deeper than 5 levels must fail with a clear error:
+**Implementations SHOULD enforce a maximum inheritance depth of 5 levels.** A chain deeper than 5 levels MUST fail with a clear error:
 
 ```
 Error: inheritance depth limit exceeded (5).
@@ -221,15 +221,15 @@ Harness chain: child → A → B → C → D → E
 Reduce the inheritance depth or flatten intermediate profiles.
 ```
 
-The limit of 5 is a recommendation, not a hard protocol requirement. Implementations may choose a different limit but must document it.
+The limit of 5 is a recommendation, not a hard protocol requirement. Implementations MAY choose a different limit but MUST document it.
 
 ---
 
 ## Circular Dependency Detection
 
-A harness must not extend itself directly or transitively. A circular inheritance chain is a fatal error.
+A harness MUST NOT extend itself directly or transitively. A circular inheritance chain is a fatal error.
 
-**Implementations must detect circular `extends` chains and fail validation with a clear error** that identifies the cycle:
+**Implementations MUST detect circular `extends` chains and fail validation with a clear error** that identifies the cycle:
 
 ```
 Error: circular extends chain detected.

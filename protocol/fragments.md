@@ -32,7 +32,7 @@ The only behavioral difference between `kind: fragment` and `kind: profile` is *
 
 A fragment that is structurally invalid — wrong types, invalid enum values, forbidden field combinations — fails validation even without required-field checks. `kind: fragment` relaxes only required-field presence, not structural correctness.
 
-The `metadata` block is optional in fragments. A fragment may include metadata for identification purposes, or it may omit it entirely. If `metadata` is present in a fragment, the same naming constraints apply as in a profile (`metadata.name` must match `^[a-z0-9-]{1,64}$` if present).
+The `metadata` block is optional in fragments. A fragment may include metadata for identification purposes, or it may omit it entirely. If `metadata` is present in a fragment, the same naming constraints apply as in a profile (`metadata.name` MUST match `^[a-z0-9-]{1,64}$` if present).
 
 ---
 
@@ -90,9 +90,9 @@ instructions:
 
 ## Fragment Identification
 
-A conformant fragment **must** declare `kind: fragment`. A document without a `kind` field defaults to `kind: profile` and is subject to all profile validation rules, including required fields.
+A conformant fragment **MUST** declare `kind: fragment`. A document without a `kind` field defaults to `kind: profile` and is subject to all profile validation rules, including required fields.
 
-Implementations **must** reject attempts to apply a fragment directly as if it were a profile. If a user runs `harness apply` on a file with `kind: fragment`, the implementation must surface a clear error:
+Implementations **MUST** reject attempts to apply a fragment directly as if it were a profile. If a user runs `harness apply` on a file with `kind: fragment`, the implementation MUST surface a clear error:
 
 ```
 Error: harness.yaml declares kind: fragment.
@@ -147,7 +147,7 @@ A fragment may itself use `extends` to compose from other fragments. The full in
 
 ## Relationship to the v2 Exchange Layer
 
-Fragments are the foundational concept for the v2 Exchange layer. The Exchange layer will define a transport protocol (push/pull commands) and tooling for sharing fragments between developers, teams, and the public registry — an "AirDrop for harnesses."
+*Non-normative:* Fragments are the foundational concept for the v2 Exchange layer. The Exchange layer will define a transport protocol (push/pull commands) and tooling for sharing fragments between developers, teams, and the public registry — an "AirDrop for harnesses."
 
 In v2, a developer will be able to:
 

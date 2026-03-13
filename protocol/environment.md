@@ -6,7 +6,7 @@ This document specifies the `env:` section of `harness.yaml`. Environment declar
 
 ## Overview
 
-A harness that uses environment variables — in MCP server arguments, in headers, in plugin configuration — must declare every one of them in the top-level `env` array. The declaration is not optional for referenced variables: any `${VAR_NAME}` reference in `mcp-servers` without a matching `env` entry is a validation error.
+A harness that uses environment variables — in MCP server arguments, in headers, in plugin configuration — MUST declare every one of them in the top-level `env` array. The declaration is not optional for referenced variables: any `${VAR_NAME}` reference in `mcp-servers` without a matching `env` entry is a validation error.
 
 Beyond the cross-reference requirement, `env` declarations give implementations the information they need to:
 
@@ -15,7 +15,7 @@ Beyond the cross-reference requirement, `env` declarations give implementations 
 - Distinguish secrets from non-secrets so they can handle values appropriately (masking logs, not displaying in UI, etc.).
 - Skip prompting for optional variables that are not applicable in the current scenario.
 
-The `env` array may also declare variables that no `mcp-servers` entry references directly — for example, variables consumed by plugins at runtime or referenced in instruction content. The coverage requirement is one-directional: every `${VAR_NAME}` in `mcp-servers` must be declared; not every declared variable must be referenced in `mcp-servers`.
+The `env` array may also declare variables that no `mcp-servers` entry references directly — for example, variables consumed by plugins at runtime or referenced in instruction content. The coverage requirement is one-directional: every `${VAR_NAME}` in `mcp-servers` MUST be declared; not every declared variable must be referenced in `mcp-servers`.
 
 ---
 
@@ -25,7 +25,7 @@ The `env` array may also declare variables that no `mcp-servers` entry reference
 |-------|------|----------|---------|-------------|
 | `name` | string | Yes | — | The environment variable name. Must match `^[A-Z][A-Z0-9_]*$` — uppercase letters, digits, and underscores, starting with a letter. |
 | `description` | string | Yes | — | Human-readable explanation of the variable's purpose, expected format, and where to obtain a value. Shown to users during prompting. |
-| `required` | boolean | No | `false` | If `true`, the implementation must verify the variable is present in the environment before completing the apply step. A missing required variable is a fatal error — the harness must not be partially applied. |
+| `required` | boolean | No | `false` | If `true`, the implementation MUST verify the variable is present in the environment before completing the apply step. A missing required variable is a fatal error — the harness MUST NOT be partially applied. |
 | `sensitive` | boolean | No | `true` | If `true`, the variable contains secret or personally sensitive data. See security constraints below. The default is `true`, meaning variables are treated as sensitive unless explicitly declared otherwise. |
 | `when` | string | No | — | Human-readable description of when this variable is needed (e.g., `"When accessing private GitHub repositories"`). Implementations MAY evaluate it as a condition expression but are not required to do so; when not evaluated, it is displayed as informational text. |
 | `default` | string | No | — | Default value used when the variable is not present in the environment. **Forbidden when `sensitive` is `true` (or absent, since the default for `sensitive` is `true`).** This constraint is schema-enforced. |
@@ -34,7 +34,7 @@ The `env` array may also declare variables that no `mcp-servers` entry reference
 
 ## The `sensitive` + `default` Prohibition
 
-**A harness entry with `sensitive: true` (or no `sensitive` field, since `true` is the default) must not include a `default` value.** This is a schema-level hard error.
+**A harness entry with `sensitive: true` (or no `sensitive` field, since `true` is the default) MUST NOT include a `default` value.** This is a schema-level hard error.
 
 ```yaml
 # INVALID: sensitive variable with a default
@@ -69,17 +69,17 @@ env:
 
 Providing a default for a sensitive variable defeats the purpose of keeping secrets out of the harness file. A default value is stored in `harness.yaml`, which may be committed to version control, shared with teammates, or published to the Registry. A bearer token or database password stored as a default becomes a secret committed in plaintext.
 
-The prohibition is intentional, schema-enforced, and has no bypass. Authors who want to provide example values for documentation purposes should put them in the `description` field, not `default`.
+The prohibition is intentional, schema-enforced, and has no bypass. Authors who want to provide example values for documentation purposes SHOULD put them in the `description` field, not `default`.
 
 ---
 
 ## Sensitive Variable Handling Requirements
 
-Implementations must apply the following rules to all variables declared `sensitive: true` (or with no `sensitive` declaration, since the default is `true`):
+Implementations MUST apply the following rules to all variables declared `sensitive: true` (or with no `sensitive` declaration, since the default is `true`):
 
-- **Never log sensitive values.** Log entries must not contain the resolved value of a sensitive variable. If a command line is logged for debugging, sensitive argument values must be redacted.
-- **Never display sensitive values in UI.** Prompts asking the user for a sensitive variable must use a password-style input (characters obscured). Values must not be echoed.
-- **Never include sensitive values in error messages.** If an MCP server fails to start, the error message must not include the values of sensitive environment variables — even if those values appear in the command line or environment of the failed process.
+- **Never log sensitive values.** Log entries MUST NOT contain the resolved value of a sensitive variable. If a command line is logged for debugging, sensitive argument values MUST be redacted.
+- **Never display sensitive values in UI.** Prompts asking the user for a sensitive variable MUST use a password-style input (characters obscured). Values MUST NOT be echoed.
+- **Never include sensitive values in error messages.** If an MCP server fails to start, the error message MUST NOT include the values of sensitive environment variables — even if those values appear in the command line or environment of the failed process.
 - **Never write sensitive values to disk** as part of harness state, session logs, or debug output.
 
 ---
@@ -115,7 +115,7 @@ When `when` is absent, normal `required` enforcement applies unconditionally.
 
 ### At Install / Import Time
 
-When a user imports a harness profile for the first time, the implementation should scan the `env` array and:
+When a user imports a harness profile for the first time, the implementation SHOULD scan the `env` array and:
 
 1. Identify all entries where `required: true` and no current environment value exists.
 2. Present the user with a summary of missing required variables, including their `description` and `name`.
@@ -126,7 +126,7 @@ This install-time prompting prevents the common failure mode of a harness silent
 
 ### At Session Start
 
-At the start of each session where a harness is active, the implementation should:
+At the start of each session where a harness is active, the implementation SHOULD:
 
 1. Verify all `required: true` variables (subject to `when` evaluation) are present in the environment.
 2. If any required variable is absent, surface a warning that identifies the variable by name and description.
@@ -134,13 +134,13 @@ At the start of each session where a harness is active, the implementation shoul
 
 ### Never Log or Display Sensitive Values
 
-As noted in the sensitivity requirements, implementations must ensure that the resolved values of sensitive variables never appear in any output that could be captured, shared, or stored.
+As noted in the sensitivity requirements, implementations MUST ensure that the resolved values of sensitive variables never appear in any output that could be captured, shared, or stored.
 
 ---
 
 ## Cross-Field Validation: Declaration Coverage
 
-Every `${VAR_NAME}` reference in the `mcp-servers` section must have a matching `env` entry. This is a behavioral constraint enforced during validation. It is not fully expressible as a JSON Schema constraint (which operates on structure, not cross-field semantics), so conformant implementations must implement it as an additional validation pass after JSON Schema validation.
+Every `${VAR_NAME}` reference in the `mcp-servers` section MUST have a matching `env` entry. This is a behavioral constraint enforced during validation. It is not fully expressible as a JSON Schema constraint (which operates on structure, not cross-field semantics), so conformant implementations MUST implement it as an additional validation pass after JSON Schema validation.
 
 The algorithm:
 
@@ -229,7 +229,7 @@ env:
     default: "info"
 ```
 
-`sensitive: false` must be explicit here — omitting `sensitive` would default it to `true`, and `true` + `default` is forbidden.
+`sensitive: false` MUST be explicit here — omitting `sensitive` would default it to `true`, and `true` + `default` is forbidden.
 
 ### Full env section for a data engineering harness
 

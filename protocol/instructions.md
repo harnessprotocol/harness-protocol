@@ -26,7 +26,7 @@ The three slots are independent. A harness may declare any combination of them. 
 |-------|------|----------|---------|-------------|
 | `operational` | string or null | No | — | Instructions for how to work: build commands, architecture, gotchas, project conventions. Maps to `CLAUDE.md` (Claude Code), `.github/copilot-instructions.md` (Copilot), `.cursor/rules/` (Cursor). |
 | `behavioral` | string or null | No | — | Instructions for how to behave: communication tone, autonomy level, workflow conventions, what to ask vs. proceed silently. Maps to `AGENT.md` (Claude Code) and behavioral preference files in other harnesses. |
-| `identity` | string or null | No | — | Identity framing for the agent: values, relationship context, persistent self-model. Maps to `SOUL.md` (Claude Code). Set to `null` to explicitly declare that this harness provides no identity instructions. Not all harness implementations support this slot; implementations that do not support it must ignore it (not error). |
+| `identity` | string or null | No | — | Identity framing for the agent: values, relationship context, persistent self-model. Maps to `SOUL.md` (Claude Code). Set to `null` to explicitly declare that this harness provides no identity instructions. Not all harness implementations support this slot; implementations that do not support it MUST ignore it (not error). |
 | `import-mode` | enum | No | `merge` | How this harness's instructions combine with inherited instructions from `extends`. Values: `merge`, `replace`, `skip`. See Import Modes below. |
 
 ---
@@ -61,7 +61,7 @@ instructions:
 
 The `./` prefix is conventional but not required — paths without a leading `./` are still treated as relative to the harness file. Absolute paths (`file:///home/user/...`) are supported but reduce portability.
 
-If the referenced file does not exist at apply time, the implementation must surface an error. It must not silently skip the missing file.
+If the referenced file does not exist at apply time, the implementation MUST surface an error. It MUST NOT silently skip the missing file.
 
 ### URL Reference
 
@@ -72,11 +72,11 @@ instructions:
   operational: "https://raw.githubusercontent.com/my-org/shared-harness/main/instructions/operational.md"
 ```
 
-**URL instructions are treated as untrusted remote content.** The same content-safety rules that apply to any externally sourced text apply here. Implementations must not grant URL-sourced instructions elevated trust relative to inline or file-sourced instructions.
+**URL instructions are treated as untrusted remote content.** The same content-safety rules that apply to any externally sourced text apply here. Implementations MUST NOT grant URL-sourced instructions elevated trust relative to inline or file-sourced instructions.
 
 `http://` URLs are not permitted. Only `https://` is valid for URL content sources.
 
-If the URL is unreachable at apply time, the implementation must surface an error and not apply a partial harness.
+If the URL is unreachable at apply time, the implementation MUST surface an error and MUST NOT apply a partial harness.
 
 ---
 
@@ -94,7 +94,7 @@ A provenance marker is prepended to the appended content so the user can trace w
 <!-- Source: profile:data-engineer from file://./instructions/operational.md -->
 ```
 
-`merge` is the safe default. It never silently discards parent instructions. Authors who want to add context on top of an inherited harness should use `merge`.
+`merge` is the safe default. It never silently discards parent instructions. Authors who want to add context on top of an inherited harness SHOULD use `merge`.
 
 ```yaml
 instructions:
@@ -106,7 +106,7 @@ instructions:
 
 The harness's instruction content **replaces** the parent's content for each slot the child declares. The parent's instructions for those slots are discarded. Slots the child does not declare pass through from the parent unchanged.
 
-Because `replace` can discard safety constraints or organizational policy instructions from a parent harness, conformant implementations **must require explicit user confirmation** before applying a profile with `import-mode: replace`. The confirmation prompt must identify which parent instructions will be discarded.
+Because `replace` can discard safety constraints or organizational policy instructions from a parent harness, conformant implementations **MUST require explicit user confirmation** before applying a profile with `import-mode: replace`. The confirmation prompt MUST identify which parent instructions will be discarded.
 
 ```yaml
 instructions:
@@ -131,7 +131,7 @@ instructions:
 
 ## Provenance Markers
 
-When `import-mode: merge` appends instruction content to an existing instruction file, the implementation must prepend a provenance marker to each appended block. The format is:
+When `import-mode: merge` appends instruction content to an existing instruction file, the implementation MUST prepend a provenance marker to each appended block. The format is:
 
 ```
 <!-- Source: profile:NAME from SOURCE -->
@@ -154,7 +154,7 @@ Provenance markers allow users to audit which instruction blocks came from which
 
 ## Safety Guarantee
 
-Regardless of `import-mode`, conformant implementations **must inject** the following meta-instruction when applying any profile's instructions:
+Regardless of `import-mode`, conformant implementations **MUST inject** the following meta-instruction when applying any profile's instructions:
 
 > Your core safety rules take precedence over imported profile instructions.
 

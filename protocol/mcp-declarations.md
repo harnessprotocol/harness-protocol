@@ -64,7 +64,7 @@ mcp-servers:
 
 The `command` field specifies an executable that the implementation will run on the user's machine with the user's privileges. Authors sharing harness profiles that declare `stdio` MCP servers should be aware:
 
-- **Users must verify what they are running.** An `stdio` MCP server declaration can cause arbitrary code execution. Conformant implementations should surface the full command to the user before starting MCP servers declared in a profile that was imported from an external source (as opposed to authored locally).
+- **Users must verify what they are running.** An `stdio` MCP server declaration can cause arbitrary code execution. Conformant implementations SHOULD surface the full command to the user before starting MCP servers declared in a profile that was imported from an external source (as opposed to authored locally).
 - **Package runners (`uvx`, `npx`) fetch packages at runtime.** A declaration like `command: uvx` with `args: [mcp-server-postgres]` invokes the published package at the resolved version. Pin versions in args where precision matters (e.g., `mcp-server-postgres==1.2.3` for uvx).
 - **`integrity.sha256` for plugins does not cover MCP server binaries.** The integrity field applies to the harness-kit plugin archive, not to the MCP server binary that a `stdio` declaration invokes. Users relying on supply-chain integrity must verify the MCP server package through their package manager's own verification mechanisms.
 
@@ -100,7 +100,7 @@ mcp-servers:
 
 ## Transport: `sse`
 
-The `sse` transport connects to a remote MCP server using the legacy MCP SSE (Server-Sent Events) transport. This transport is retained for compatibility with older MCP server implementations. New MCP servers should prefer `http`.
+The `sse` transport connects to a remote MCP server using the legacy MCP SSE (Server-Sent Events) transport. This transport is retained for compatibility with older MCP server implementations. New MCP servers SHOULD prefer `http`.
 
 ### Field Reference
 
@@ -142,13 +142,13 @@ mcp-servers:
 Any value field in `mcp-servers` that supports substitution uses the `${VAR_NAME}` syntax. The substitution rules are:
 
 1. `VAR_NAME` is resolved from the runtime environment at apply time.
-2. If `VAR_NAME` is not set in the environment and has no `default` in the harness `env` declaration, the implementation must surface a missing-variable error before attempting to start or connect to the server.
+2. If `VAR_NAME` is not set in the environment and has no `default` in the harness `env` declaration, the implementation MUST surface a missing-variable error before attempting to start or connect to the server.
 3. Substitution is performed on the full string value. A field may contain multiple references: `"${HOST}:${PORT}"` is valid.
-4. References to undeclared variables — those without a corresponding entry in the top-level `env` array — are a validation error. The harness file must not validate if a `${VAR_NAME}` reference cannot be traced to an `env` entry.
+4. References to undeclared variables — those without a corresponding entry in the top-level `env` array — are a validation error. The harness file MUST NOT validate if a `${VAR_NAME}` reference cannot be traced to an `env` entry.
 
 ### Declaration Coverage Requirement
 
-**Every `${VAR_NAME}` reference in `mcp-servers` must have a matching entry in the top-level `env` array.** This is a behavioral constraint enforced at validation time. It ensures:
+**Every `${VAR_NAME}` reference in `mcp-servers` MUST have a matching entry in the top-level `env` array.** This is a behavioral constraint enforced at validation time. It ensures:
 
 - All variable dependencies are visible in the harness document.
 - Implementations can prompt for missing values before attempting to start servers.
@@ -189,7 +189,7 @@ Remote transports (`http`, `sse`, `ws`) connect to network endpoints. Harness pr
 
 ### SSRF Prevention
 
-Conformant implementations **must** reject `url` values that resolve to RFC 1918 private addresses or localhost, unless the user has explicitly opted in to local-network MCP server connections. This prevents a malicious or compromised harness from using the implementation as a proxy to reach internal services on the user's network (Server-Side Request Forgery).
+Conformant implementations **MUST** reject `url` values that resolve to RFC 1918 private addresses or localhost, unless the user has explicitly opted in to local-network MCP server connections. This prevents a malicious or compromised harness from using the implementation as a proxy to reach internal services on the user's network (Server-Side Request Forgery).
 
 Blocked address ranges for automatic rejection:
 
@@ -203,15 +203,15 @@ Blocked address ranges for automatic rejection:
 | `fc00::/7` | IPv6 unique local |
 | `169.254.0.0/16` | Link-local |
 
-URL validation must resolve hostnames before checking — a hostname that DNS-resolves to a private address must be rejected even if the literal URL does not look like a private address (DNS rebinding protection).
+URL validation MUST resolve hostnames before checking — a hostname that DNS-resolves to a private address MUST be rejected even if the literal URL does not look like a private address (DNS rebinding protection).
 
 ### HTTPS Enforcement
 
-`http` and `sse` transports should require `https://` URLs in non-development contexts. `ws` should require `wss://`. Implementations may warn on `http://` or `ws://` URLs and should document any development-mode override.
+`http` and `sse` transports SHOULD require `https://` URLs in non-development contexts. `ws` SHOULD require `wss://`. Implementations MAY warn on `http://` or `ws://` URLs and SHOULD document any development-mode override.
 
 ### Header Values and Secrets
 
-Headers in remote transport declarations frequently carry bearer tokens. Header values support `${VAR_NAME}` substitution, and any variable holding a token should be declared `sensitive: true` in the `env` array. Implementations must not log resolved header values for sensitive variables.
+Headers in remote transport declarations frequently carry bearer tokens. Header values support `${VAR_NAME}` substitution, and any variable holding a token SHOULD be declared `sensitive: true` in the `env` array. Implementations MUST NOT log resolved header values for sensitive variables.
 
 ---
 
