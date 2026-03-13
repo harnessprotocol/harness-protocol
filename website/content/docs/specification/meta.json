@@ -1,0 +1,12 @@
+{
+  "title": "Specification",
+  "pages": [
+    "profile-schema",
+    "mcp-declarations",
+    "instructions",
+    "environment",
+    "fragments",
+    "inheritance",
+    "plugin-manifest"
+  ]
+}
