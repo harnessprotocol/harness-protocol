@@ -2,7 +2,6 @@
 
 **Status:** Design Sketch (pre-HEP)
 **Target:** Harness Protocol v2 (basic indexing) / v3 (curation, signing)
-**Last updated:** 2026-03-09
 
 ---
 

@@ -92,7 +92,7 @@ instructions:
 
 A conformant fragment **MUST** declare `kind: fragment`. A document without a `kind` field defaults to `kind: profile` and is subject to all profile validation rules, including required fields.
 
-Implementations **MUST** reject attempts to apply a fragment directly as if it were a profile. If a user runs `harness apply` on a file with `kind: fragment`, the implementation MUST surface a clear error:
+Implementations **MUST** reject attempts to apply a fragment directly as if it were a profile. If a user attempts to apply a file with `kind: fragment`, the implementation MUST surface a clear error. *Non-normative example:*
 
 ```
 Error: harness.yaml declares kind: fragment.

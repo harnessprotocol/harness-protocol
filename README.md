@@ -87,7 +87,7 @@ Conformance does not require harness-kit — any implementation that correctly v
 
 ## Documentation
 
-Full documentation is available at [harnessprotocol.io](https://harnessprotocol.io).
+Full documentation is available at [harnessprotocol.io/spec](https://harnessprotocol.io/spec).
 
 | Document | Content |
 |----------|---------|

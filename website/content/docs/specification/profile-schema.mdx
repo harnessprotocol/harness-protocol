@@ -293,14 +293,14 @@ env:
 
 ## `instructions`
 
-`instructions` maps the three Claude-convention instruction scopes and controls how they combine with inherited instructions.
+`instructions` maps three instruction scopes and controls how they combine with inherited instructions.
 
 ### Fields
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `operational` | string or null | No | — | Instructions for how to work: build commands, architecture, gotchas. Maps to `CLAUDE.md`. Value is inline text, a `file://` path, or an `https://` URL. |
-| `behavioral` | string or null | No | — | Instructions for how to behave: tone, autonomy level, workflow conventions. Maps to `AGENT.md`. Same value formats. |
+| `operational` | string or null | No | — | Instructions for how to work: build commands, architecture, gotchas. Maps to `CLAUDE.md` (Claude Code) or the equivalent operational context file in other implementations. Value is inline text, a `file://` path, or an `https://` URL. |
+| `behavioral` | string or null | No | — | Instructions for how to behave: tone, autonomy level, workflow conventions. Maps to `AGENT.md` (Claude Code) or the equivalent behavioral instructions file. Same value formats. |
 | `identity` | string or null | No | — | Identity context for the agent. Maps to `SOUL.md`. Same value formats. Set to `null` to explicitly declare no identity instructions. |
 | `import-mode` | enum | No | `merge` | How child instructions combine with parent instructions. Values: `merge`, `replace`, `skip`. |
 

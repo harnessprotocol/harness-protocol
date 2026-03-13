@@ -2,7 +2,6 @@
 
 **Status:** Draft
 **Version:** Harness Protocol v1
-**Last updated:** 2026-03-09
 
 ---
 

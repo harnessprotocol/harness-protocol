@@ -242,7 +242,7 @@ Detection algorithm: as each parent is resolved, add it to a visited set. If the
 
 ## Example: Team Harness Extending an Org Base Profile
 
-A three-level inheritance chain: a developer's personal profile extends a team fragment, which extends an org base profile.
+A three-level inheritance chain: a developer's customization profile extends a team fragment, which extends an org base profile.
 
 ### Org base profile (`my-org/base`)
 
@@ -313,7 +313,7 @@ permissions:
     readonly: [config/]
 ```
 
-### Developer's personal profile
+### Developer's customization profile
 
 ```yaml
 $schema: https://harnessprotocol.ai/schema/v1/harness.schema.json

@@ -4,7 +4,7 @@ Current maintainers of the Harness Protocol specification.
 
 | Name | GitHub | Role |
 |------|--------|------|
-| harnessprotocol | [@harnessprotocol](https://github.com/harnessprotocol) | Lead Maintainer |
+| siracusa5 | [@siracusa5](https://github.com/siracusa5) | Lead Maintainer |
 
 ## Adding Maintainers
 

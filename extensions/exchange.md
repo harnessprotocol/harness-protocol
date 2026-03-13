@@ -2,7 +2,6 @@
 
 **Status:** Design Sketch (pre-HEP)
 **Target:** Harness Protocol v2
-**Last updated:** 2026-03-09
 
 ---
 

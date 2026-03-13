@@ -2,7 +2,6 @@
 
 **Status:** Design Sketch (pre-HEP)
 **Target:** Harness Protocol v2 (spec mapping documented here; compiler is a harness-kit feature)
-**Last updated:** 2026-03-09
 
 ---
 
@@ -125,6 +124,27 @@ Warning: permissions.tools.deny is not machine-enforceable for target 'cursor'.
 Plugins have no standard cross-tool representation. The compiler does not generate plugin configuration for non-harness-kit targets. When a harness declares plugins, the compiler generates a human-readable plugin list in the operational instructions for non-Claude-Code targets, noting that harness-kit plugin support is required for automatic installation.
 
 For Claude Code (which uses harness-kit as its reference implementation), plugins compile to their harness-kit configuration format.
+
+Skills — the per-file SKILL.md deliverable of a plugin — now have a cross-platform representation via the agentskills.io standard. See the [Skills](#skills) section for compilation targets. The plugin system itself (marketplaces, install commands) remains Claude Code-specific.
+
+### Skills
+
+Skills compile to tool-specific directory structures via the [agentskills.io](https://agentskills.io) standard. Each skill is a named directory containing a `SKILL.md` file; the containing directory path varies by tool and scope (global vs. project-local).
+
+| Concept | Claude Code | Cursor | Copilot |
+|---|---|---|---|
+| Skill directory (global) | `~/.claude/skills/<name>/` | N/A | N/A |
+| Skill directory (project) | N/A | `.cursor/skills/<name>/` or `.agents/skills/<name>/` | `.github/skills/<name>/` or `.agents/skills/<name>/` |
+| Skill file | `SKILL.md` | `SKILL.md` | `SKILL.md` |
+
+`.agents/skills/` is the agentskills.io-standard project-local shared location, supported by both Cursor and Copilot. By default the compiler writes to the tool-specific directory (`.cursor/skills/` for Cursor, `.github/skills/` for Copilot). `.agents/skills/` is used when a shared location is preferred — for example, when both tools are active in the same project and a single copy is sufficient.
+
+**Frontmatter adaptation rules** when compiling from Claude Code's SKILL.md format to Cursor or Copilot targets:
+
+- `dependencies` → `compatibility`: renamed if present
+- `name`: must match the containing folder name; maximum 64 characters, lowercase letters and hyphens only
+- `description`: maximum 1024 characters; truncated at the last word boundary with `…` appended if the source exceeds the limit
+- All other frontmatter keys are passed through unchanged
 
 ---
 
