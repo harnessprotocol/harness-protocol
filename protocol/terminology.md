@@ -1,6 +1,6 @@
 # Terminology
 
-This document defines terms used throughout the Harness Protocol specification. Where a term has a specific technical meaning in this spec, that meaning takes precedence over general usage.
+This document defines terms used throughout the Harness Protocol specification. Where a term has a specific technical meaning in this spec, that meaning takes precedence over general usage. The three foundational terms are **Harness**, **Profile**, and **Fragment** — start there if you are new to the spec.
 
 ---
 

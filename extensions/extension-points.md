@@ -1,7 +1,7 @@
 # Extension Points and Protocol Evolution
 
-**Status:** Design Sketch (pre-HEP)
-**Target:** Harness Protocol v1+ (governs all versions)
+**Status:** Normative — Harness Protocol v1+
+**Scope:** Governs all versions
 **Last updated:** 2026-03-09
 
 ---
