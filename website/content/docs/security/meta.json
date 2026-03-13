@@ -1,0 +1,11 @@
+{
+  "title": "Security",
+  "pages": [
+    "threat-model",
+    "trust-boundaries",
+    "secrets",
+    "permissions",
+    "integrity",
+    "instruction-injection"
+  ]
+}
