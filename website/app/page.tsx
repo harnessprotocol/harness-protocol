@@ -42,7 +42,7 @@ export default function HomePage() {
       <nav className="sticky top-0 z-50 border-b border-fd-border/30 bg-fd-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-2.5 font-bold text-fd-foreground no-underline">
-            <LogoIcon className="size-7" />
+            <LogoIcon className="size-9" />
             <span className="font-display">Harness Protocol</span>
           </Link>
           <div className="flex items-center gap-6 text-sm">
@@ -141,7 +141,7 @@ export default function HomePage() {
         <div className="mx-auto grid max-w-5xl gap-8 px-6 py-12 text-sm sm:grid-cols-3">
           <div>
             <div className="mb-3 flex items-center gap-2 font-bold text-fd-foreground">
-              <LogoIcon className="size-6" />
+              <LogoIcon className="size-8" />
               <span className="font-display">Harness Protocol</span>
             </div>
             <p className="text-fd-muted-foreground">An open specification for portable AI coding harnesses.</p>

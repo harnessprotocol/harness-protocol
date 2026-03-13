@@ -111,6 +111,13 @@ h1, h2, h3 {
   border-radius: 0.75rem;
 }
 
+/* ── Inline code — subtle, no harsh border ── */
+.dark :not(pre) > code {
+  border: none;
+  background: hsla(240, 14%, 18%, 0.9);
+  color: hsl(213, 94%, 78%);
+}
+
 /* ── Blockquotes as callouts ── */
 .dark blockquote {
   border-left: 3px solid hsl(213, 94%, 68%);

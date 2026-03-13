@@ -12,7 +12,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 200 200"
-              className="size-6"
+              className="size-8"
             >
               <circle cx="100" cy="100" r="62" fill="none" stroke="#60a5fa" strokeWidth="5.5" />
               <line x1="100" y1="58" x2="63.63" y2="121" stroke="#a78bfa" strokeWidth="2.5" opacity="0.55" />
