@@ -57,7 +57,7 @@ An offer is a JSON document that wraps a fragment with provenance metadata and a
   "type": "offer",
   "sender": {
     "key": "<ed25519-public-key-hex>",
-    "display": "siracusa5"
+    "display": "alice"
   },
   "message": "Here's the postgres MCP config I mentioned — adjust DB_CONNECTION_STRING for your replica.",
   "fragment": {
@@ -163,7 +163,7 @@ Encryption is optional when:
 The sender runs:
 
 ```sh
-harness exchange offer --to siracusa5 path/to/my-fragment.harness.yaml
+harness exchange offer --to alice path/to/my-fragment.harness.yaml
 ```
 
 Or, with an explicit key:
@@ -185,7 +185,7 @@ If no `--to` or `--to-key` is specified, the implementation creates a standalone
 The receiver's implementation displays the offer contents before any decision:
 
 ```
-Exchange offer from: siracusa5 (key: a3f1:e2b4:c5d6:e7f8)
+Exchange offer from: alice (key: a3f1:e2b4:c5d6:e7f8)
 Message: "Here's the postgres MCP config I mentioned..."
 Signature: VERIFIED
 Expires: 2026-03-16 00:00 UTC

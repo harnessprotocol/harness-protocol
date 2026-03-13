@@ -15,9 +15,9 @@ metadata:
   name: data-engineer
   description: Harness for SQL database work, dbt model development, and data pipeline debugging.
   author:
-    name: John Siracusa
-    url: https://github.com/siracusa5
-  version: 1.0.0
+    name: alice
+    url: https://github.com/alice
+  version: "1.0.0"
   license: Apache-2.0
   tags:
     - data-engineering

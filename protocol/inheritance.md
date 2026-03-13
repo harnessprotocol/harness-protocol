@@ -321,11 +321,11 @@ version: "1"
 kind: profile
 
 metadata:
-  name: john-data-engineer
+  name: alice-data-engineer
   description: "Personal data engineering harness"
   author:
-    name: John Siracusa
-    url: https://github.com/siracusa5
+    name: alice
+    url: https://github.com/alice
 
 extends:
   - source: my-org/data-team

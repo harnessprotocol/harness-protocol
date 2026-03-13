@@ -117,8 +117,8 @@ metadata:
   name: data-engineer
   description: "Harness for data engineering workflows: SQL, lineage, dbt."
   author:
-    name: John Siracusa
-    url: https://github.com/siracusa5
+    name: alice
+    url: https://github.com/alice
   version: "1.0.0"
   license: Apache-2.0
   tags: [data-engineering, sql, dbt]
@@ -497,8 +497,8 @@ metadata:
   name: data-engineer
   description: "Harness for data engineering: PostgreSQL, lineage, dbt."
   author:
-    name: John Siracusa
-    url: https://github.com/siracusa5
+    name: alice
+    url: https://github.com/alice
   version: "1.2.0"
   license: Apache-2.0
   tags: [data-engineering, postgresql, sql, dbt]
