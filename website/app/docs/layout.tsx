@@ -14,18 +14,10 @@ export default function Layout({ children }: { children: ReactNode }) {
               viewBox="0 0 32 32"
               className="size-6"
             >
-              <rect width="32" height="32" rx="6" fill="#0d0d12" />
-              <text
-                x="16"
-                y="22"
-                textAnchor="middle"
-                fontFamily="system-ui, sans-serif"
-                fontWeight="700"
-                fontSize="14"
-                fill="#8b7aff"
-              >
-                hp
-              </text>
+              <rect width="32" height="32" rx="6" fill="#080d18" />
+              <rect x="6" y="8" width="20" height="3" rx="1.5" fill="#3dd6cc" />
+              <rect x="6" y="14.5" width="14" height="3" rx="1.5" fill="#3dd6cc" opacity="0.7" />
+              <rect x="6" y="21" width="8" height="3" rx="1.5" fill="#3dd6cc" opacity="0.4" />
             </svg>
             <span className="font-display">Harness Protocol</span>
           </span>

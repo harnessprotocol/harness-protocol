@@ -1,5 +1,14 @@
 import Link from 'next/link';
 
+const LogoIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className={className}>
+    <rect width="32" height="32" rx="6" fill="#080d18" />
+    <rect x="6" y="8" width="20" height="3" rx="1.5" fill="#3dd6cc" />
+    <rect x="6" y="14.5" width="14" height="3" rx="1.5" fill="#3dd6cc" opacity="0.7" />
+    <rect x="6" y="21" width="8" height="3" rx="1.5" fill="#3dd6cc" opacity="0.4" />
+  </svg>
+);
+
 const heroCards = [
   {
     title: 'Overview',
@@ -30,10 +39,7 @@ export default function HomePage() {
       <nav className="sticky top-0 z-50 border-b border-fd-border/30 bg-fd-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-2.5 font-bold text-fd-foreground no-underline">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="size-7">
-              <rect width="32" height="32" rx="6" fill="#0d0d12" />
-              <text x="16" y="22" textAnchor="middle" fontFamily="system-ui, sans-serif" fontWeight="700" fontSize="14" fill="#8b7aff">hp</text>
-            </svg>
+            <LogoIcon className="size-7" />
             <span className="font-display">Harness Protocol</span>
           </Link>
           <div className="flex items-center gap-6 text-sm">
@@ -54,19 +60,20 @@ export default function HomePage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/4">
-          <div className="h-[500px] w-[700px] rounded-full bg-purple-500/15 blur-[120px]" />
+        {/* Ambient glow — cyan, not purple */}
+        <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/3">
+          <div className="h-[400px] w-[600px] rounded-full bg-cyan-500/10 blur-[100px]" />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-violet-500/5 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/4 via-transparent to-transparent" />
 
         <div className="relative mx-auto max-w-4xl px-6 pb-16 pt-28 text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-fd-border/50 bg-fd-card/80 px-4 py-1.5 text-sm text-fd-muted-foreground backdrop-blur-sm">
-            <span className="size-1.5 rounded-full bg-violet-400" />
+            <span className="size-1.5 rounded-full bg-cyan-400" />
             v1 Schema layer — draft
           </div>
           <h1 className="font-display mb-5 text-5xl font-bold tracking-tight text-fd-foreground sm:text-6xl lg:text-7xl">
             Portable AI{' '}
-            <span className="bg-gradient-to-r from-violet-400 to-purple-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
               harnesses
             </span>
           </h1>
@@ -77,7 +84,7 @@ export default function HomePage() {
           </p>
 
           <div className="relative mx-auto mb-8 inline-block">
-            <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-r from-violet-500/30 via-purple-500/20 to-indigo-500/30 blur-[1px]" />
+            <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-r from-cyan-500/25 via-teal-500/15 to-cyan-500/25 blur-[1px]" />
             <div className="relative rounded-xl border border-white/5 bg-fd-card px-6 py-3.5 font-mono text-sm text-fd-foreground">
               <span className="text-fd-muted-foreground">$schema:</span>{' '}
               https://harnessprotocol.ai/schema/v1/harness.schema.json
@@ -87,7 +94,7 @@ export default function HomePage() {
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/docs/getting-started"
-              className="rounded-lg bg-violet-500 px-6 py-2.5 text-sm font-medium text-white no-underline shadow-lg shadow-violet-500/20 transition-all hover:bg-violet-600 hover:shadow-violet-500/30"
+              className="rounded-lg bg-fd-primary px-6 py-2.5 text-sm font-medium text-fd-primary-foreground no-underline shadow-lg shadow-cyan-500/20 transition-all hover:opacity-90"
             >
               Read the Spec
             </Link>
@@ -110,9 +117,9 @@ export default function HomePage() {
             <Link
               key={card.title}
               href={card.href}
-              className="group relative overflow-hidden rounded-xl border border-fd-border/50 bg-fd-card/80 p-6 no-underline backdrop-blur-sm transition-all duration-300 hover:border-fd-primary/30 hover:shadow-lg hover:shadow-violet-500/10"
+              className="group relative overflow-hidden rounded-xl border border-fd-border/50 bg-fd-card/80 p-6 no-underline backdrop-blur-sm transition-all duration-300 hover:border-fd-primary/30 hover:shadow-lg hover:shadow-cyan-500/8"
             >
-              <div className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ background: 'linear-gradient(164deg, rgba(139,122,255,0.08), transparent 60%)' }} />
+              <div className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ background: 'linear-gradient(164deg, rgba(61,214,204,0.06), transparent 60%)' }} />
               <div className="relative">
                 <h3 className="font-display mb-2 text-lg font-semibold text-fd-foreground">{card.title}</h3>
                 <p className="text-sm leading-relaxed text-fd-muted-foreground">{card.description}</p>
@@ -131,10 +138,7 @@ export default function HomePage() {
         <div className="mx-auto grid max-w-5xl gap-8 px-6 py-12 text-sm sm:grid-cols-3">
           <div>
             <div className="mb-3 flex items-center gap-2 font-bold text-fd-foreground">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" className="size-6">
-                <rect width="32" height="32" rx="6" fill="#0d0d12" />
-                <text x="16" y="22" textAnchor="middle" fontFamily="system-ui, sans-serif" fontWeight="700" fontSize="14" fill="#8b7aff">hp</text>
-              </svg>
+              <LogoIcon className="size-6" />
               <span className="font-display">Harness Protocol</span>
             </div>
             <p className="text-fd-muted-foreground">An open specification for portable AI coding harnesses.</p>
