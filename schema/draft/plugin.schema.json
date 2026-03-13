@@ -23,6 +23,7 @@
     },
     "author": {
       "type": "object",
+      "required": ["name"],
       "description": "Plugin author information.",
       "properties": {
         "name": {

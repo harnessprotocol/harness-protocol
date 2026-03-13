@@ -136,7 +136,7 @@ metadata:
 |-------|------|----------|-------------|
 | `name` | string | Yes | Local name for this plugin within the harness. Used for override targeting in team overlays. |
 | `source` | string | Yes | Plugin source in `owner/repo` format (e.g., `harnessprotocol/harness-kit`). |
-| `version` | string | Yes | Semver range specifying the required plugin version (e.g., `">=0.2.0"`, `"^1.0.0"`). |
+| `version` | string | No | Semver range specifying the required plugin version (e.g., `">=0.2.0"`, `"^1.0.0"`). If absent, the implementation selects the latest compatible version. |
 | `description` | string | No | Human-readable note about why this plugin is included. Informational only. |
 | `config` | object | No | Plugin-specific configuration. Schema is defined by the individual plugin's `plugin.json`. |
 | `integrity` | object | No | Content verification. |
@@ -238,10 +238,10 @@ mcp-servers:
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | `name` | string | Yes | — | Variable name. Uppercase letters, digits, underscores. |
-| `description` | string | No | — | Human-readable description of the variable's purpose and expected format. |
+| `description` | string | Yes | — | Human-readable description of the variable's purpose and expected format. Shown to users when prompting for a value. |
 | `required` | boolean | No | `false` | If `true`, the implementation must verify the variable is set before applying the harness. Missing required variables are a fatal error. |
 | `sensitive` | boolean | No | `true` | If `true`, the variable contains secret data. See security constraints below. |
-| `when` | string | No | — | Conditional expression. If the condition evaluates to false, the variable is not required even if `required: true`. Condition syntax is implementation-defined in v1. |
+| `when` | string | No | — | Human-readable description of when this variable is needed (e.g., `"When accessing private GitHub repositories"`). Implementations MAY evaluate it as a condition expression but are not required to do so; when not evaluated, it is displayed as informational text. |
 | `default` | string | No | — | Default value used when the variable is not set in the environment. **Forbidden when `sensitive: true`.** |
 
 ### Security Constraints
@@ -425,7 +425,7 @@ permissions:
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `source` | string | Yes | Parent harness source. `owner/repo` format or a registry path (when Registry layer is available). |
-| `version` | string | Yes | Semver range for the parent harness version. |
+| `version` | string | No | Semver range for the parent harness version. If absent, the implementation selects the latest compatible version. |
 
 ### Resolution Order
 

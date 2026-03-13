@@ -38,6 +38,7 @@
         },
         "author": {
           "type": "object",
+          "required": ["name"],
           "description": "Profile author information.",
           "properties": {
             "name": {
