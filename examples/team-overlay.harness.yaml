@@ -60,7 +60,7 @@ mcp-servers:
   # transport: http — harness connects to the remote GHE MCP endpoint.
   github-enterprise:
     transport: http
-    url: "${GITHUB_ENTERPRISE_URL}/mcp/v1"
+    url: "https://github.acme.internal/mcp/v1"
     headers:
       Authorization: "Bearer ${GHE_TOKEN}"
       X-Harness-Client: acme-backend-team
