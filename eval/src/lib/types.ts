@@ -1,4 +1,5 @@
 export interface HarnessDocument {
+  '$schema'?: string;
   version: string;
   kind?: 'profile' | 'fragment';
   metadata?: Metadata;
@@ -8,7 +9,6 @@ export interface HarnessDocument {
   instructions?: Instructions;
   permissions?: Permissions;
   extends?: ExtendsEntry[];
-  [key: string]: unknown; // for x- extension fields
 }
 
 export interface Metadata {
@@ -76,6 +76,21 @@ export interface Permissions {
 export interface ExtendsEntry {
   source: string;
   version?: string;
+}
+
+export interface PluginManifest {
+  name: string;
+  description: string;
+  version: string;
+  author?: { name: string; url?: string };
+  license?: string;
+  skills?: string[];
+  agents?: string[];
+  requires?: {
+    env?: EnvEntry[];
+    'min-protocol'?: string;
+  };
+  'config-schema'?: Record<string, unknown>;
 }
 
 // The effective configuration after inheritance resolution
