@@ -142,4 +142,36 @@ describe('Semantic Validation — Cross-Field Constraints', () => {
     expect(result.valid).toBe(true)
     expect(result.errors).toHaveLength(0)
   })
+
+  it('undeclared var in command → fail', () => {
+    const doc = makeDoc({
+      'mcp-servers': {
+        myserver: {
+          transport: 'stdio',
+          command: '${MISSING_COMMAND}',
+          args: [],
+        },
+      },
+      env: [],
+    })
+    const result = validateSemantics(doc)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some((e) => e.includes('MISSING_COMMAND'))).toBe(true)
+  })
+
+  it('undeclared var in headers → fail', () => {
+    const doc = makeDoc({
+      'mcp-servers': {
+        remote: {
+          transport: 'http',
+          url: 'https://api.example.com',
+          headers: { Authorization: 'Bearer ${MISSING_TOKEN}' },
+        },
+      },
+      env: [],
+    })
+    const result = validateSemantics(doc)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some((e) => e.includes('MISSING_TOKEN'))).toBe(true)
+  })
 })

@@ -22,13 +22,14 @@ function checkVarReferences(doc: HarnessDocument, errors: string[]): void {
   if (!servers) return
 
   const declaredNames = new Set((doc.env ?? []).map((e) => e.name))
+  const reported = new Set<string>()
 
   for (const [serverName, server] of Object.entries(servers)) {
     const candidates: string[] = []
 
     if (server.transport === 'stdio') {
       const stdio = server as McpServerStdio
-      candidates.push(stdio.command)
+      if (stdio.command) candidates.push(stdio.command)
       for (const arg of stdio.args ?? []) {
         candidates.push(arg)
       }
@@ -45,7 +46,9 @@ function checkVarReferences(doc: HarnessDocument, errors: string[]): void {
 
     for (const str of candidates) {
       for (const varName of extractVars(str)) {
-        if (!declaredNames.has(varName)) {
+        const key = `${serverName}:${varName}`
+        if (!declaredNames.has(varName) && !reported.has(key)) {
+          reported.add(key)
           errors.push(
             `mcp-servers["${serverName}"] references \${${varName}} but env[] has no entry with name "${varName}"`
           )
