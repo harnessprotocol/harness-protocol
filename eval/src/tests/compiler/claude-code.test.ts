@@ -428,8 +428,12 @@ describe('full pipeline', () => {
       'SOUL.md',
     ])
 
-    // Warnings
-    expect(result.warnings).toHaveLength(1)
-    expect(result.warnings[0]).toContain('analytics.internal.com')
+    // Warnings (ask, readonly, and network are not enforceable via settings.json)
+    expect(result.warnings).toHaveLength(3)
+    expect(result.warnings[0]).toContain('permissions.tools.ask')
+    expect(result.warnings[0]).toContain('Bash')
+    expect(result.warnings[1]).toContain('permissions.paths.readonly')
+    expect(result.warnings[1]).toContain('config/')
+    expect(result.warnings[2]).toContain('analytics.internal.com')
   })
 })

@@ -173,7 +173,7 @@ describe('mergeInstructions', () => {
       'import-mode': 'replace',
     })
     expect(result.operational).toBe('replacement ops')
-    // behavioral was null in child so parent's passes through in replace mode
+    // behavioral was explicitly null in child — replaces parent's value with null (clears the slot)
     expect(result.behavioral).toBeNull()
   })
 

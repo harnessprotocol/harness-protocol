@@ -93,7 +93,21 @@ export function compileToClaudeCode(config: EffectiveConfiguration): CompilerOut
   settings.permissions = permissionsObj
   files.set('.claude/settings.json', JSON.stringify(settings, null, 2))
 
-  // Warnings: network hosts are not enforceable via settings.json
+  // Warnings for fields not directly enforceable via settings.json
+  if (perms.tools.ask.length > 0) {
+    warnings.push(
+      `permissions.tools.ask requires an approval hook and is not directly enforceable via settings.json. ` +
+        `Tools: ${perms.tools.ask.join(', ')}`
+    )
+  }
+
+  if (perms.paths.readonly.length > 0) {
+    warnings.push(
+      `permissions.paths.readonly has no settings.json equivalent — readonly intent is not enforced. ` +
+        `Paths: ${perms.paths.readonly.join(', ')}`
+    )
+  }
+
   if (perms.network['allowed-hosts'].length > 0) {
     warnings.push(
       `permissions.network.allowed-hosts is not enforceable via settings.json. ` +

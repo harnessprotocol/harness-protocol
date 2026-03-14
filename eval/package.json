@@ -2,6 +2,7 @@
   "name": "@harness-protocol/eval",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.29.1",
   "type": "module",
   "scripts": {
     "test": "vitest run",
