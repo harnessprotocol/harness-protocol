@@ -106,7 +106,7 @@ A fragment that is referenced in `extends` MUST be structurally valid (correct t
 
 ### Constraints
 
-- `metadata.name` MUST match the pattern `^[a-z0-9-]{1,64}$`.
+- `metadata.name` MUST match the pattern `^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$`. Must start and end with a lowercase letter or digit.
 - `metadata.version`, if present, MUST be a valid semver string.
 - `metadata.license`, if present, MUST be a valid SPDX expression.
 
@@ -237,7 +237,7 @@ mcp-servers:
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `name` | string | Yes | — | Variable name. Uppercase letters, digits, underscores. |
+| `name` | string | Yes | — | Variable name. Must match `^[A-Z_][A-Z0-9_]*$` — uppercase letters, digits, underscores; may start with an underscore. |
 | `description` | string | Yes | — | Human-readable description of the variable's purpose and expected format. Shown to users when prompting for a value. |
 | `required` | boolean | No | `false` | If `true`, the implementation MUST verify the variable is set before applying the harness. Missing required variables are a fatal error. |
 | `sensitive` | boolean | No | `true` | If `true`, the variable contains secret data. See security constraints below. |

@@ -38,7 +38,7 @@ If `plugin.json` is absent from the repository root, the plugin cannot be loaded
 |-------|------|----------|
 | `name` | string | **Yes** |
 
-The canonical name of the plugin. Must be lowercase letters, digits, and hyphens only. Max 64 characters. Pattern: `^[a-z0-9-]{1,64}$`.
+The canonical name of the plugin. Must be lowercase letters, digits, and hyphens only. Max 64 characters. Pattern: `^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$`. Must start and end with a lowercase letter or digit.
 
 The `name` in `plugin.json` does not need to match the `name` the harness author uses in their `plugins[]` entry — the harness `name` is a local alias. However, by convention, they SHOULD match for clarity.
 
@@ -254,7 +254,7 @@ If a plugin accepts `config` values (via `plugins[].config` in the consuming har
 
 | Rule | Severity |
 |------|----------|
-| `name` is required and MUST match `^[a-z0-9-]{1,64}$` | Error |
+| `name` is required and MUST match `^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$` — must start and end with a lowercase letter or digit | Error |
 | `description` is required | Error |
 | `version` is required and MUST be valid semver | Error |
 | `requires.env[].sensitive: true` + `default` is forbidden | Error |

@@ -36,10 +36,6 @@ describe('Schema Conformance — Invalid Documents', () => {
   })
 
   describe('metadata.name', () => {
-    // Note: Schema pattern ^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$ is authoritative;
-    // prose in profile-schema.md says ^[a-z0-9-]{1,64}$ (allows leading/trailing hyphen),
-    // but the SCHEMA rejects leading and trailing hyphens.
-
     it('uppercase "MyProfile" rejected', () => {
       const result = validateHarness({ version: '1', metadata: { name: 'MyProfile', description: 'desc' } })
       expect(result.valid).toBe(false)
@@ -82,10 +78,6 @@ describe('Schema Conformance — Invalid Documents', () => {
   })
 
   describe('env[].name', () => {
-    // Note: The prose says ^[A-Z][A-Z0-9_]*$ (no leading underscore),
-    // but the SCHEMA pattern ^[A-Z_][A-Z0-9_]*$ allows leading underscore —
-    // schema is authoritative, so only test cases the schema actually rejects.
-
     it('lowercase "db_url" rejected', () => {
       const result = validateHarness(baseProfile({
         env: [{ name: 'db_url', description: 'Database URL' }],

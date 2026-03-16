@@ -23,7 +23,7 @@ The `env` array may also declare variables that no `mcp-servers` entry reference
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `name` | string | Yes | — | The environment variable name. Must match `^[A-Z][A-Z0-9_]*$` — uppercase letters, digits, and underscores, starting with a letter. |
+| `name` | string | Yes | — | The environment variable name. Must match `^[A-Z_][A-Z0-9_]*$` — uppercase letters, digits, and underscores, starting with an uppercase letter or underscore. |
 | `description` | string | Yes | — | Human-readable explanation of the variable's purpose, expected format, and where to obtain a value. Shown to users during prompting. |
 | `required` | boolean | No | `false` | If `true`, the implementation MUST verify the variable is present in the environment before completing the apply step. A missing required variable is a fatal error — the harness MUST NOT be partially applied. |
 | `sensitive` | boolean | No | `true` | If `true`, the variable contains secret or personally sensitive data. See security constraints below. The default is `true`, meaning variables are treated as sensitive unless explicitly declared otherwise. |

@@ -95,13 +95,6 @@ eval/
 └── vitest.config.ts
 ```
 
-## Known Spec Discrepancies
-
-Two prose-schema mismatches documented in test comments (schema is authoritative per `protocol/architecture.md`):
-
-1. **`metadata.name` pattern** — Schema: `^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$` (no leading/trailing hyphen). Prose: `^[a-z0-9-]{1,64}$` (allows them).
-2. **`env[].name` pattern** — Schema: `^[A-Z_][A-Z0-9_]*$` (allows leading `_`). Prose: `^[A-Z][A-Z0-9_]*$` (no leading `_`).
-
 ## CI
 
 The eval suite runs automatically on pushes and PRs that touch `schema/`, `protocol/`, `examples/`, or `eval/`. See `.github/workflows/eval.yml`.
