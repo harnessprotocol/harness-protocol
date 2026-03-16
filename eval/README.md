@@ -12,7 +12,7 @@ pnpm test
 
 ## What's Tested
 
-**157 tests** across 7 test files validating 46+ testable claims from the spec.
+**216 tests** across 10 test files validating 46+ testable claims from the spec.
 
 ### Schema Conformance (55 tests)
 
@@ -63,6 +63,20 @@ Compiles a resolved `EffectiveConfiguration` to Claude Code native config files 
 | `.mcp.json` | `mcp-servers` with `transport` → `type` rename |
 | `.claude/settings.json` | `permissions` (allow, deny, additionalDirectories) |
 
+### Source Resolution (29 tests)
+
+Source format parsing and version resolution (`source.ts`):
+
+- Source string parsing: remote (`owner/repo`), remote with path, local (`./`, `../`), invalid formats
+- Version resolution: exact match, caret (`^`), tilde (`~`), gte (`>=`), pre-release handling, edge cases
+
+### Application Semantics (30 tests)
+
+Variable substitution and error categorization (`substitute.ts`):
+
+- **Effective configuration** (`effective-config.test.ts`) — Variable substitution in all MCP server transport fields, default value fallback, missing required variable errors, substitution scope boundaries
+- **Error categories** (`error-categories.test.ts`) — Classification of all 16 error types into fatal/warning/informational tiers
+
 ### Real-World Scenarios (19 tests)
 
 End-to-end pipelines proving the spec works in practice:
@@ -83,12 +97,16 @@ eval/
 │   │   ├── types.ts        # TypeScript interfaces matching JSON schemas
 │   │   ├── semantic.ts     # Cross-field validation rules
 │   │   ├── resolver.ts     # Inheritance resolver (12 merge rules)
-│   │   └── compiler.ts     # Claude Code compiler prototype
+│   │   ├── compiler.ts     # Claude Code compiler prototype
+│   │   ├── source.ts       # Source string parsing + version resolution
+│   │   └── substitute.ts   # Variable substitution + error categorization
 │   └── tests/
 │       ├── schema/         # Schema conformance (positive + negative)
 │       ├── semantic/       # Cross-field constraint tests
 │       ├── inheritance/    # Merge rule + multi-level tests
 │       ├── compiler/       # Compiler output verification
+│       ├── resolution/     # Source format parsing + version resolution
+│       ├── application/    # Effective config + error categories
 │       └── scenarios/      # End-to-end real-world scenarios
 ├── package.json
 ├── tsconfig.json
