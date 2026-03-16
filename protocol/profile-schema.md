@@ -139,8 +139,24 @@ metadata:
 | `version` | string | No | Semver range specifying the required plugin version (e.g., `">=0.2.0"`, `"^1.0.0"`). If absent, the implementation selects the latest compatible version. |
 | `description` | string | No | Human-readable note about why this plugin is included. Informational only. |
 | `config` | object | No | Plugin-specific configuration. Schema is defined by the individual plugin's `plugin.json`. |
+| `loading` | enum | No | When to load the plugin's tools and context into the agent's context window. Values: `eager` (default), `deferred`. See [Loading Mode](#loading-mode) below. |
 | `integrity` | object | No | Content verification. |
 | `integrity.sha256` | string | No | SHA-256 hash of the resolved plugin archive. Hex-encoded, lowercase. 64 characters. |
+
+### Loading Mode
+
+The `loading` field controls progressive skill disclosure — when a plugin's tools and context are injected into the agent's context window.
+
+| Value | Behavior |
+|-------|----------|
+| `eager` (default) | All plugin tools and context are loaded at session start. This is the current behavior and the default when `loading` is absent. |
+| `deferred` | Plugin tools are registered by name only at session start. Full tool schemas, context, and frontmatter are loaded on first invocation. Reduces initial context size. |
+
+**Design rationale:** Research (Chroma, LangChain) shows that model performance degrades as context length increases — a phenomenon called *context rot*. Progressive disclosure is one of three core mitigations identified by LangChain: don't load all tool frontmatter at startup, load on demand. Claude Code already implements deferred tool loading internally; this field lets profiles declare the intent portably.
+
+**Precedence:** If a plugin's `plugin.json` declares `loading: deferred` but the harness profile declares `loading: eager` (or omits the field, defaulting to eager), the harness profile wins. The plugin manifest expresses the author's recommendation; the harness author has final say.
+
+**Backward compatibility:** This field is optional with a default of `eager`, preserving current behavior for all existing harness documents.
 
 ### Constraints
 

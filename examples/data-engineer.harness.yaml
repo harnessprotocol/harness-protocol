@@ -43,8 +43,10 @@ plugins:
     description: Explain SQL query plans and dbt model dependencies.
 
   # Research skill for querying documentation and package registries.
+  # Deferred: only loaded when explicitly invoked, keeping the initial context lean.
   - name: research
     source: harnessprotocol/harness-kit
+    loading: deferred
 
 # ----------------------------------------------------------------------------
 # MCP servers — local and remote tool servers.

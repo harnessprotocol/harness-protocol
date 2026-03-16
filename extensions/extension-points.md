@@ -116,6 +116,11 @@ The following top-level keys are reserved in v1:
 | `compiler-targets` | Compiler target declarations | v2 |
 | `registry` | Registry integration metadata | v2/v3 |
 | `exchange` | Exchange layer declarations | v2 |
+| `execution-environment` | Execution environment type and backend configuration | v2 |
+
+#### `execution-environment` design note
+
+Declares the execution environment type (local, sandbox, cloud) and backend configuration. Enables harnesses to specify filesystem backends, network isolation, and runtime requirements beyond environment variables. v1 implicitly assumes local execution; this field would make that assumption explicit and extensible for cloud/sandbox runtimes (e.g., LangChain's deepagents supports pluggable filesystem backends including in-memory, local disk, and sandboxed stores). Until specified, use `x-execution-environment` for experimental needs.
 
 **Validation behavior for reserved fields:**
 

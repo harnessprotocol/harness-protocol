@@ -105,6 +105,12 @@
             "description": "Plugin-specific configuration. The shape of this object is defined by the plugin manifest.",
             "additionalProperties": true
           },
+          "loading": {
+            "type": "string",
+            "enum": ["eager", "deferred"],
+            "default": "eager",
+            "description": "Controls when the plugin's tools and context are loaded into the agent's context window. 'eager' loads at session start (default). 'deferred' loads on first invocation, reducing initial context size."
+          },
           "integrity": {
             "type": "object",
             "description": "Content integrity verification. Optional in v1; required in v2. Implementations SHOULD verify the hash when present and WARN when absent.",

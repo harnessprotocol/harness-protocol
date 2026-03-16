@@ -201,6 +201,27 @@ In v1, the only valid value is `"1"`. Future protocol versions will add valid va
 
 ---
 
+### `loading`
+
+| Field | Type | Required |
+|-------|------|----------|
+| `loading` | enum | No |
+
+**Accepted values:** `eager` (default), `deferred`
+
+The plugin author's recommended loading mode. This tells harness authors and implementations how the plugin is best consumed:
+
+- `eager` — load all tools and context at session start. Appropriate for plugins whose tools are used frequently throughout a session.
+- `deferred` — load on first invocation. Appropriate for plugins with large tool schemas or specialized tools that are only needed occasionally. Reduces initial context window size.
+
+The harness author may override this recommendation in their `plugins[]` declaration. The `loading` field in `harness.yaml` takes precedence over the plugin manifest's recommendation.
+
+```json
+"loading": "deferred"
+```
+
+---
+
 ## Config Schema (Optional Convention)
 
 If a plugin accepts `config` values (via `plugins[].config` in the consuming harness), plugin authors are encouraged to document the config schema either inline in the `plugin.json` or as a separate JSON Schema file at `config.schema.json` in the repository root. The Harness Protocol does not mandate a specific format for config schemas in v1, but the `config.schema.json` convention is recommended.
@@ -219,6 +240,7 @@ If a plugin accepts `config` values (via `plugins[].config` in the consuming har
     "url": "https://github.com/alice"
   },
   "license": "Apache-2.0",
+  "loading": "deferred",
   "skills": [
     "lineage-trace",
     "impact-analysis",
@@ -262,6 +284,7 @@ If a plugin accepts `config` values (via `plugins[].config` in the consuming har
 | `author.name` is required if `author` object is present | Error |
 | `license` MUST be a valid SPDX expression if present | Warning |
 | Skill and agent name strings MUST be lowercase, hyphens allowed | Error |
+| `loading`, if present, MUST be `"eager"` or `"deferred"` | Error |
 | Unknown top-level fields (not `x-` prefixed) | Warning (implementations SHOULD surface but not fail) |
 
 ---

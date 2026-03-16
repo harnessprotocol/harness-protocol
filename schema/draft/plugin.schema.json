@@ -121,6 +121,12 @@
       },
       "additionalProperties": false
     },
+    "loading": {
+      "type": "string",
+      "enum": ["eager", "deferred"],
+      "default": "eager",
+      "description": "The plugin author's recommended loading mode. 'eager' loads all tools and context at session start (default). 'deferred' recommends loading on first invocation, reducing initial context size. Harness authors may override this in their plugins[] declaration."
+    },
     "config-schema": {
       "type": "object",
       "description": "JSON Schema for the plugin's config object (the 'config' field in harness.yaml plugins[]). When present, implementations SHOULD validate harness.yaml plugin config against this schema.",
