@@ -1,6 +1,6 @@
 # Inheritance
 
-This document specifies how `extends` works in `harness.yaml`: how parent harnesses are resolved, how their fields are merged, and the security constraints that govern the inheritance chain.
+This document specifies how `extends` works in `harness.yaml`: how parent harnesses are resolved, how their fields are merged, and the security constraints that govern the inheritance chain. For the complete application pipeline that consumes the merge output, see [Application Semantics](./application.md).
 
 ---
 

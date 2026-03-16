@@ -106,7 +106,7 @@ A fragment that is referenced in `extends` MUST be structurally valid (correct t
 
 ### Constraints
 
-- `metadata.name` MUST match the pattern `^[a-z0-9-]{1,64}$`.
+- `metadata.name` MUST match the pattern `^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$`. Must start and end with a lowercase letter or digit.
 - `metadata.version`, if present, MUST be a valid semver string.
 - `metadata.license`, if present, MUST be a valid SPDX expression.
 
@@ -144,7 +144,7 @@ metadata:
 
 ### Constraints
 
-- `source` MUST match the pattern `^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$`.
+- `source` MUST match the pattern `^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$`. See [Source Resolution](./source-resolution.md) for how `source` fields are resolved.
 - `version`, if present, MUST be a valid semver range expression.
 - `integrity.sha256`, if present, MUST be a 64-character lowercase hex string.
 - Plugin `name` values MUST be unique within the `plugins` array.
@@ -237,7 +237,7 @@ mcp-servers:
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `name` | string | Yes | — | Variable name. Uppercase letters, digits, underscores. |
+| `name` | string | Yes | — | Variable name. Must match `^[A-Z_][A-Z0-9_]*$` — uppercase letters, digits, underscores; may start with an underscore. |
 | `description` | string | Yes | — | Human-readable description of the variable's purpose and expected format. Shown to users when prompting for a value. |
 | `required` | boolean | No | `false` | If `true`, the implementation MUST verify the variable is set before applying the harness. Missing required variables are a fatal error. |
 | `sensitive` | boolean | No | `true` | If `true`, the variable contains secret data. See security constraints below. |
@@ -418,13 +418,13 @@ permissions:
 
 ## `extends`
 
-`extends` is an ordered array of parent harness references. The current document is the child. Parents are resolved and applied before the child's fields are merged on top.
+`extends` is an ordered array of parent harness references. The current document is the child. Parents are resolved and applied before the child's fields are merged on top. See [Source Resolution](./source-resolution.md) for how `source` fields are resolved.
 
 ### Extends Entry Fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `source` | string | Yes | Parent harness source. `owner/repo` format or a registry path (when Registry layer is available). |
+| `source` | string | Yes | Parent harness source. `owner/repo` format, `owner/repo/path/to/file.yaml`, or a local path (`./`, `../`). |
 | `version` | string | No | Semver range for the parent harness version. If absent, the implementation selects the latest compatible version. |
 
 ### Resolution Order

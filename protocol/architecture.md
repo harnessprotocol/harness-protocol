@@ -57,10 +57,10 @@ For `kind: profile` documents (the default), required fields are enforced. For `
 
 ### 3. Apply
 
-A validated harness document is applied by the implementation. Application order:
+A validated harness document is applied by the implementation. For the complete specification, see [Application Semantics](./application.md). The high-level application order:
 
-1. Resolve `extends` — fetch and validate parent harnesses, then merge fields according to section-specific inheritance rules (see [Profile Schema: extends](./profile-schema.md#extends)).
-2. Resolve plugins — fetch plugin archives from `source` at the declared `version`, verify `integrity.sha256` if present, load plugin contents.
+1. Resolve `extends` — fetch and validate parent harnesses, then merge fields according to section-specific inheritance rules (see [Profile Schema: extends](./profile-schema.md#extends)). See [Source Resolution](./source-resolution.md) for how `source` fields are resolved.
+2. Resolve plugins — fetch plugin archives from `source` at the declared `version`, verify `integrity.sha256` if present, load plugin contents. See [Source Resolution](./source-resolution.md) for the resolution algorithm.
 3. Start MCP servers — launch or connect to declared `mcp-servers` entries using the specified transport.
 4. Apply environment — validate that all `required: true` env entries have values in the current environment. Surface missing-variable errors before proceeding.
 5. Apply instructions — merge or replace instructions per `import-mode`.
