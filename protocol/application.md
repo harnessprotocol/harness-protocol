@@ -10,7 +10,7 @@ A harness document (`harness.yaml`) is a declaration of intent. It describes plu
 
 Application is distinct from validation. A harness can validate successfully without a runtime environment — schema checks and cross-field constraints do not require environment variables to be set or MCP servers to be reachable. Application requires a runtime environment and produces side effects (starting processes, establishing connections, configuring permissions).
 
-This document covers the abstract application semantics. It does not mandate a specific implementation strategy (compilation to config files vs. runtime configuration). Both strategies produce the same normative output: the effective configuration. For the non-normative compilation approach, see `compiler-targets.md`.
+This document covers the abstract application semantics. It does not mandate a specific implementation strategy (compilation to config files vs. runtime configuration). Both strategies produce the same normative output: the effective configuration. For the non-normative compilation approach, see [Compiler Targets](../extensions/compiler-targets.md).
 
 ---
 
@@ -199,7 +199,7 @@ This two-phase design enables:
 
 The effective configuration is the normative output of the application pipeline. How an implementation produces it is not specified — two strategies are common:
 
-**Compilation.** The implementation generates tool-specific configuration files (e.g., `.mcp.json`, `CLAUDE.md`, `settings.json` for Claude Code). The generated files are the effective configuration materialized as files. This is a non-normative strategy; see `compiler-targets.md` for one example.
+**Compilation.** The implementation generates tool-specific configuration files (e.g., `.mcp.json`, `CLAUDE.md`, `settings.json` for Claude Code). The generated files are the effective configuration materialized as files. This is a non-normative strategy; see [Compiler Targets](../extensions/compiler-targets.md) for one example.
 
 **Runtime application.** The implementation configures a live agent session in memory, starting MCP servers and applying permissions directly. No intermediate files are generated.
 

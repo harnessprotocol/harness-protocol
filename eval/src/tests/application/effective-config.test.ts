@@ -50,6 +50,25 @@ describe('Variable Substitution', () => {
     expect(result.errors.filter((e) => e.category === 'fatal')).toHaveLength(0)
   })
 
+  it('substitutes ${VAR_NAME} in stdio command correctly', () => {
+    const config = makeConfig({
+      'mcp-servers': {
+        pg: {
+          transport: 'stdio',
+          command: '${TOOL_PATH}',
+          args: [],
+        },
+      },
+      env: [{ name: 'TOOL_PATH', description: 'Path to tool binary', required: true, sensitive: false }],
+    })
+
+    const result = substituteVars(config, { TOOL_PATH: '/usr/local/bin/mcp-server' })
+
+    const server = result.config['mcp-servers']['pg'] as { command: string }
+    expect(server.command).toBe('/usr/local/bin/mcp-server')
+    expect(result.errors.filter((e) => e.category === 'fatal')).toHaveLength(0)
+  })
+
   it('substitutes ${VAR_NAME} in stdio env values correctly', () => {
     const config = makeConfig({
       'mcp-servers': {
