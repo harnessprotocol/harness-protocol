@@ -301,4 +301,6 @@ The plugin manifest and the harness profile are complementary documents authored
 | What env vars a plugin needs | `plugin.json` → `requires.env[]` |
 | Plugin version being requested | `harness.yaml` → `plugins[].version` |
 | Plugin's own version | `plugin.json` → `version` |
+| Plugin loading preference | `plugin.json` → `loading` |
+| Plugin loading override | `harness.yaml` → `plugins[].loading` |
 | Plugin content integrity | `harness.yaml` → `plugins[].integrity.sha256` |
