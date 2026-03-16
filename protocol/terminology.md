@@ -114,6 +114,22 @@ Example: `x-claude-model: claude-opus-4` is a valid extension field that a Claud
 
 ---
 
+## Effective Configuration
+
+The fully resolved result of applying a harness document. Produced after all `extends` chains are resolved, all merge rules are applied, and all `${VAR_NAME}` substitutions are performed. The effective configuration is the normative output contract of the [application pipeline](./application.md) — it is what an implementation has produced when it says "this harness has been applied."
+
+The effective configuration includes the final state of all sections: metadata, plugins, MCP servers, environment declarations, instructions, and permissions. It is a snapshot — changes to parent harnesses or environment variables after application do not retroactively alter an active session's effective configuration.
+
+---
+
+## Source Resolution
+
+The process by which a `source` field (in `plugins[]` or `extends[]`) is transformed into fetchable content. Source resolution encompasses parsing the source string, determining the git host, resolving a version against available tags, fetching content at the resolved ref, and locating the entry point (`plugin.json` for plugins, `harness.yaml` for extends).
+
+See [Source Resolution](./source-resolution.md) for the full specification.
+
+---
+
 ## HEP
 
 **Harness Enhancement Proposal.** The process for proposing changes to the Harness Protocol specification. An HEP is a structured document describing a proposed change, its motivation, design, backward compatibility impact, and security considerations. The HEP process gates all changes to the core schema and protocol layers.

@@ -144,7 +144,7 @@ metadata:
 
 ### Constraints
 
-- `source` MUST match the pattern `^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$`.
+- `source` MUST match the pattern `^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$`. See [Source Resolution](./source-resolution.md) for how `source` fields are resolved.
 - `version`, if present, MUST be a valid semver range expression.
 - `integrity.sha256`, if present, MUST be a 64-character lowercase hex string.
 - Plugin `name` values MUST be unique within the `plugins` array.
@@ -418,13 +418,13 @@ permissions:
 
 ## `extends`
 
-`extends` is an ordered array of parent harness references. The current document is the child. Parents are resolved and applied before the child's fields are merged on top.
+`extends` is an ordered array of parent harness references. The current document is the child. Parents are resolved and applied before the child's fields are merged on top. See [Source Resolution](./source-resolution.md) for how `source` fields are resolved.
 
 ### Extends Entry Fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `source` | string | Yes | Parent harness source. `owner/repo` format or a registry path (when Registry layer is available). |
+| `source` | string | Yes | Parent harness source. `owner/repo` format, `owner/repo/path/to/file.yaml`, or a local path (`./`, `../`). |
 | `version` | string | No | Semver range for the parent harness version. If absent, the implementation selects the latest compatible version. |
 
 ### Resolution Order

@@ -57,6 +57,8 @@ Conformance to the Harness Protocol does not require using harness-kit. Any impl
 | [Instructions](./instructions.md) | Instruction slots, content sources, import modes |
 | [Environment](./environment.md) | Environment variable declarations, sensitive handling |
 | [Fragments](./fragments.md) | `kind: fragment` — partial harness documents for composition |
+| [Source Resolution](./source-resolution.md) | Source resolution algorithm for `owner/repo` and local path references |
+| [Application](./application.md) | Application pipeline, effective configuration, error handling |
 | [Inheritance](./inheritance.md) | `extends` resolution order and per-section merge rules |
 | [Security](../security/) | Permission model, integrity verification, sensitive data rules |
 | [Extensions](../extensions/) | `x-` prefix fields and implementation-specific extensions |
