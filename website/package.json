@@ -5,9 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.17.1",
+    "@supabase/supabase-js": "^2.99.2",
     "fumadocs-core": "^15.0.0",
     "fumadocs-mdx": "^11.0.0",
     "fumadocs-ui": "^15.0.0",
@@ -16,12 +20,13 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "typescript": "^5.0.0",
+    "postcss": "^8.0.0",
     "tailwindcss": "^4.0.0",
-    "@tailwindcss/postcss": "^4.0.0",
-    "postcss": "^8.0.0"
+    "typescript": "^5.0.0",
+    "wrangler": "^4.74.0"
   }
 }
