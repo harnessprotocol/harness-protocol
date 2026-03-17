@@ -15,12 +15,12 @@ export default function Layout({ children }: { children: ReactNode }) {
               className="size-8"
             >
               <circle cx="100" cy="100" r="62" fill="none" stroke="#60a5fa" strokeWidth="5.5" />
-              <line x1="100" y1="58" x2="63.63" y2="121" stroke="#a78bfa" strokeWidth="2.5" opacity="0.55" />
-              <line x1="63.63" y1="121" x2="136.37" y2="121" stroke="#a78bfa" strokeWidth="2.5" opacity="0.55" />
-              <line x1="136.37" y1="121" x2="100" y2="58" stroke="#a78bfa" strokeWidth="2.5" opacity="0.55" />
-              <circle cx="100" cy="58" r="9.5" fill="#e2e8f0" />
-              <circle cx="63.63" cy="121" r="9.5" fill="#e2e8f0" />
-              <circle cx="136.37" cy="121" r="9.5" fill="#e2e8f0" />
+              <line x1="100" y1="58" x2="63.63" y2="121" stroke="#78706a" strokeWidth="2.5" opacity="0.55" />
+              <line x1="63.63" y1="121" x2="136.37" y2="121" stroke="#78706a" strokeWidth="2.5" opacity="0.55" />
+              <line x1="136.37" y1="121" x2="100" y2="58" stroke="#78706a" strokeWidth="2.5" opacity="0.55" />
+              <circle cx="100" cy="58" r="9.5" fill="#e8e0d6" />
+              <circle cx="63.63" cy="121" r="9.5" fill="#e8e0d6" />
+              <circle cx="136.37" cy="121" r="9.5" fill="#e8e0d6" />
             </svg>
             <span className="font-display">Harness Protocol</span>
           </span>

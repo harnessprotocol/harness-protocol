@@ -29,7 +29,7 @@ function LoginForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-lg bg-fd-primary px-4 py-2.5 text-sm font-medium text-fd-primary-foreground shadow-lg shadow-blue-500/20 transition-all hover:opacity-90 disabled:opacity-50"
+        className="w-full rounded-lg bg-fd-primary px-4 py-2.5 text-sm font-medium text-fd-primary-foreground transition-colors hover:opacity-90 disabled:opacity-50"
       >
         {isPending ? "Checking..." : "Continue"}
       </button>

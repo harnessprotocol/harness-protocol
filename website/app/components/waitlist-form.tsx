@@ -13,8 +13,8 @@ export function WaitlistForm() {
   }
 
   return (
-    <div className="w-full max-w-md">
-      <form action={formAction} className="flex gap-3">
+    <div className="max-w-lg">
+      <form action={formAction} className="flex flex-col gap-3 sm:flex-row">
         <input
           type="email"
           name="email"
@@ -25,7 +25,7 @@ export function WaitlistForm() {
         <button
           type="submit"
           disabled={isPending}
-          className="shrink-0 rounded-lg bg-fd-primary px-5 py-2.5 text-sm font-medium text-fd-primary-foreground shadow-lg shadow-blue-500/20 transition-all hover:opacity-90 disabled:opacity-50"
+          className="shrink-0 rounded-lg bg-fd-primary px-5 py-2.5 text-sm font-medium text-fd-primary-foreground transition-colors hover:opacity-90 disabled:opacity-50"
         >
           {isPending ? "Joining..." : "Join Waitlist"}
         </button>
