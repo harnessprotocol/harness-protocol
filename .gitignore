@@ -1,0 +1,8 @@
+.DS_Store
+*.swp
+*.swo
+.venv/
+.claude.local.md
+docs/plans/
+eval/node_modules/
+eval/dist/

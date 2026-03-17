@@ -1,0 +1,152 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/style.css';
+
+/* ── Font system ── */
+body {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ── Light theme ── */
+:root {
+  --color-fd-primary: 217 91% 60%;
+  --color-fd-primary-foreground: 0 0% 100%;
+  --color-fd-background: 210 20% 99%;
+  --color-fd-foreground: 220 20% 12%;
+  --color-fd-card: 210 15% 96%;
+  --color-fd-card-foreground: 220 20% 12%;
+  --color-fd-muted: 210 10% 93%;
+  --color-fd-muted-foreground: 220 8% 44%;
+  --color-fd-border: 210 10% 88%;
+  --color-fd-accent: 213 60% 94%;
+  --color-fd-accent-foreground: 217 70% 35%;
+  --color-fd-popover: 0 0% 100%;
+  --color-fd-popover-foreground: 220 20% 12%;
+  --color-fd-secondary: 210 10% 95%;
+  --color-fd-secondary-foreground: 220 20% 12%;
+  --color-fd-ring: 217 91% 60%;
+}
+
+/* ── Dark theme — HP Blue accent ── */
+.dark {
+  --color-fd-primary: 213 94% 68%;
+  --color-fd-primary-foreground: 240 16% 6%;
+  --color-fd-background: 240 16% 6%;
+  --color-fd-foreground: 0 0% 93%;
+  --color-fd-card: 240 16% 9%;
+  --color-fd-card-foreground: 0 0% 93%;
+  --color-fd-muted: 240 12% 13%;
+  --color-fd-muted-foreground: 240 6% 56%;
+  --color-fd-border: 240 14% 16%;
+  --color-fd-accent: 213 35% 12%;
+  --color-fd-accent-foreground: 213 94% 72%;
+  --color-fd-popover: 240 16% 7%;
+  --color-fd-popover-foreground: 0 0% 93%;
+  --color-fd-secondary: 240 12% 10%;
+  --color-fd-secondary-foreground: 0 0% 93%;
+  --color-fd-ring: 213 94% 68%;
+}
+
+/* ── Utility classes ── */
+.glass {
+  backdrop-filter: blur(12px);
+  background: hsla(240, 16%, 8%, 0.7);
+}
+
+/* ── Page fade-in ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+/* ── Heading typography ── */
+h1, h2, h3 {
+  letter-spacing: -0.03em;
+}
+
+/* ── Docs layout width ── */
+:root {
+  --fd-layout-width: 1400px;
+}
+
+/* ── Nav bar ── */
+.dark [data-fumadocs-nav] {
+  border-bottom: none;
+  background: hsla(240, 16%, 6%, 0.88);
+  backdrop-filter: blur(16px);
+}
+.dark [data-fumadocs-nav]::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsla(213, 94%, 68%, 0.18), transparent);
+}
+
+/* ── Sidebar active item ── */
+.dark [data-fumadocs-sidebar] [aria-current="page"],
+.dark [data-fumadocs-sidebar] [data-active="true"] {
+  border-left: 2px solid hsl(213, 94%, 68%);
+  background: hsla(213, 35%, 12%, 0.5);
+  padding-left: 10px;
+}
+
+/* ── TOC active item ── */
+.dark [data-fumadocs-toc] [data-active="true"] {
+  color: hsl(213, 94%, 68%);
+}
+
+/* ── Code blocks ── */
+.dark pre {
+  background: hsl(240, 16%, 7%) !important;
+  border-radius: 0.75rem;
+}
+
+/* ── Inline code — subtle, no harsh border ── */
+.dark :not(pre) > code {
+  border: none;
+  background: hsla(240, 14%, 18%, 0.9);
+  color: hsl(213, 94%, 78%);
+}
+
+/* ── Blockquotes as callouts ── */
+.dark blockquote {
+  border-left: 3px solid hsl(213, 94%, 68%);
+  background: hsla(213, 25%, 10%, 0.35);
+  border-radius: 0 0.5rem 0.5rem 0;
+  padding: 0.75rem 1rem;
+}
+
+/* ── Tables ── */
+.dark table {
+  border: 1px solid hsla(222, 18%, 20%, 0.3);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+.dark table thead {
+  background: hsla(222, 18%, 10%, 0.8);
+}
+.dark table tbody tr:nth-child(even) {
+  background: hsla(222, 18%, 8%, 0.5);
+}
+.dark table td,
+.dark table th {
+  border-color: hsla(222, 18%, 20%, 0.2);
+}
+
+/* ── Docs headings — display font ── */
+.dark [data-fumadocs-body] h1,
+.dark [data-fumadocs-body] h2,
+.dark [data-fumadocs-body] h3 {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.03em;
+}

@@ -1,0 +1,47 @@
+# Harness Protocol v1 fragment — data stack plugin bundle.
+#
+# This fragment bundles the core data engineering plugins used by the Acme
+# data team. It is intentionally minimal: no MCP servers, no env requirements,
+# no instructions — just a curated plugin list ready to be composed into any
+# full profile.
+#
+# Usage — reference this fragment from a full profile or another fragment:
+#
+#   extends:
+#     - source: harnessprotocol/harness-kit/examples/fragment-plugin-bundle.harness.yaml
+#
+# The consuming profile inherits all four plugins below and can override any
+# entry by declaring a plugin with the same name.
+
+$schema: https://harnessprotocol.io/schema/v1/harness.schema.json
+version: "1"
+kind: fragment
+
+# metadata is optional for fragments; included here for registry discoverability.
+metadata:
+  name: data-stack-bundle
+  description: Data engineering plugin bundle for new team members.
+
+# ----------------------------------------------------------------------------
+# Plugins — the full data stack in one import.
+# ----------------------------------------------------------------------------
+plugins:
+  # Traces column-level lineage across dbt models and raw tables.
+  - name: data-lineage
+    source: harnessprotocol/harness-kit
+    version: ">=0.3.0"
+
+  # Explains SQL query plans and dbt model DAG dependencies in plain language.
+  - name: explain
+    source: harnessprotocol/harness-kit
+    version: ">=0.2.0"
+
+  # Research skill for querying documentation and package registries.
+  - name: research
+    source: harnessprotocol/harness-kit
+    version: ">=0.2.0"
+
+  # Generates and updates data model documentation from source annotations.
+  - name: docgen
+    source: harnessprotocol/harness-kit
+    version: ">=0.2.0"

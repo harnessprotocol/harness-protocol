@@ -1,0 +1,11 @@
+{
+  "title": "Extensions",
+  "pages": [
+    "extension-points",
+    "---v2 Design Sketches (pre-HEP)---",
+    "hooks",
+    "exchange",
+    "compiler-targets",
+    "registry"
+  ]
+}
