@@ -8,7 +8,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       tree={source.pageTree}
       nav={{
         title: (
-          <span className="flex items-center gap-2 font-bold">
+          <span className="flex items-center gap-2 text-sm font-medium">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 200 200"
