@@ -29,10 +29,10 @@ The layers are intentionally decoupled. A tool can implement Schema-layer valida
 
 Version 1 of the Harness Protocol specifies the **Schema layer**:
 
-- **The `harness.yaml` format** — a structured YAML document with top-level sections for metadata, plugins, MCP servers, environment declarations, instructions, permissions, and inheritance. See [Profile Schema](./profile-schema.md) for the full specification.
+- **The `harness.yaml` format** — a structured YAML document with top-level sections for metadata, plugins, MCP servers, environment declarations, instructions, permissions, and inheritance. See [Profile Schema](../specification/profile-schema) for the full specification.
 - **The JSON Schema** — a machine-readable schema at `https://harnessprotocol.io/schema/v1/harness.schema.json` that implementations use to validate harness files. The JSON Schema is the authoritative source of truth; this documentation is normative prose on top of it.
-- **The security model** — rules for sensitive environment variables, permission inheritance, integrity verification, and trust boundaries. See [Security](../security/) for details.
-- **The plugin manifest format** — the `plugin.json` format that plugin authors use to declare what their plugin provides and requires. See [Plugin Manifest](./plugin-manifest.md).
+- **The security model** — rules for sensitive environment variables, permission inheritance, integrity verification, and trust boundaries. See [Security](../security) for details.
+- **The plugin manifest format** — the `plugin.json` format that plugin authors use to declare what their plugin provides and requires. See [Plugin Manifest](../specification/plugin-manifest).
 - **The `kind: fragment` mechanism** — a partial harness document that intentionally omits required top-level fields, used as a building block for Exchange-layer composition.
 
 ## How It Relates to harness-kit
@@ -48,21 +48,44 @@ harness-kit provides:
 
 Conformance to the Harness Protocol does not require using harness-kit. Any implementation that correctly validates and applies `harness.yaml` according to this specification is a conformant implementation.
 
+## Reading Paths
+
+**For harness authors** (writing `harness.yaml` files): Start with [Profile Schema](../specification/profile-schema) for the field reference, then [Examples](./examples) to see real profiles. Refer to [Environment](../specification/environment) and [Instructions](../specification/instructions) as needed.
+
+**For tool implementers** (building a conformant implementation): Start with [Architecture](../reference/architecture) for the system model, then [Application Semantics](../specification/application) for the 6-step pipeline, then [Source Resolution](../specification/source-resolution) for how `owner/repo` references resolve, then [Profile Schema](../specification/profile-schema) for the normative field spec. The [Security](../security) docs are essential reading.
+
+---
+
+## Standards & Prior Art
+
+The Harness Protocol builds on established standards:
+
+- **[RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) / [BCP 14](https://www.rfc-editor.org/info/bcp14)** — Normative language ("MUST", "SHOULD", etc.)
+- **[JSON Schema Draft 2020-12](https://json-schema.org/draft/2020-12/json-schema-core)** — Machine-readable validation
+- **[Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html)** — Version constraints for plugins and extends
+- **[SPDX License List](https://spdx.org/licenses/)** — License identifiers in metadata
+- **[Model Context Protocol (MCP)](https://modelcontextprotocol.io/)** — Tool communication layer referenced in MCP server declarations
+- **[PEP process](https://peps.python.org/pep-0001/)** — Governance model inspiration for the HEP (Harness Enhancement Proposal) process
+
+---
+
 ## Document Map
 
 | Document | Content |
 |----------|---------|
-| [Terminology](./terminology.md) | Glossary of all terms used in the spec |
-| [Architecture](./architecture.md) | System diagram, layer interactions, trust model |
-| [Profile Schema](./profile-schema.md) | Full `harness.yaml` field reference |
-| [Plugin Manifest](./plugin-manifest.md) | `plugin.json` format for plugin authors |
-| [MCP Declarations](./mcp-declarations.md) | MCP server transport types, variable substitution, security |
-| [Instructions](./instructions.md) | Instruction slots, content sources, import modes |
-| [Environment](./environment.md) | Environment variable declarations, sensitive handling |
-| [Fragments](./fragments.md) | `kind: fragment` — partial harness documents for composition |
-| [Inheritance](./inheritance.md) | `extends` resolution order and per-section merge rules |
-| [Security](../security/) | Permission model, integrity verification, sensitive data rules |
-| [Extensions](../extensions/) | `x-` prefix fields and implementation-specific extensions |
+| [Terminology](../reference/terminology) | Glossary of all terms used in the spec |
+| [Architecture](../reference/architecture) | System diagram, layer interactions, trust model |
+| [Profile Schema](../specification/profile-schema) | Full `harness.yaml` field reference |
+| [Plugin Manifest](../specification/plugin-manifest) | `plugin.json` format for plugin authors |
+| [MCP Declarations](../specification/mcp-declarations) | MCP server transport types, variable substitution, security |
+| [Instructions](../specification/instructions) | Instruction slots, content sources, import modes |
+| [Environment](../specification/environment) | Environment variable declarations, sensitive handling |
+| [Fragments](../specification/fragments) | `kind: fragment` — partial harness documents for composition |
+| [Inheritance](../specification/inheritance) | `extends` resolution order and per-section merge rules |
+| [Application Semantics](../specification/application) | Application pipeline, effective configuration, error handling |
+| [Source Resolution](../specification/source-resolution) | Source resolution algorithm for `owner/repo` and local path references |
+| [Security](../security) | Permission model, integrity verification, sensitive data rules |
+| [Extensions](../extensions) | `x-` prefix fields and implementation-specific extensions |
 
 ## Conformance
 
@@ -78,3 +101,7 @@ This specification defines two conformance classes.
 3. Applies conforming documents to AI coding sessions in accordance with the semantics defined for each section (plugins, MCP servers, env, instructions, permissions, extends).
 
 Conformance does not require use of any specific library, registry, or hosting provider. An implementation that satisfies the above requirements on any platform is conformant.
+
+### Conformance Test Suite
+
+A reference test suite for validating conformance is planned. Track progress in [GitHub Issues](https://github.com/harnessprotocol/harness-protocol/issues).

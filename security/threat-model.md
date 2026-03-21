@@ -1,6 +1,6 @@
 # Harness Protocol v1 — Threat Model
 
-**Status:** Draft
+**Status:** Candidate
 **Version:** Harness Protocol v1
 
 ---

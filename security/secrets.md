@@ -1,6 +1,6 @@
 # Harness Protocol v1 — Secrets and Sensitive Variables
 
-**Status:** Draft
+**Status:** Candidate
 **Version:** Harness Protocol v1
 
 ---

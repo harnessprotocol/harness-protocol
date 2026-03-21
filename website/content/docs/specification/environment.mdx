@@ -26,7 +26,7 @@ The `env` array may also declare variables that no `mcp-servers` entry reference
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `name` | string | Yes | — | The environment variable name. Must match `^[A-Z][A-Z0-9_]*$` — uppercase letters, digits, and underscores, starting with a letter. |
+| `name` | string | Yes | — | The environment variable name. Must match `^[A-Z_][A-Z0-9_]*$` — uppercase letters, digits, and underscores, starting with an uppercase letter or underscore. |
 | `description` | string | Yes | — | Human-readable explanation of the variable's purpose, expected format, and where to obtain a value. Shown to users during prompting. |
 | `required` | boolean | No | `false` | If `true`, the implementation MUST verify the variable is present in the environment before completing the apply step. A missing required variable is a fatal error — the harness MUST NOT be partially applied. |
 | `sensitive` | boolean | No | `true` | If `true`, the variable contains secret or personally sensitive data. See security constraints below. The default is `true`, meaning variables are treated as sensitive unless explicitly declared otherwise. |
@@ -91,7 +91,7 @@ Implementations MUST apply the following rules to all variables declared `sensit
 
 The `when` field is a human-readable description of when a variable is needed. Its primary purpose is display: implementations show it to users when prompting for or listing variables, so users understand which variables apply to their specific use of the harness.
 
-Implementations MAY also evaluate `when` as a condition expression — for example, `"plugins contains 'data-lineage'"` — to suspend the `required` constraint when the condition is false. When an implementation evaluates `when` as a condition and the condition is false, the variable is treated as entirely optional: the implementation does not prompt for it and does not fail if it is absent. When an implementation does not evaluate `when` programmatically, it is displayed as informational text alongside the variable name and description. Either behavior is conformant in v1.
+Implementations MAY also evaluate `when` as a condition expression — for example, `"plugins contains 'data-lineage'"` — to suspend the `required` constraint when the condition is false. Implementations that evaluate `when` SHOULD support at minimum simple string matching. When an implementation evaluates `when` as a condition and the condition is false, the variable is treated as entirely optional: the implementation does not prompt for it and does not fail if it is absent. Implementations that do not evaluate `when` MUST display it as informational text alongside the variable name and description. Either behavior is conformant in v1.
 
 Examples:
 
