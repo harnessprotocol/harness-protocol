@@ -28,7 +28,7 @@ source: my-org/base-harness
 source: harnessprotocol/harness-kit
 ```
 
-For `plugins[].source`, the schema constrains the value to the pattern `^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$`. This pattern permits exactly two path segments separated by a single `/` — an owner and a repository name. Characters allowed in each segment are alphanumerics, underscores, dots, and hyphens.
+For `plugins[].source`, the schema constrains the value to the pattern `^[a-zA-Z0-9_][a-zA-Z0-9_.-]*/[a-zA-Z0-9_][a-zA-Z0-9_.-]*$`. This pattern permits exactly two path segments separated by a single `/` — an owner and a repository name. Each segment must start with an alphanumeric character or underscore; subsequent characters may also include dots and hyphens.
 
 For `extends[].source`, no pattern constraint is enforced at the schema level because extends sources support additional formats described below.
 
@@ -60,7 +60,7 @@ A source that begins with `./` or `../` is a local reference. Implementations MU
 
 Local sources have no version constraint — the filesystem state at resolution time IS the version. The `version` field on an `extends[]` entry with a local source SHOULD be omitted. If present, implementations MUST ignore it.
 
-Local sources are NOT valid for `plugins[].source`. The schema pattern `^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$` rejects paths beginning with `.`.
+Local sources are NOT valid for `plugins[].source`. The schema pattern `^[a-zA-Z0-9_][a-zA-Z0-9_.-]*/[a-zA-Z0-9_][a-zA-Z0-9_.-]*$` requires each segment to start with an alphanumeric character or underscore, rejecting paths that begin with `.` or `-`.
 
 ---
 

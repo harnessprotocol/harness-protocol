@@ -162,7 +162,7 @@ The `loading` field controls progressive skill disclosure — when a plugin's to
 
 ### Constraints
 
-- `source` MUST match the pattern `^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$`. See [Source Resolution](./source-resolution.md) for how `source` fields are resolved.
+- `source` MUST match the pattern `^[a-zA-Z0-9_][a-zA-Z0-9_.-]*/[a-zA-Z0-9_][a-zA-Z0-9_.-]*$`. See [Source Resolution](./source-resolution.md) for how `source` fields are resolved.
 - `version`, if present, MUST be a valid semver range expression.
 - `integrity.sha256`, if present, MUST be a 64-character lowercase hex string.
 - Plugin `name` values MUST be unique within the `plugins` array.
