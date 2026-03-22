@@ -114,6 +114,14 @@ Example: `x-claude-model: claude-opus-4` is a valid extension field that a Claud
 
 ---
 
+## Application Pipeline
+
+The 6-step process that transforms a validated `harness.yaml` into an active agent session: Parse, Validate, Resolve Sources, Merge, Substitute Variables, Apply. Each step either succeeds and passes its result to the next, or fails and halts the pipeline. There is no partial application — either the full harness applies or none of it does.
+
+See [Application Semantics](./application.md) for the full specification.
+
+---
+
 ## Effective Configuration
 
 The fully resolved result of applying a harness document. Produced after all `extends` chains are resolved, all merge rules are applied, and all `${VAR_NAME}` substitutions are performed. The effective configuration is the normative output contract of the [application pipeline](./application.md) — it is what an implementation has produced when it says "this harness has been applied."

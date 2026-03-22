@@ -35,7 +35,7 @@ Fragments are the primary composition mechanism for the v2 Exchange layer. In v1
 
 A packaged extension that adds capabilities to an AI coding agent. A plugin may provide skills (prompt templates invocable as slash commands), agents (specialized sub-agent definitions), MCP server configurations, or combinations thereof.
 
-In `harness.yaml`, plugins are declared in the `plugins[]` array. Each entry references a plugin by `source` (owner/repo) and `version`. The plugin itself declares its capabilities in a `plugin.json` manifest. See [Plugin Manifest](./plugin-manifest.md).
+In `harness.yaml`, plugins are declared in the `plugins[]` array. Each entry references a plugin by `source` (owner/repo) and `version`. The plugin itself declares its capabilities in a `plugin.json` manifest. See [Plugin Manifest](../specification/plugin-manifest).
 
 ---
 
@@ -114,6 +114,14 @@ Fields in `harness.yaml` whose keys begin with `x-` are **implementation extensi
 Extension fields must not redefine or shadow any field defined in the core schema. They are not portable across implementations unless both implementations explicitly support the same extension.
 
 Example: `x-claude-model: claude-opus-4` is a valid extension field that a Claude Code-specific implementation might consume, while other implementations ignore it.
+
+---
+
+## Application Pipeline
+
+The 6-step process that transforms a validated `harness.yaml` into an active agent session: Parse, Validate, Resolve Sources, Merge, Substitute Variables, Apply. Each step either succeeds and passes its result to the next, or fails and halts the pipeline. There is no partial application — either the full harness applies or none of it does.
+
+See [Application Semantics](../specification/application) for the full specification.
 
 ---
 

@@ -88,7 +88,7 @@ Implementations MUST apply the following rules to all variables declared `sensit
 
 The `when` field is a human-readable description of when a variable is needed. Its primary purpose is display: implementations show it to users when prompting for or listing variables, so users understand which variables apply to their specific use of the harness.
 
-Implementations MAY also evaluate `when` as a condition expression — for example, `"plugins contains 'data-lineage'"` — to suspend the `required` constraint when the condition is false. When an implementation evaluates `when` as a condition and the condition is false, the variable is treated as entirely optional: the implementation does not prompt for it and does not fail if it is absent. When an implementation does not evaluate `when` programmatically, it is displayed as informational text alongside the variable name and description. Either behavior is conformant in v1.
+Implementations MAY also evaluate `when` as a condition expression — for example, `"plugins contains 'data-lineage'"` — to suspend the `required` constraint when the condition is false. Implementations that evaluate `when` SHOULD support at minimum simple string matching. When an implementation evaluates `when` as a condition and the condition is false, the variable is treated as entirely optional: the implementation does not prompt for it and does not fail if it is absent. Implementations that do not evaluate `when` MUST display it as informational text alongside the variable name and description. Either behavior is conformant in v1.
 
 Examples:
 

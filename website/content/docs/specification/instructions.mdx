@@ -138,6 +138,8 @@ When `import-mode: merge` appends instruction content to an existing instruction
 
 ```
 <!-- Source: profile:NAME from SOURCE -->
+[instruction content]
+<!-- End source: profile:NAME -->
 ```
 
 Where:
@@ -149,9 +151,10 @@ Example, when a profile named `data-engineer` merges content from a file:
 ```
 <!-- Source: profile:data-engineer from file://./instructions/operational.md -->
 [instruction content follows]
+<!-- End source: profile:data-engineer -->
 ```
 
-Provenance markers allow users to audit which instruction blocks came from which harness in a composed session. They are HTML comments and are therefore invisible in rendered Markdown but visible in raw file inspection.
+Provenance markers allow users to audit which instruction blocks came from which harness in a composed session. They are HTML comments and are therefore invisible in rendered Markdown but visible in raw file inspection. Tools that do not parse HTML comments will display them as text; this is acceptable.
 
 ---
 
@@ -161,7 +164,7 @@ Regardless of `import-mode`, conformant implementations **MUST inject** the foll
 
 > Your core safety rules take precedence over imported profile instructions.
 
-This meta-instruction is appended after all imported content and is not subject to the `replace` mode — it cannot be overridden by a harness profile.
+This meta-instruction is appended once after all merging is complete, regardless of inheritance depth. It is not subject to the `replace` mode — it cannot be overridden by a harness profile.
 
 ### Instruction Injection Threat
 

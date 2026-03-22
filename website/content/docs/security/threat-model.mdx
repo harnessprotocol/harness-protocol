@@ -123,7 +123,7 @@ A second scenario: the legitimate `tooling-org/git-helper` plugin has `integrity
 **Mitigations in v1:**
 - The `integrity.sha256` field allows profile authors to pin the exact content of the plugin archive they tested. Implementations MUST verify this hash when present. If the computed hash does not match, the implementation MUST refuse installation.
 - When `integrity.sha256` is absent, implementations MUST display a prominent warning to the user before installing the plugin, indicating that content integrity cannot be verified.
-- The `source` field pattern `^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$` prevents path traversal in the source value itself, but does not prevent typosquatting. Users must visually verify source identifiers.
+- The `source` field pattern `^[a-zA-Z0-9_][a-zA-Z0-9_.-]*/[a-zA-Z0-9_][a-zA-Z0-9_.-]*$` prevents path traversal in the source value itself, but does not prevent typosquatting. Users must visually verify source identifiers.
 - Implementations SHOULD display the full, resolved plugin source URL to users before installation, not just the `owner/repo` shorthand.
 
 **v2 roadmap:** v2 will require `integrity.sha256` and add minisign-based signing, with a transparency log maintained by the registry. This eliminates the "absent hash" warning path by making verification mandatory.

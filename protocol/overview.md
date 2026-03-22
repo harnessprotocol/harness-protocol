@@ -45,6 +45,27 @@ harness-kit provides:
 
 Conformance to the Harness Protocol does not require using harness-kit. Any implementation that correctly validates and applies `harness.yaml` according to this specification is a conformant implementation.
 
+## Reading Paths
+
+**For harness authors** (writing `harness.yaml` files): Start with [Profile Schema](./profile-schema.md) for the field reference, then [the examples](../examples/) to see real profiles. Refer to [Environment](./environment.md) and [Instructions](./instructions.md) as needed.
+
+**For tool implementers** (building a conformant implementation): Start with [Architecture](./architecture.md) for the system model, then [Application Semantics](./application.md) for the 6-step pipeline, then [Source Resolution](./source-resolution.md) for how `owner/repo` references resolve, then [Profile Schema](./profile-schema.md) for the normative field spec. The [Security](../security/) docs are essential reading.
+
+---
+
+## Standards & Prior Art
+
+The Harness Protocol builds on established standards:
+
+- **[RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) / [BCP 14](https://www.rfc-editor.org/info/bcp14)** — Normative language ("MUST", "SHOULD", etc.)
+- **[JSON Schema Draft 2020-12](https://json-schema.org/draft/2020-12/json-schema-core)** — Machine-readable validation
+- **[Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html)** — Version constraints for plugins and extends
+- **[SPDX License List](https://spdx.org/licenses/)** — License identifiers in metadata
+- **[Model Context Protocol (MCP)](https://modelcontextprotocol.io/)** — Tool communication layer referenced in MCP server declarations
+- **[PEP process](https://peps.python.org/pep-0001/)** — Governance model inspiration for the HEP (Harness Enhancement Proposal) process
+
+---
+
 ## Document Map
 
 | Document | Content |
@@ -77,3 +98,7 @@ This specification defines two conformance classes.
 3. Applies conforming documents to AI coding sessions in accordance with the semantics defined for each section (plugins, MCP servers, env, instructions, permissions, extends).
 
 Conformance does not require use of any specific library, registry, or hosting provider. An implementation that satisfies the above requirements on any platform is conformant.
+
+### Conformance Test Suite
+
+A reference test suite for validating conformance is planned. Track progress in [GitHub Issues](https://github.com/harnessprotocol/harness-protocol/issues).

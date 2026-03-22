@@ -7,6 +7,8 @@
     "environment",
     "fragments",
     "inheritance",
+    "application",
+    "source-resolution",
     "plugin-manifest"
   ]
 }

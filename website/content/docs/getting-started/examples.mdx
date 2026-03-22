@@ -45,7 +45,7 @@ metadata:
   author:
     name: alice
     url: https://github.com/alice
-  version: 1.0.0
+  version: "1.0.0"
   license: Apache-2.0
   tags:
     - data-engineering
@@ -199,7 +199,7 @@ version: "1"
 metadata:
   name: acme-backend-team
   description: Backend team overlay for Acme Engineering. Adds GHE tooling, team Postgres, and stricter permission guards.
-  version: 1.0.0
+  version: "1.0.0"
   tags:
     - backend
     - team
@@ -379,6 +379,65 @@ env:
     required: true
     sensitive: true
 ```
+
+## Common Mistakes
+
+These invalid examples show errors the schema or a conformant implementation will catch.
+
+### `sensitive: true` with `default` (forbidden)
+
+```yaml
+# INVALID — sensitive variables must not have defaults.
+env:
+  - name: API_TOKEN
+    description: API bearer token
+    required: true
+    sensitive: true
+    default: "dev-placeholder"  # FORBIDDEN — validation error
+```
+
+A default value is stored in `harness.yaml`, which may be committed to version control. The schema prohibits defaults on sensitive variables. Put example values in the `description` field instead.
+
+### `version: 1` (integer instead of string)
+
+```yaml
+# INVALID — version must be a string, not an integer.
+version: 1         # WRONG: integer
+version: "1"       # CORRECT: string
+```
+
+YAML parses unquoted `1` as an integer. Implementations MUST reject `version: 1` with a clear error suggesting the quoted form.
+
+### Undeclared `${VAR_NAME}` reference
+
+```yaml
+# INVALID — DB_PASSWORD is used in mcp-servers but not declared in env.
+mcp-servers:
+  postgres:
+    transport: stdio
+    command: uvx
+    args: [mcp-server-postgres, "${DB_PASSWORD}"]
+
+env: []  # No declaration for DB_PASSWORD — validation error
+```
+
+Every `${VAR_NAME}` reference in `mcp-servers` MUST have a corresponding entry in the `env` array.
+
+### Circular `extends` chain
+
+```yaml
+# file: a.harness.yaml
+extends:
+  - source: ./b.harness.yaml
+
+# file: b.harness.yaml
+extends:
+  - source: ./a.harness.yaml
+```
+
+Circular inheritance is a fatal error. Implementations MUST detect cycles and report which harnesses form the loop.
+
+---
 
 ## Fragment: Plugin bundle
 

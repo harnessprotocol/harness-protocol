@@ -40,7 +40,7 @@ In v1, only the Schema layer exists. The Exchange and Registry layers are forwar
 
 ## Schema Layer: How It Works
 
-The Schema layer defines how a `harness.yaml` is structured, validated, and applied. The flow has three steps:
+The Schema layer defines how a `harness.yaml` is structured, validated, and applied. At a high level, the flow has three phases (for the complete 6-step pipeline, see [Application Semantics](../specification/application)):
 
 ### 1. Parse
 
@@ -62,7 +62,7 @@ For `kind: profile` documents (the default), required fields are enforced. For `
 
 A validated harness document is applied by the implementation. Application order:
 
-1. Resolve `extends` — fetch and validate parent harnesses, then merge fields according to section-specific inheritance rules (see [Profile Schema: extends](./profile-schema.md#extends)).
+1. Resolve `extends` — fetch and validate parent harnesses, then merge fields according to section-specific inheritance rules (see [Profile Schema: extends](../specification/profile-schema#extends)).
 2. Resolve plugins — fetch plugin archives from `source` at the declared `version`, verify `integrity.sha256` if present, load plugin contents.
 3. Start MCP servers — launch or connect to declared `mcp-servers` entries using the specified transport.
 4. Apply environment — validate that all `required: true` env entries have values in the current environment. Surface missing-variable errors before proceeding.

@@ -1,6 +1,6 @@
 # Harness Protocol v1 — Permissions
 
-**Status:** Draft
+**Status:** Candidate
 **Version:** Harness Protocol v1
 
 ---

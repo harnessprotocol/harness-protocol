@@ -1,4 +1,7 @@
-# Source Resolution
+---
+title: Source Resolution
+description: How source fields resolve to fetchable content — the owner/repo format, version resolution, entry points, and caching.
+---
 
 This document specifies how `source` fields in `harness.yaml` resolve to fetchable content. The `plugins[].source` and `extends[].source` fields reference external harnesses and plugin manifests that an implementation MUST locate, version-match, and retrieve before the harness can be compiled into an effective configuration.
 
@@ -175,11 +178,11 @@ Source resolution is a trust-sensitive operation. Fetching and executing content
 
 ### Trust Boundaries
 
-See [Trust Boundaries](../security/trust-boundaries.md) for the full trust model. Key points relevant to source resolution:
+See [Trust Boundaries](../security/trust-boundaries) for the full trust model. Key points relevant to source resolution:
 
 - **Extends sources:** Implementations MUST warn users when `extends` references a source they have not previously explicitly trusted. Trust-on-first-use (TOFU) is the minimum acceptable model — the first time a source is resolved, the user confirms trust; subsequent resolutions of the same source proceed without prompting unless the source changes.
 
-- **Plugin integrity:** When a plugin entry includes `integrity.sha256`, implementations MUST verify the fetched `plugin.json` content against the declared hash. A mismatch is a fatal error. See [Integrity](../security/integrity.md) for the verification algorithm.
+- **Plugin integrity:** When a plugin entry includes `integrity.sha256`, implementations MUST verify the fetched `plugin.json` content against the declared hash. A mismatch is a fatal error. See [Integrity](../security/integrity) for the verification algorithm.
 
 - **Local paths:** Local sources (`./`, `../`) bypass the network trust model — the content is already on the user's filesystem. However, local sources still participate in the filesystem trust model: implementations MUST NOT resolve local paths that escape the workspace boundary without explicit user consent.
 
@@ -191,7 +194,7 @@ Implementations SHOULD record the resolved ref (commit SHA or tag) for each sour
 
 ## Relationship to the Registry Layer (v2)
 
-The v2 Registry layer will provide an alternative resolution path for sources. When a registry is available:
+*Non-normative:* The v2 Registry layer will provide an alternative resolution path for sources. When a registry is available:
 
 - `owner/repo` sources MAY be resolved via the registry instead of (or in addition to) direct git access.
 - The registry provides additional metadata: audit status, publisher identity, download counts, vulnerability reports.

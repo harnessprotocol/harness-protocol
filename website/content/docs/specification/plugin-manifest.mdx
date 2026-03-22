@@ -17,7 +17,7 @@ The manifest serves three purposes:
 2. **Requirements** — declares the environment variables the plugin needs, so the harness can validate them before starting.
 3. **Compatibility** — specifies the minimum Harness Protocol version the plugin is written against.
 
-The `plugin.json` is for plugin **authors**. Harness authors reference plugins via `harness.yaml`; they do not write `plugin.json` files. If you are writing a harness configuration, see [Profile Schema](./profile-schema.md).
+The `plugin.json` is for plugin **authors**. Harness authors reference plugins via `harness.yaml`; they do not write `plugin.json` files. If you are writing a harness configuration, see [Profile Schema](./profile-schema).
 
 ---
 
@@ -160,7 +160,7 @@ Declares the plugin's runtime requirements. If absent, the plugin has no declare
 |-------|------|----------|
 | `requires.env` | array | No |
 
-An array of environment variable declarations using the same schema as the `env[]` entries in `harness.yaml`. See [Profile Schema: env](./profile-schema.md#env) for the full field reference.
+An array of environment variable declarations using the same schema as the `env[]` entries in `harness.yaml`. See [Profile Schema: env](./profile-schema#env) for the full field reference.
 
 When an implementation loads a plugin, it merges `requires.env` into the harness's effective env list. If the harness already declares a variable with the same name, the harness's declaration takes precedence. If the harness does not declare the variable, the plugin's declaration is added and the implementation validates accordingly.
 

@@ -37,7 +37,7 @@ In v1, only the Schema layer exists. The Exchange and Registry layers are forwar
 
 ## Schema Layer: How It Works
 
-The Schema layer defines how a `harness.yaml` is structured, validated, and applied. The flow has three steps:
+The Schema layer defines how a `harness.yaml` is structured, validated, and applied. At a high level, the flow has three phases (for the complete 6-step pipeline, see [Application Semantics](./application.md)):
 
 ### 1. Parse
 

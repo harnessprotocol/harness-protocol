@@ -1,6 +1,6 @@
 # Harness Protocol
 
-> **Status:** v1 Schema layer — draft
+> **Status:** v1 Schema layer — candidate
 
 The Harness Protocol is an open specification for portable AI coding harnesses — a vendor-neutral `harness.yaml` format that captures the complete operational context for an AI coding agent: plugins, MCP servers, environment requirements, behavioral instructions, and permissions. It is to AI coding harnesses what the Model Context Protocol (MCP) is to tool communication.
 
@@ -42,16 +42,18 @@ version: "1"
 metadata:
   name: data-engineer
   description: Harness for data engineering work in Go and SQL.
-  author: acme-org
+  author:
+    name: acme-org
 
 plugins:
-  - source: acme-org/sql-explorer
-    version: "1.2.0"
+  - name: sql-explorer
+    source: acme-org/sql-explorer
+    version: "^1.2.0"
     integrity:
-      sha256: "abc123..."
+      sha256: "abc123def456..."
 
 mcp-servers:
-  - name: filesystem
+  filesystem:
     transport: stdio
     command: npx
     args: ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"]
@@ -59,18 +61,17 @@ mcp-servers:
 env:
   - name: DATABASE_URL
     description: Primary database connection string
+    required: true
     sensitive: true
 
 instructions:
-  - path: .harness/instructions.md
-    import-mode: append
+  operational: file://./instructions/operational.md
+  import-mode: merge
 
 permissions:
-  allow:
-    - read
-    - edit
-  deny:
-    - web-fetch
+  tools:
+    allow: [Read, Glob, Grep, Write, Edit]
+    deny: ["mcp__*__drop_*"]
 ```
 
 The full field reference is in [protocol/profile-schema.md](protocol/profile-schema.md). The JSON Schema is the authoritative validation source.
@@ -101,6 +102,8 @@ Full documentation is available at [harnessprotocol.io/spec](https://harnessprot
 | [protocol/environment.md](protocol/environment.md) | Environment variable declarations and sensitive data handling |
 | [protocol/fragments.md](protocol/fragments.md) | `kind: fragment` — partial harness documents for composition |
 | [protocol/inheritance.md](protocol/inheritance.md) | `extends` resolution order and per-section merge rules |
+| [protocol/application.md](protocol/application.md) | Application pipeline, effective configuration, error handling |
+| [protocol/source-resolution.md](protocol/source-resolution.md) | Source resolution algorithm for `owner/repo` and local path references |
 | [security/threat-model.md](security/threat-model.md) | Threat model and security design |
 | [security/trust-boundaries.md](security/trust-boundaries.md) | Trust boundaries between spec, implementations, profiles, and remote content |
 | [security/secrets.md](security/secrets.md) | Sensitive variable handling and secrets patterns |
@@ -118,8 +121,10 @@ Full documentation is available at [harnessprotocol.io/spec](https://harnessprot
 **Tool implementers** (building a harness implementation):
 1. [protocol/overview.md](protocol/overview.md) — what the protocol is and how layers fit together
 2. [protocol/architecture.md](protocol/architecture.md) — system model and trust boundaries
-3. [protocol/profile-schema.md](protocol/profile-schema.md) — the normative field specification
-4. [security/](security/) — security model, sensitive data rules, and threat model
+3. [protocol/application.md](protocol/application.md) — the 6-step application pipeline
+4. [protocol/source-resolution.md](protocol/source-resolution.md) — how `owner/repo` references resolve
+5. [protocol/profile-schema.md](protocol/profile-schema.md) — the normative field specification
+6. [security/](security/) — security model, sensitive data rules, and threat model
 
 ---
 

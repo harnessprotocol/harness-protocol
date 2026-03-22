@@ -57,8 +57,10 @@ The Harness Protocol version. For v1, this MUST be the string `"1"` — not the 
 
 ```yaml
 version: "1"   # CORRECT: string
-version: 1     # INCORRECT: integer (legacy format, pre-protocol)
+version: 1     # INCORRECT: integer — validation error
 ```
+
+The JSON Schema enforces `"type": "string"`, so any conformant validator will reject the integer `1`. Implementations SHOULD additionally provide a helpful error message suggesting `version: "1"` (string). Silently coercing the integer to a string is NOT permitted.
 
 *Non-normative:* The legacy harness-kit format used `version: 1` (integer) alongside `marketplaces:` and list-form `plugins:`. Implementations that need to support both formats SHOULD branch on `typeof version`: string signals Harness Protocol format; integer signals legacy format. Legacy format behavior is outside this specification.
 
@@ -109,7 +111,7 @@ A fragment that is referenced in `extends` MUST be structurally valid (correct t
 
 ### Constraints
 
-- `metadata.name` MUST match the pattern `^[a-z0-9-]{1,64}$`.
+- `metadata.name` MUST match the pattern `^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$`. Must start and end with a lowercase letter or digit.
 - `metadata.version`, if present, MUST be a valid semver string.
 - `metadata.license`, if present, MUST be a valid SPDX expression.
 
@@ -153,7 +155,7 @@ The `loading` field controls progressive skill disclosure — when a plugin's to
 | Value | Behavior |
 |-------|----------|
 | `eager` (default) | All plugin tools and context are loaded at session start. This is the current behavior and the default when `loading` is absent. |
-| `deferred` | Plugin tools are registered by name only at session start. Full tool schemas, context, and frontmatter are loaded on first invocation. Reduces initial context size. |
+| `deferred` | Plugin tools are registered by name only at session start. Full tool schemas, context, and frontmatter are loaded the first time the agent invokes any tool from the plugin. Reduces initial context size. |
 
 **Design rationale:** Research (Chroma, LangChain) shows that model performance degrades as context length increases — a phenomenon called *context rot*. Progressive disclosure is one of three core mitigations identified by LangChain: don't load all tool frontmatter at startup, load on demand. Claude Code already implements deferred tool loading internally; this field lets profiles declare the intent portably.
 
@@ -163,7 +165,7 @@ The `loading` field controls progressive skill disclosure — when a plugin's to
 
 ### Constraints
 
-- `source` MUST match the pattern `^[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+$`.
+- `source` MUST match the pattern `^[a-zA-Z0-9_][a-zA-Z0-9_.-]*/[a-zA-Z0-9_][a-zA-Z0-9_.-]*$`.
 - `version`, if present, MUST be a valid semver range expression.
 - `integrity.sha256`, if present, MUST be a 64-character lowercase hex string.
 - Plugin `name` values MUST be unique within the `plugins` array.
@@ -171,7 +173,7 @@ The `loading` field controls progressive skill disclosure — when a plugin's to
 
 ### Inheritance (via `extends`)
 
-When a child harness extends a parent, plugin lists are **unioned**. If both declare a plugin with the same `name`, the child's declaration takes precedence (including its `version` and `config`).
+When a child harness extends a parent, plugin lists are **unioned**. If both declare a plugin with the same `name`, the child's entire plugin object replaces the parent's. There is no field-level merge within a plugin entry — the child's `version`, `config`, `integrity`, and all other fields are used as-is.
 
 ### Example
 
@@ -213,6 +215,10 @@ plugins:
 | `transport` | string | Yes | Must be `"http"`. |
 | `url` | string (URI) | Yes | HTTP(S) URL of the MCP server endpoint. |
 | `headers` | object | No | HTTP headers to include in requests. Values may reference harness env declarations via `${VAR_NAME}` syntax. |
+
+### Transport: sse and ws
+
+The `sse` (Server-Sent Events) and `ws` (WebSocket) transports share the same field structure as `http` (`transport`, `url`, `headers`). Use `sse` for legacy MCP SSE servers; use `ws` for WebSocket-based servers. See [MCP Declarations](./mcp-declarations) for full details and security considerations for all network transports.
 
 ### Environment Variable References
 

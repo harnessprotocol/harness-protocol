@@ -98,7 +98,7 @@ All env entries from all parents are included. If two harnesses declare the same
 
 **Merge behavior: governed by the child's `import-mode`.**
 
-Instructions do not follow the simple union/intersection model. Instead, the child's `import-mode` field controls how its instructions relate to the cumulative parent instructions. See [Instructions: Import Modes](./instructions.md#import-modes) for the full specification.
+Instructions do not follow the simple union/intersection model. Instead, the child's `import-mode` field controls how its instructions relate to the cumulative parent instructions. See [Instructions: Import Modes](./instructions#import-modes) for the full specification.
 
 Summary:
 - `merge` (default): child's instruction content is appended after parent's.
@@ -122,7 +122,7 @@ child allows:  Read, Glob, Grep, Write
 effective allow: Read, Glob, Grep, Write (intersection — child cannot grant Bash back)
 ```
 
-If a parent declares no `permissions.tools.allow` list (the field is absent), it imposes no restriction — only parents that actively define an allow list participate in the intersection.
+If a parent declares no `permissions.tools.allow` list (the field is absent), it imposes no restriction — only parents that actively define an allow list participate in the intersection. If a parent declares `permissions.tools.allow` and a child does not, the child inherits the parent's full allow list unchanged. The intersection rule only applies when both parent and child declare an allow list.
 
 ### `permissions.tools.deny`
 
@@ -216,7 +216,7 @@ For harnesses imported from the v2 Registry, registry metadata (audit status, pu
 
 Deeply nested inheritance chains are difficult to audit and can produce surprising effective configurations by the time all ancestor contributions are merged. They also create a denial-of-service vector if a chain is constructed to require many network fetches.
 
-**Implementations SHOULD enforce a maximum inheritance depth of 5 levels.** A chain deeper than 5 levels MUST fail with a clear error:
+**Implementations MUST enforce a maximum inheritance depth of 5 levels.** A chain deeper than 5 levels MUST fail with a clear error:
 
 ```
 Error: inheritance depth limit exceeded (5).
@@ -224,7 +224,7 @@ Harness chain: child → A → B → C → D → E
 Reduce the inheritance depth or flatten intermediate profiles.
 ```
 
-The limit of 5 is a recommendation, not a hard protocol requirement. Implementations MAY choose a different limit but MUST document it.
+A fixed depth limit ensures portability: a harness that validates under one implementation will not fail under another due to differing limits.
 
 ---
 

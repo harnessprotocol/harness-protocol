@@ -32,7 +32,7 @@ The only behavioral difference between `kind: fragment` and `kind: profile` is *
 
 A fragment that is structurally invalid — wrong types, invalid enum values, forbidden field combinations — fails validation even without required-field checks. `kind: fragment` relaxes only required-field presence, not structural correctness.
 
-The `metadata` block is optional in fragments. A fragment may include metadata for identification purposes, or it may omit it entirely. If `metadata` is present in a fragment, the same naming constraints apply as in a profile (`metadata.name` MUST match `^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$` if present — must start and end with a lowercase letter or digit).
+The `metadata` block is optional in fragments. A fragment SHOULD include `metadata` for discoverability. A fragment without metadata is valid but opaque — consumers cannot identify or describe it without inspecting its contents. If `metadata` is present in a fragment, the same naming constraints apply as in a profile (`metadata.name` MUST match `^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$` if present — must start and end with a lowercase letter or digit).
 
 ---
 
