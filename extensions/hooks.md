@@ -40,7 +40,7 @@ Upgrade to a v2-compatible implementation to use hooks.
 
 ## Planned Hook Points
 
-v2 defines four hook trigger points, corresponding to distinct moments in the session lifecycle:
+v2 defines eight hook trigger points, corresponding to distinct moments in the session lifecycle. The original design had four; four more were added based on evidence from a 15-tool feature matrix analysis (2026-03-27) showing that 10/15 tools implement hooks with 5–35 events each.
 
 ### `pre-session`
 
@@ -79,6 +79,8 @@ This hook receives the target file path. It can be used to run tests before allo
 
 If a `pre-commit` hook fails with `on-failure: error`, the write is blocked. The agent receives an error from the tool and may retry with a different approach.
 
+**Execution order with `pre-tool`**: For write operations (Write, Edit), `pre-tool` fires first. If `pre-tool` blocks the call, `pre-commit` is never reached. If `pre-tool` passes, `pre-commit` fires with the file path. This two-stage gating allows `pre-tool` to filter by tool name and `pre-commit` to filter by file path.
+
 **Intended for**: pre-write test suites, lint-before-write enforcement, schema validation for configuration files.
 
 ### `post-session`
@@ -88,6 +90,137 @@ Triggered when the session ends, either normally (user closes the session) or by
 `post-session` hooks run in a best-effort mode. If the process is killed abruptly, there is no guarantee that `post-session` runs. Implementations should design post-session hooks to be idempotent — safe to run multiple times, and safe to skip.
 
 **Intended for**: session log archiving, summary generation, temporary file cleanup.
+
+### `pre-tool`
+
+Triggered before each tool call executes. The hook receives the tool name and call parameters, and can block execution by exiting with a non-zero code when `on-failure: error`.
+
+This is the complement to `post-tool`. While `post-tool` is an observer, `pre-tool` is an interceptor — it can prevent a tool call from executing. This distinction mirrors the pattern in Claude Code (`PreToolUse` / `PostToolUse`), Gemini CLI, Amazon Q CLI, Cursor, Windsurf, and Cline.
+
+If a `pre-tool` hook fails with `on-failure: error`, the tool call is blocked. The agent receives an error and may retry with a different approach or tool.
+
+**Intended for**: tool call validation (e.g., block dangerous commands), rate limiting, audit logging before execution, conditional tool gating.
+
+### `notification`
+
+Triggered when the agent produces a user-facing notification — a message that requires attention but does not involve a tool call. The hook receives the notification text.
+
+This maps to Claude Code's `Notification` event. It is the only hook point that does not involve tool execution.
+
+**Intended for**: forwarding notifications to external systems (Slack, email, webhooks), logging important agent decisions, alerting on specific patterns.
+
+### `stop`
+
+Triggered when the agent decides to stop — either because it believes the task is complete, or because it encountered an unrecoverable error. The hook receives the stop reason.
+
+A `stop` hook with `on-failure: error` can reject the stop, causing the agent to continue working. This is useful for validation gates: "don't stop until the tests pass."
+
+**Intended for**: completion validation (run tests before accepting done), summary generation, session metrics collection.
+
+### `pre-compact`
+
+Triggered before the implementation compacts (truncates/summarizes) the conversation context to fit within the model's context window. The hook receives the current token count and the target count.
+
+This is an advanced hook point. Most users will not need it. It exists because context compaction is a lossy operation — important information can be lost. The hook provides an opportunity to extract or preserve critical context before compaction occurs.
+
+**Intended for**: extracting key decisions or state before context loss, logging compaction events, adjusting compaction strategy.
+
+---
+
+### Hook point summary
+
+| Hook point | When | Can block? | Receives |
+|---|---|---|---|
+| `pre-session` | Before first prompt | Yes (session won't start) | — |
+| `pre-tool` | Before tool executes | Yes (tool call blocked) | Tool name, parameters (JSON on stdin) |
+| `post-tool` | After tool returns | No (observe only) | Tool name, parameters, result (JSON on stdin) |
+| `pre-commit` | Before file write (after `pre-tool`) | Yes (write blocked) | File path |
+| `notification` | Agent notification | No (observe only) | Notification text |
+| `stop` | Agent decides to stop | Yes (stop rejected) | Stop reason |
+| `pre-compact` | Before context compaction | No (observe only) | Token count, target count |
+| `post-session` | Session ends | No (best-effort) | — |
+
+---
+
+## Hook I/O Protocol
+
+_This section describes the data format hooks receive and produce. For how to declare hooks in a harness file, see [Hook Definition Format](#hook-definition-format) below._
+
+All hooks that receive context get a JSON object on stdin. This design was chosen based on Gemini CLI's JSON stdin/stdout protocol, which has proven effective at scale. The JSON structure varies by hook point.
+
+### stdin
+
+Every hook receives a JSON object with a `hook_point` field. Additional fields depend on the hook type:
+
+**`pre-tool` and `post-tool`:**
+```json
+{
+  "hook_point": "pre-tool",
+  "tool_name": "Write",
+  "parameters": {
+    "file_path": "/src/main.ts",
+    "content": "..."
+  },
+  "result": null
+}
+```
+For `post-tool`, the `result` field contains the tool's return value (truncated to 64KB to avoid overwhelming hook processes).
+
+**`pre-commit`:**
+```json
+{
+  "hook_point": "pre-commit",
+  "file_path": "/src/main.ts"
+}
+```
+
+**`notification`:**
+```json
+{
+  "hook_point": "notification",
+  "text": "I've completed the refactoring of the auth module."
+}
+```
+
+**`stop`:**
+```json
+{
+  "hook_point": "stop",
+  "reason": "task_complete",
+  "message": "All tests pass. The feature is implemented."
+}
+```
+
+**`pre-compact`:**
+```json
+{
+  "hook_point": "pre-compact",
+  "current_tokens": 95000,
+  "target_tokens": 60000
+}
+```
+
+**`pre-session` and `post-session`:** receive `{"hook_point": "pre-session"}` / `{"hook_point": "post-session"}` with no additional fields.
+
+### stdout
+
+Hooks may write JSON to stdout to inject context back into the agent's conversation:
+
+```json
+{
+  "action": "inject",
+  "message": "Warning: this file is in a protected path. Proceed with caution."
+}
+```
+
+The `action` field supports:
+- `inject` — Add a message to the agent's context (Cline's context-injection pattern)
+- `cancel` — Block the operation with a structured reason
+- (no output) — The hook ran silently; no context modification
+
+**Precedence:** stdout action takes priority over exit code. If a hook exits 0 but writes `{"action": "cancel", "message": "..."}`, the operation is cancelled. If a hook exits non-zero but writes no stdout, the `on-failure` rule applies. If both are present and conflict, stdout wins — this allows hooks to provide structured feedback even when blocking.
+
+This is optional. Hooks that do not write to stdout are treated as silent observers or blockers (based on exit code).
 
 ---
 
@@ -105,6 +238,12 @@ hooks:
       timeout: 30s
       on-failure: warn
 
+  pre-tool:
+    - name: block-dangerous-commands
+      run: scripts/validate-tool-call.sh
+      matcher: "Bash|Write"
+      on-failure: error
+
   post-tool:
     - name: log-tool-call
       run: scripts/log-tool.sh
@@ -114,6 +253,11 @@ hooks:
     - name: run-tests
       run: scripts/run-tests.sh
       timeout: 120s
+      on-failure: error
+
+  stop:
+    - name: verify-tests-pass
+      run: scripts/verify-completion.sh
       on-failure: error
 
   post-session:
@@ -128,6 +272,7 @@ hooks:
 |---|---|---|---|---|
 | `name` | string | Yes | — | Identifier for this hook. Used in error messages and logs. Must be unique within a hook point. |
 | `run` | string | Yes | — | Command to execute. Relative to the harness file directory. |
+| `matcher` | string | No | `.*` | Glob or regex pattern matched against the tool name. Only applies to `pre-tool`, `post-tool`, and `pre-commit` hook points. Silently ignored for other hook points (`pre-session`, `notification`, `stop`, `pre-compact`, `post-session`). Mirrors Claude Code's `matcher` field. |
 | `args` | array of strings | No | `[]` | Additional arguments appended to the command. |
 | `env` | object | No | `{}` | Environment variables passed to the hook process. Values may reference harness env declarations via `${VAR_NAME}` syntax. |
 | `timeout` | string | No | `30s` | Maximum execution time. Format: Go duration string (`30s`, `2m`, `1m30s`). Hook is killed and treated as failed if it exceeds this. |
@@ -137,7 +282,7 @@ hooks:
 
 **`warn`**: The hook failure is reported to the user as a warning, but the session continues. The failure is logged.
 
-**`error`**: The hook failure halts the current operation. For `pre-session`: the session does not start. For `pre-commit`: the write is blocked. For `post-tool`: the session halts. For `post-session`: the failure is logged but cannot halt a session that is already ending.
+**`error`**: The hook failure halts the current operation. For `pre-session`: the session does not start. For `pre-tool`: the tool call is blocked. For `post-tool`: the session halts. For `pre-commit`: the write is blocked. For `notification`: the session halts (treat as unexpected agent state). For `stop`: the stop is rejected and the agent continues. For `pre-compact`: the failure is logged but compaction proceeds (cannot be blocked). For `post-session`: the failure is logged but cannot halt a session that is already ending.
 
 **`skip`**: The hook failure is silently ignored. Use only for hooks whose failure is genuinely inconsequential (e.g., a best-effort metrics push).
 
@@ -165,9 +310,9 @@ Hooks receive a controlled environment. Implementations must:
 | Variable | Description |
 |---|---|
 | `HARNESS_PROFILE_NAME` | The `metadata.name` of the active profile |
-| `HARNESS_HOOK_POINT` | The hook trigger: `pre-session`, `post-tool`, `pre-commit`, `post-session` |
-| `HARNESS_TOOL_NAME` | (post-tool only) The name of the tool that was called |
-| `HARNESS_FILE_PATH` | (pre-commit only) The file path that is about to be written |
+| `HARNESS_HOOK_POINT` | The hook trigger: `pre-session`, `pre-tool`, `post-tool`, `pre-commit`, `notification`, `stop`, `pre-compact`, `post-session` |
+| `HARNESS_TOOL_NAME` | (`pre-tool`, `post-tool` only) The name of the tool that was called |
+| `HARNESS_FILE_PATH` | (`pre-commit` only) The file path that is about to be written |
 | `HARNESS_SESSION_ID` | A stable identifier for the current session |
 
 Sensitive env vars (marked `sensitive: true`) are **not** passed to hooks unless the hook entry explicitly lists them by name:
@@ -218,9 +363,16 @@ This harness declares lifecycle hooks that will execute scripts on your machine:
                          sensitive env: DB_CONNECTION_STRING
                          timeout: 30s
 
+  pre-tool:
+    block-dangerous-commands → scripts/validate-tool-call.sh
+                               matcher: Bash|Write
+
   pre-commit:
     run-tests          → scripts/run-tests.sh
                          timeout: 120s
+
+  stop:
+    verify-tests-pass  → scripts/verify-completion.sh
 
 Allow hooks? [y/N]
 ```
@@ -300,16 +452,35 @@ The Claude Code hooks format uses a `matcher` field (a glob or regex pattern mat
 
 **Mapping from the planned v2 format to Claude Code's current format:**
 
-| Planned v2 hook point | Claude Code hooks equivalent |
+| v2 hook point | Claude Code hooks equivalent |
 |---|---|
-| `pre-session` | No direct equivalent. Use `PostToolUse` matcher `".*"` with a state check, or configure manually outside the harness. |
-| `post-tool` | `PostToolUse` with matcher `".*"` (all tools) or a specific pattern |
-| `pre-commit` | `PreToolUse` with matcher `"Write\|Edit\|MultiEdit"` |
+| `pre-session` | No direct equivalent. Use a `PreToolUse` matcher `".*"` with a one-shot state check, or configure manually outside the harness. |
+| `pre-tool` | `PreToolUse` with matcher pattern |
+| `post-tool` | `PostToolUse` with matcher pattern |
+| `pre-commit` | `PreToolUse` with matcher `"Write\|Edit"` |
+| `notification` | `Notification` event |
+| `stop` | `Stop` event |
+| `pre-compact` | `PreCompact` event |
 | `post-session` | No direct equivalent in Claude Code hooks. |
 
 ### Other harness tools
 
-GitHub Copilot and Cursor do not have a hooks system equivalent to what v2 will define. Until those implementations add hook support, harnesses targeting those tools should note in `instructions.operational` that lifecycle automation requires manual setup and reference the tool's own automation mechanisms (e.g., VS Code tasks for pre-save validation).
+As of March 2026, hooks are far more prevalent than when this sketch was first drafted. The following tools now support lifecycle hooks:
+
+| Tool | Hook events | Format | Notes |
+|---|---|---|---|
+| Claude Code | 25+ events | `.claude/settings.json` | Most mature; 4 handler types (command, HTTP, prompt, agent) |
+| Codex CLI | Experimental | `hooks.json` | Agent-turn notifications |
+| Gemini CLI | 11 events | `.gemini/hooks/` | JSON stdin/stdout; full agent loop coverage |
+| Amazon Q CLI | 5 hooks | settings | AgentSpawn, UserPromptSubmit, Pre/PostToolUse, Stop |
+| OpenCode | 35+ events | Plugin system | Most events via npm plugin hooks |
+| Cursor | 18+ events | `.cursor/hooks/` | Command + prompt handler types |
+| Windsurf | 12 events | `.windsurf/hooks.json` | Pre/post blocking |
+| Cline | 8 hooks | Settings | Cancel/inject semantics |
+
+Tools without hooks: Aider, Continue, Roo Code, Kilo Code, JetBrains (AI Assistant/Junie), Devin.
+
+Until tools add hook support natively, harnesses targeting those tools should note in `instructions.operational` that lifecycle automation requires manual setup and reference the tool's own mechanisms (e.g., VS Code tasks for pre-save validation).
 
 ### Plugin-based workaround
 
@@ -334,12 +505,24 @@ This is brittle — it relies on the agent following the instruction rather than
 
 1. **Hook script location security**: Should hooks be restricted to the project directory? A hook that runs `/usr/local/bin/my-tool` is running arbitrary system code without any harness-relative path validation. Should `run:` paths be required to be relative to the harness directory, or should absolute paths be permitted?
 
+   *Evidence from research (2026-03-27):* Claude Code and Gemini CLI both allow absolute paths. Codex CLI restricts hooks to the project directory. The majority pattern is to allow absolute paths but display them prominently in the confirmation prompt.
+
 2. **Hook output streaming**: Should hook stdout/stderr be streamed to the user during execution, or buffered and shown only on failure? Streaming is more transparent but produces noise for low-latency post-tool hooks.
+
+   *Evidence:* Claude Code buffers and shows on failure. Gemini CLI streams. Recommendation: buffer by default, with a `stream: true` field per hook entry for hooks that benefit from real-time output (e.g., long-running test suites).
 
 3. **Conditional hooks**: Should hooks support an `if:` condition (e.g., `if: "env.DB_ENV == 'production'"`)? This would allow hooks that only run in specific contexts without requiring separate profiles.
 
+   *Evidence:* No tool implements conditional hooks. The `matcher` field (from Claude Code) provides tool-scoped conditionality. Full `if:` conditions add complexity for minimal gain. Recommendation: defer — use `matcher` for tool-scoped conditions, and separate profiles for environment-scoped conditions.
+
 4. **`post-tool` parameter access**: What format does the hook receive tool call parameters in? Environment variables (limited by env var syntax constraints), JSON on stdin, or a temp file? Tool response values can be large — passing them to hooks requires a defined serialization format.
+
+   *Resolved:* JSON on stdin, based on Gemini CLI's proven JSON stdin/stdout protocol. See the Hook I/O Protocol section above. Results truncated to 64KB.
 
 5. **Inheritance and hook ordering**: When multiple parents each declare hooks at the same trigger point, what is the execution order? Is it the same as the `extends` resolution order (left to right, child last)?
 
+   *Recommendation:* Yes, follow `extends` resolution order. Parent hooks run first, child hooks run last. This matches the principle that child profiles refine parent behavior.
+
 6. **Sensitive env disclosure**: The current design requires authors to explicitly opt in sensitive env vars per hook (`sensitive-env:`). Should the default instead be that all harness env vars (including sensitive) are available to hooks, with an explicit exclusion mechanism? The current design is safer but more verbose for scripts that legitimately need database credentials.
+
+   *Evidence:* Claude Code passes all env vars to hooks. Gemini CLI restricts sensitive vars. Recommendation: keep the current explicit opt-in design — it is safer and the verbosity cost is low (one line per sensitive var per hook).
