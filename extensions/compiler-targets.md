@@ -68,7 +68,9 @@ MCP server declarations compile to tool-specific JSON configuration files.
 
 All four target paths use the same JSON structure (the MCP JSON format), but at different file paths.
 
-**Windsurf MCP scope note**: Unlike the other three targets, Windsurf's MCP configuration path is global (user-level), not project-local. MCP servers declared in a harness will be added to the user's global Windsurf config, affecting all projects. The compiler should warn about this scope difference and avoid overwriting existing MCP entries. Windsurf does not currently support a project-local `.windsurf/mcp.json` equivalent. The compiler translates the `harness.yaml` MCP server map to the target's JSON format:
+**Windsurf MCP scope note**: Unlike the other three targets, Windsurf's MCP configuration path is global (user-level), not project-local. MCP servers declared in a harness will be added to the user's global Windsurf config, affecting all projects. The compiler should warn about this scope difference and avoid overwriting existing MCP entries. Windsurf does not currently support a project-local `.windsurf/mcp.json` equivalent.
+
+The compiler translates the `harness.yaml` MCP server map to the target's JSON format:
 
 ```json
 {

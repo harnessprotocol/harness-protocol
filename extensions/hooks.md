@@ -282,7 +282,7 @@ hooks:
 
 **`warn`**: The hook failure is reported to the user as a warning, but the session continues. The failure is logged.
 
-**`error`**: The hook failure halts the current operation. For `pre-session`: the session does not start. For `pre-commit`: the write is blocked. For `post-tool`: the session halts. For `post-session`: the failure is logged but cannot halt a session that is already ending.
+**`error`**: The hook failure halts the current operation. For `pre-session`: the session does not start. For `pre-tool`: the tool call is blocked. For `post-tool`: the session halts. For `pre-commit`: the write is blocked. For `notification`: the session halts (treat as unexpected agent state). For `stop`: the stop is rejected and the agent continues. For `pre-compact`: the failure is logged but compaction proceeds (cannot be blocked). For `post-session`: the failure is logged but cannot halt a session that is already ending.
 
 **`skip`**: The hook failure is silently ignored. Use only for hooks whose failure is genuinely inconsequential (e.g., a best-effort metrics push).
 
@@ -310,9 +310,9 @@ Hooks receive a controlled environment. Implementations must:
 | Variable | Description |
 |---|---|
 | `HARNESS_PROFILE_NAME` | The `metadata.name` of the active profile |
-| `HARNESS_HOOK_POINT` | The hook trigger: `pre-session`, `post-tool`, `pre-commit`, `post-session` |
-| `HARNESS_TOOL_NAME` | (post-tool only) The name of the tool that was called |
-| `HARNESS_FILE_PATH` | (pre-commit only) The file path that is about to be written |
+| `HARNESS_HOOK_POINT` | The hook trigger: `pre-session`, `pre-tool`, `post-tool`, `pre-commit`, `notification`, `stop`, `pre-compact`, `post-session` |
+| `HARNESS_TOOL_NAME` | (`pre-tool`, `post-tool` only) The name of the tool that was called |
+| `HARNESS_FILE_PATH` | (`pre-commit` only) The file path that is about to be written |
 | `HARNESS_SESSION_ID` | A stable identifier for the current session |
 
 Sensitive env vars (marked `sensitive: true`) are **not** passed to hooks unless the hook entry explicitly lists them by name:
@@ -363,9 +363,16 @@ This harness declares lifecycle hooks that will execute scripts on your machine:
                          sensitive env: DB_CONNECTION_STRING
                          timeout: 30s
 
+  pre-tool:
+    block-dangerous-commands → scripts/validate-tool-call.sh
+                               matcher: Bash|Write
+
   pre-commit:
     run-tests          → scripts/run-tests.sh
                          timeout: 120s
+
+  stop:
+    verify-tests-pass  → scripts/verify-completion.sh
 
 Allow hooks? [y/N]
 ```
