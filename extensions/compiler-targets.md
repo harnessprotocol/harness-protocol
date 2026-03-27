@@ -7,7 +7,7 @@
 
 ## Purpose
 
-The Harness Protocol defines a single source format — `harness.yaml` — for configuration that currently exists in many tool-specific files: `CLAUDE.md` for Claude Code, `.github/copilot-instructions.md` for GitHub Copilot, `.cursor/rules/` for Cursor, `.windsurfrules` for Windsurf. A developer who uses multiple AI coding tools today maintains separate, diverging configuration files for each tool.
+The Harness Protocol defines a single source format — `harness.yaml` — for configuration that currently exists in many tool-specific files: `CLAUDE.md` for Claude Code, `.github/copilot-instructions.md` for GitHub Copilot, `.cursor/rules/` for Cursor, `.windsurf/rules/` for Windsurf, `AGENTS.md` for Codex CLI / Gemini CLI / OpenCode, `.clinerules/` for Cline, `.roo/rules/` for Roo Code, and more. A developer who uses multiple AI coding tools today maintains separate, diverging configuration files for each tool.
 
 The harness compiler solves this. Given one `harness.yaml`, it generates the idiomatic configuration files for each supported target tool. The mapping is deterministic and documented here so that any conformant implementation can produce consistent output.
 
@@ -25,16 +25,24 @@ Instructions are the most significant compiler output. The three instruction slo
 
 | Harness slot | Claude Code | GitHub Copilot | Cursor | Windsurf |
 |---|---|---|---|---|
-| `instructions.operational` | `CLAUDE.md` | `.github/copilot-instructions.md` | `.cursor/rules/harness.mdc` | `.windsurfrules` |
-| `instructions.behavioral` | `AGENT.md` | `.github/instructions/behavioral.instructions.md` | `.cursor/rules/behavioral.mdc` | (merged into `.windsurfrules`) |
+| `instructions.operational` | `CLAUDE.md` | `.github/copilot-instructions.md` | `.cursor/rules/harness.mdc` | `.windsurf/rules/harness-operational.md` |
+| `instructions.behavioral` | `AGENT.md` | `.github/instructions/behavioral.instructions.md` | `.cursor/rules/behavioral.mdc` | `.windsurf/rules/harness-behavioral.md` |
 | `instructions.identity` | `SOUL.md` | (not supported — omit) | (not supported — omit) | (not supported — omit) |
 
-**Behavioral slot merging (Windsurf)**: Windsurf does not have a separate behavioral configuration file. The compiler merges behavioral content into `.windsurfrules` after operational content, with a section header:
+**Windsurf rules format**: Windsurf has migrated from flat `.windsurfrules` to a directory-based rules system at `.windsurf/rules/`. Each rule file is Markdown with frontmatter specifying activation mode. The compiler generates separate files with `trigger: always_on` frontmatter:
 
+```markdown
+---
+trigger: always_on
+description: Harness operational instructions
+---
+
+[operational content]
 ```
-## Behavioral Preferences
-[behavioral content]
-```
+
+Note: the legacy `.windsurfrules` path is still read by Windsurf for backward compatibility, but new compilations should target the `.windsurf/rules/` directory.
+
+**Windsurf environment variable syntax**: Windsurf uses `${env:VAR_NAME}` syntax rather than `${VAR_NAME}`. The compiler translates harness `${VAR_NAME}` references to the Windsurf format when generating rule files.
 
 **Identity slot (Claude Code only)**: The `identity` slot maps to `SOUL.md`, which is a Claude Code convention for a persistent self-model file. Other tools do not support this concept. The compiler omits `SOUL.md` generation for non-Claude-Code targets. When `identity: null` is declared, no `SOUL.md` is written even for Claude Code.
 
@@ -56,7 +64,7 @@ MCP server declarations compile to tool-specific JSON configuration files.
 
 | Harness field | Claude Code | GitHub Copilot / VS Code | Cursor | Windsurf |
 |---|---|---|---|---|
-| `mcp-servers` | `.mcp.json` | `.vscode/mcp.json` | `.cursor/mcp.json` | `.windsurf/mcp.json` |
+| `mcp-servers` | `.mcp.json` | `.vscode/mcp.json` | `.cursor/mcp.json` | `~/.codeium/windsurf/mcp_config.json` |
 
 All four target paths use the same JSON structure (the MCP JSON format), but at different file paths. The compiler translates the `harness.yaml` MCP server map to the target's JSON format:
 
@@ -80,8 +88,8 @@ Permissions are the most implementation-specific section. AI coding tools have d
 
 | Harness field | Claude Code | GitHub Copilot | Cursor | Windsurf |
 |---|---|---|---|---|
-| `permissions.tools.allow` | `settings.json` `allowedTools` | GitHub organization policy | `.cursor/rules` permission annotations | `.windsurfrules` annotations |
-| `permissions.tools.deny` | `settings.json` `denyListedTools` | GitHub organization policy | `.cursor/rules` permission annotations | `.windsurfrules` annotations |
+| `permissions.tools.allow` | `settings.json` `allowedTools` | GitHub organization policy | `.cursor/rules` permission annotations | `.windsurf/rules/` annotations |
+| `permissions.tools.deny` | `settings.json` `denyListedTools` | GitHub organization policy | `.cursor/rules` permission annotations | `.windsurf/rules/` annotations |
 | `permissions.tools.ask` | `settings.json` (requires approval hook) | — | — | — |
 | `permissions.paths` | `settings.json` `allowedDirectories` | — | — | — |
 | `permissions.network` | — | — | — | — |
@@ -145,6 +153,104 @@ Skills compile to tool-specific directory structures via the [agentskills.io](ht
 - `name`: must match the containing folder name; maximum 64 characters, lowercase letters and hyphens only
 - `description`: maximum 1024 characters; truncated at the last word boundary with `…` appended if the source exceeds the limit
 - All other frontmatter keys are passed through unchanged
+
+### AGENTS.md — Universal Fallback
+
+`AGENTS.md` has emerged as a de facto cross-tool instruction file, read by at least 10 tools: Codex CLI, Gemini CLI, OpenCode, Cursor, GitHub Copilot, Windsurf, Cline, Roo Code, Kilo Code, JetBrains (Junie), and Devin. Several tools auto-detect it without any configuration.
+
+When the compiler generates output for any target, it should additionally generate an `AGENTS.md` file containing the operational instructions, unless the harness author has explicitly opted out. This provides baseline compatibility with tools that have no dedicated compiler target.
+
+The `AGENTS.md` fallback is not a substitute for the tool-specific compilation (which produces idiomatic output), but it ensures that any tool reading the project directory gets the core instructions even if the compiler does not have a dedicated target for it.
+
+```markdown
+<!-- BEGIN harness:data-engineer:agents-md -->
+# Project Instructions
+
+[operational content from harness]
+
+## Behavioral Preferences
+
+[behavioral content from harness, if present]
+<!-- END harness:data-engineer:agents-md -->
+```
+
+---
+
+## Additional Targets
+
+The following tools are documented as potential compiler targets based on feature matrix research (2026-03-27). These are less mature than the four primary targets above but cover a significant portion of the tool landscape.
+
+### Codex CLI (OpenAI)
+
+| Harness concept | Codex CLI target |
+|---|---|
+| `instructions.operational` | `AGENTS.md` (project root) |
+| `instructions.behavioral` | Merged into `AGENTS.md` |
+| `mcp-servers` | `~/.codex/mcp.json` |
+| `permissions` | `~/.codex/config.toml` `[approval_policy]` section |
+| Skills | `~/.codex/skills/<name>/SKILL.md` (global) or `.codex/skills/` (project) |
+
+Codex CLI uses a three-tier instruction discovery: `~/.codex/instructions.md` (global) → `AGENTS.md` (project root) → `AGENTS.md` (subdirectory). The compiler writes to the project-root `AGENTS.md`.
+
+### Gemini CLI (Google)
+
+| Harness concept | Gemini CLI target |
+|---|---|
+| `instructions.operational` | `GEMINI.md` (project root) |
+| `instructions.behavioral` | Merged into `GEMINI.md` |
+| `mcp-servers` | `.gemini/settings.json` `mcpServers` key |
+| `permissions` | `.gemini/policies/harness.toml` (TOML policy engine) |
+| Skills | `.gemini/skills/<name>/SKILL.md` |
+
+Gemini CLI's policy engine uses a 5-tier priority system (Default < Extension < Workspace < User < Admin). The compiler writes workspace-tier policies. The `GEMINI.md` filename is configurable via `settings.json` `agent_instruction_files` array.
+
+### Cline
+
+| Harness concept | Cline target |
+|---|---|
+| `instructions.operational` | `.clinerules/harness-operational.md` |
+| `instructions.behavioral` | `.clinerules/harness-behavioral.md` |
+| `mcp-servers` | VS Code settings (manual — no project-local MCP config file) |
+| `permissions` | Degraded — instruction-based guidance only |
+| Skills | `.agents/skills/<name>/SKILL.md` |
+
+Cline reads `.clinerules/` as a directory of markdown files. It also auto-detects `.cursorrules`, `.windsurfrules`, and `AGENTS.md`. The compiler writes to `.clinerules/` for specificity.
+
+### Roo Code
+
+| Harness concept | Roo Code target |
+|---|---|
+| `instructions.operational` | `.roo/rules/harness-operational.md` |
+| `instructions.behavioral` | `.roo/rules/harness-behavioral.md` |
+| `mcp-servers` | VS Code settings (manual) |
+| `permissions` | Degraded — instruction-based guidance only |
+| Skills | `.roo/skills/<name>/SKILL.md` |
+
+Roo Code extends the Cline pattern with per-mode rules (`.roo/rules-{mode}/`). The compiler writes to the general `.roo/rules/` directory, which applies across all modes. Roo Code also reads `.clinerules` for backward compatibility.
+
+### Kilo Code
+
+| Harness concept | Kilo Code target |
+|---|---|
+| `instructions.operational` | `.kilocode/rules/harness-operational.md` |
+| `instructions.behavioral` | `.kilocode/rules/harness-behavioral.md` |
+| `mcp-servers` | `.kilocode/mcp.json` |
+| `permissions` | Degraded — instruction-based guidance only |
+| Skills | `.kilocode/skills/<name>/SKILL.md` |
+
+Kilo Code reads from `.kilocode/`, `.roo/`, and `.clinerules/` in a complex precedence chain. The compiler writes to `.kilocode/` for specificity. Kilo Code supports project-local MCP configuration, unlike Cline and Roo Code.
+
+### JetBrains (AI Assistant + Junie)
+
+| Harness concept | JetBrains target |
+|---|---|
+| `instructions.operational` | `.junie/AGENTS.md` (preferred) or `.aiassistant/rules/harness-operational.md` |
+| `instructions.behavioral` | `.aiassistant/rules/harness-behavioral.md` |
+| `mcp-servers` | `acp.json` (MCP bridged through ACP) |
+| `permissions` | Degraded — Junie's safe/sensitive binary model |
+| Skills | N/A (no SKILL.md support yet) |
+
+JetBrains has two AI systems: AI Assistant (chat/completion) reads `.aiassistant/rules/`, while Junie (coding agent) reads `.junie/AGENTS.md` or root `AGENTS.md`. The compiler should target both. JetBrains' ACP (Agent Communication Protocol) bridges MCP servers.
 
 ---
 
@@ -256,7 +362,7 @@ harness compile [--target <target>] [--dry-run] [--clean]
 
 **Options:**
 
-`--target <target>` — One of `claude-code`, `copilot`, `cursor`, `windsurf`, or `all`. Default: `all`. When `all`, the compiler generates output for all supported targets.
+`--target <target>` — One of `claude-code`, `copilot`, `cursor`, `windsurf`, `codex`, `gemini-cli`, `cline`, `roo-code`, `kilo-code`, `jetbrains`, or `all`. Default: `all`. When `all`, the compiler generates output for all supported targets. The `AGENTS.md` universal fallback is always generated unless `--no-agents-md` is passed.
 
 `--dry-run` — Print what would be written without writing any files. Useful for reviewing compiler output before committing to it.
 
