@@ -115,6 +115,7 @@ Resolve `${VAR_NAME}` references from the runtime environment.
 With the effective configuration fully resolved and all variables substituted:
 
 1. **Start MCP servers** — Launch or connect to each declared MCP server using its transport configuration. Startup order is implementation-defined. All servers MUST be operational before the session is considered active.
+   This includes both profile-level MCP servers declared in `mcp-servers` and plugin-bundled MCP servers declared in `plugin.json` → `mcp`. Plugin-bundled servers are started when their plugin is loaded.
 2. **Install instructions** — Apply instruction content per `import-mode`. For `import-mode: replace`, the implementation MUST require explicit user confirmation before proceeding.
 3. **Enforce permissions** — Install permission rules at the tool boundary for the session.
 

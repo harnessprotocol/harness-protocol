@@ -10,6 +10,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The Har
 
 ### Added
 
+- **Plugin manifest:** `category` and `tags` fields for plugin discovery metadata.
+- **Plugin manifest:** `mcp` field for plugins that bundle their own MCP servers (stdio transport).
 - **Schema layer:** Complete `harness.yaml` format specification with JSON Schema validation.
 - **Profile Schema:** Top-level sections for `metadata`, `plugins`, `mcp-servers`, `env`, `instructions`, `permissions`, and `extends`, plus `x-` extension prefix.
 - **Plugin manifest:** `plugin.json` format for plugin authors, including `loading: deferred` for progressive skill disclosure.

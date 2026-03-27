@@ -11,11 +11,12 @@ This document specifies the `plugin.json` format that plugin authors use to decl
 
 A plugin is a repository that conforms to the plugin manifest format. When a harness declares a plugin via `plugins[].source: owner/repo`, a conformant implementation fetches the `plugin.json` from that repository at the resolved version and reads it to understand what the plugin contains.
 
-The manifest serves three purposes:
+The manifest serves four purposes:
 
 1. **Declaration** — tells the implementation what skills and agents the plugin provides, so they can be registered for the session.
 2. **Requirements** — declares the environment variables the plugin needs, so the harness can validate them before starting.
 3. **Compatibility** — specifies the minimum Harness Protocol version the plugin is written against.
+4. **Discovery** — provides category and tags for search, browsing, and marketplace organization.
 
 The `plugin.json` is for plugin **authors**. Harness authors reference plugins via `harness.yaml`; they do not write `plugin.json` files. If you are writing a harness configuration, see [Profile Schema](./profile-schema).
 
@@ -108,6 +109,50 @@ An [SPDX](https://spdx.org/licenses/) license identifier. Strongly recommended f
 
 ```json
 "license": "Apache-2.0"
+```
+
+---
+
+### `category`
+
+| Field | Type | Required |
+|-------|------|----------|
+| `category` | string | No |
+
+A classification label for discovery and marketplace organization. Must be lowercase kebab-case. Max 32 characters. Pattern: `^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9])?$`.
+
+```json
+"category": "data-engineering"
+```
+
+Categories are conventional, not a closed set. The following are recommended starting points:
+
+| Category | Description |
+|----------|-------------|
+| `productivity` | Workflow and session management |
+| `code-quality` | Code review, explanation, analysis |
+| `devops` | CI/CD, PR workflows, deployment |
+| `research-knowledge` | Research and knowledge management |
+| `documentation` | Doc generation and maintenance |
+| `design` | Frontend design, UI/UX |
+| `data-engineering` | Data pipelines, SQL, lineage |
+
+A future registry (v2) MAY maintain a recommended category list. Plugin authors SHOULD use an existing category when one fits, but MAY define new ones.
+
+---
+
+### `tags`
+
+| Field | Type | Required |
+|-------|------|----------|
+| `tags` | array of strings | No |
+
+Discovery and classification tags that complement `category` with fine-grained descriptors. Max 10 tags, each max 32 characters. Tags MUST be unique within the array.
+
+Tags use the same semantics as `harness.yaml` `metadata.tags` — free-form strings for search and filtering.
+
+```json
+"tags": ["sql", "data-lineage", "column-level", "postgresql"]
 ```
 
 ---
@@ -231,6 +276,61 @@ If a plugin accepts `config` values (via `plugins[].config` in the consuming har
 
 ---
 
+## Bundled MCP Server
+
+A plugin MAY bundle its own MCP server by declaring an `mcp` field. This allows plugins to provide tool implementations that run as local subprocesses alongside the agent session.
+
+### `mcp`
+
+| Field | Type | Required |
+|-------|------|----------|
+| `mcp` | object | No |
+| `mcp.server` | object | Yes (if `mcp` present) |
+
+### `mcp.server` fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `transport` | string | **Yes** | Must be `"stdio"`. Plugin-bundled servers run as local subprocesses. |
+| `command` | string | **Yes** | Executable to launch. Supports `${CLAUDE_PLUGIN_ROOT}` for plugin-relative paths. |
+| `args` | array of strings | No | Command-line arguments. Values may reference `${CLAUDE_PLUGIN_ROOT}`. |
+| `env` | object | No | Additional environment variables for the server process. Values are strings. |
+
+```json
+"mcp": {
+  "server": {
+    "transport": "stdio",
+    "command": "node",
+    "args": ["${CLAUDE_PLUGIN_ROOT}/dist/server.js"],
+    "env": {
+      "NODE_ENV": "production"
+    }
+  }
+}
+```
+
+### Server lifecycle
+
+The implementation starts the bundled MCP server when the plugin is loaded and stops it when the plugin is unloaded or the session ends. Tools provided by the server are namespaced as `mcp__<plugin-name>__<tool>` to avoid collisions with other plugins and profile-level MCP servers.
+
+### Variable substitution
+
+The `${CLAUDE_PLUGIN_ROOT}` variable is substituted in `command` and `args` values. It resolves to the absolute path of the plugin's installation directory, allowing the plugin to reference its own files without hardcoding paths.
+
+### Relationship to profile-level MCP servers
+
+Plugin-bundled MCP servers and profile-level MCP servers (declared in `harness.yaml` → `mcp-servers`) operate in separate namespaces and do not conflict:
+
+| Aspect | Plugin-bundled MCP | Profile-level MCP |
+|--------|--------------------|-------------------|
+| Declared in | `plugin.json` → `mcp` | `harness.yaml` → `mcp-servers` |
+| Transport | `stdio` only | `stdio`, `http`, `sse`, `ws` |
+| Namespace | `mcp__<plugin-name>__<tool>` | `mcp__<server-name>__<tool>` |
+| Lifecycle | Starts/stops with plugin | Starts/stops with session |
+| Variable substitution | `${CLAUDE_PLUGIN_ROOT}` | `${VAR_NAME}` from `env[]` |
+
+---
+
 ## Full Example
 
 ```json
@@ -243,6 +343,8 @@ If a plugin accepts `config` values (via `plugins[].config` in the consuming har
     "url": "https://github.com/alice"
   },
   "license": "Apache-2.0",
+  "category": "data-engineering",
+  "tags": ["sql", "data-lineage", "column-level", "postgresql"],
   "loading": "deferred",
   "skills": [
     "lineage-trace",
@@ -282,12 +384,16 @@ If a plugin accepts `config` values (via `plugins[].config` in the consuming har
 | `name` is required and MUST match `^[a-z0-9-]{1,64}$` | Error |
 | `description` is required | Error |
 | `version` is required and MUST be valid semver | Error |
+| `category`, if present, MUST match `^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9])?$` and be max 32 characters | Error |
+| `tags`, if present, MUST have at most 10 unique items, each max 32 characters | Error |
 | `requires.env[].sensitive: true` + `default` is forbidden | Error |
 | `requires.min-protocol` MUST be a known protocol version string | Error |
 | `author.name` is required if `author` object is present | Error |
 | `license` MUST be a valid SPDX expression if present | Warning |
 | Skill and agent name strings MUST be lowercase, hyphens allowed | Error |
 | `loading`, if present, MUST be `"eager"` or `"deferred"` | Error |
+| `mcp.server.transport`, if `mcp` present, MUST be `"stdio"` | Error |
+| `mcp.server.command` is required if `mcp` is present | Error |
 | Unknown top-level fields (not `x-` prefixed) | Warning (implementations SHOULD surface but not fail) |
 
 ---
@@ -307,3 +413,6 @@ The plugin manifest and the harness profile are complementary documents authored
 | Plugin loading preference | `plugin.json` → `loading` |
 | Plugin loading override | `harness.yaml` → `plugins[].loading` |
 | Plugin content integrity | `harness.yaml` → `plugins[].integrity.sha256` |
+| Plugin discovery metadata | `plugin.json` → `category`, `tags` |
+| Plugin-bundled MCP server | `plugin.json` → `mcp` |
+| Profile-level MCP servers | `harness.yaml` → `mcp-servers` |
