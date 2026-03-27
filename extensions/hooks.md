@@ -79,6 +79,8 @@ This hook receives the target file path. It can be used to run tests before allo
 
 If a `pre-commit` hook fails with `on-failure: error`, the write is blocked. The agent receives an error from the tool and may retry with a different approach.
 
+**Execution order with `pre-tool`**: For write operations (Write, Edit), `pre-tool` fires first. If `pre-tool` blocks the call, `pre-commit` is never reached. If `pre-tool` passes, `pre-commit` fires with the file path. This two-stage gating allows `pre-tool` to filter by tool name and `pre-commit` to filter by file path.
+
 **Intended for**: pre-write test suites, lint-before-write enforcement, schema validation for configuration files.
 
 ### `post-session`
@@ -132,7 +134,7 @@ This is an advanced hook point. Most users will not need it. It exists because c
 | `pre-session` | Before first prompt | Yes (session won't start) | — |
 | `pre-tool` | Before tool executes | Yes (tool call blocked) | Tool name, parameters (JSON on stdin) |
 | `post-tool` | After tool returns | No (observe only) | Tool name, parameters, result (JSON on stdin) |
-| `pre-commit` | Before file write | Yes (write blocked) | File path |
+| `pre-commit` | Before file write (after `pre-tool`) | Yes (write blocked) | File path |
 | `notification` | Agent notification | No (observe only) | Notification text |
 | `stop` | Agent decides to stop | Yes (stop rejected) | Stop reason |
 | `pre-compact` | Before context compaction | No (observe only) | Token count, target count |
@@ -142,10 +144,15 @@ This is an advanced hook point. Most users will not need it. It exists because c
 
 ## Hook I/O Protocol
 
-Hooks that receive tool context (`pre-tool`, `post-tool`) get a JSON object on stdin. This design was chosen based on Gemini CLI's JSON stdin/stdout protocol, which has proven effective at scale.
+_This section describes the data format hooks receive and produce. For how to declare hooks in a harness file, see [Hook Definition Format](#hook-definition-format) below._
 
-### stdin (for `pre-tool` and `post-tool`)
+All hooks that receive context get a JSON object on stdin. This design was chosen based on Gemini CLI's JSON stdin/stdout protocol, which has proven effective at scale. The JSON structure varies by hook point.
 
+### stdin
+
+Every hook receives a JSON object with a `hook_point` field. Additional fields depend on the hook type:
+
+**`pre-tool` and `post-tool`:**
 ```json
 {
   "hook_point": "pre-tool",
@@ -157,8 +164,43 @@ Hooks that receive tool context (`pre-tool`, `post-tool`) get a JSON object on s
   "result": null
 }
 ```
-
 For `post-tool`, the `result` field contains the tool's return value (truncated to 64KB to avoid overwhelming hook processes).
+
+**`pre-commit`:**
+```json
+{
+  "hook_point": "pre-commit",
+  "file_path": "/src/main.ts"
+}
+```
+
+**`notification`:**
+```json
+{
+  "hook_point": "notification",
+  "text": "I've completed the refactoring of the auth module."
+}
+```
+
+**`stop`:**
+```json
+{
+  "hook_point": "stop",
+  "reason": "task_complete",
+  "message": "All tests pass. The feature is implemented."
+}
+```
+
+**`pre-compact`:**
+```json
+{
+  "hook_point": "pre-compact",
+  "current_tokens": 95000,
+  "target_tokens": 60000
+}
+```
+
+**`pre-session` and `post-session`:** receive `{"hook_point": "pre-session"}` / `{"hook_point": "post-session"}` with no additional fields.
 
 ### stdout
 
@@ -173,8 +215,10 @@ Hooks may write JSON to stdout to inject context back into the agent's conversat
 
 The `action` field supports:
 - `inject` — Add a message to the agent's context (Cline's context-injection pattern)
-- `cancel` — Block the operation (equivalent to exiting non-zero, but with a structured reason)
+- `cancel` — Block the operation with a structured reason
 - (no output) — The hook ran silently; no context modification
+
+**Precedence:** stdout action takes priority over exit code. If a hook exits 0 but writes `{"action": "cancel", "message": "..."}`, the operation is cancelled. If a hook exits non-zero but writes no stdout, the `on-failure` rule applies. If both are present and conflict, stdout wins — this allows hooks to provide structured feedback even when blocking.
 
 This is optional. Hooks that do not write to stdout are treated as silent observers or blockers (based on exit code).
 
@@ -228,7 +272,7 @@ hooks:
 |---|---|---|---|---|
 | `name` | string | Yes | — | Identifier for this hook. Used in error messages and logs. Must be unique within a hook point. |
 | `run` | string | Yes | — | Command to execute. Relative to the harness file directory. |
-| `matcher` | string | No | `.*` | Glob or regex pattern matched against the tool name. Only applies to `pre-tool`, `post-tool`, and `pre-commit` hook points. When set, the hook only fires for tool calls matching this pattern. Mirrors Claude Code's `matcher` field. |
+| `matcher` | string | No | `.*` | Glob or regex pattern matched against the tool name. Only applies to `pre-tool`, `post-tool`, and `pre-commit` hook points. Silently ignored for other hook points (`pre-session`, `notification`, `stop`, `pre-compact`, `post-session`). Mirrors Claude Code's `matcher` field. |
 | `args` | array of strings | No | `[]` | Additional arguments appended to the command. |
 | `env` | object | No | `{}` | Environment variables passed to the hook process. Values may reference harness env declarations via `${VAR_NAME}` syntax. |
 | `timeout` | string | No | `30s` | Maximum execution time. Format: Go duration string (`30s`, `2m`, `1m30s`). Hook is killed and treated as failed if it exceeds this. |

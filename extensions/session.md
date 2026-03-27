@@ -41,7 +41,7 @@ session:
 |---|---|---|---|---|
 | `persistence` | enum | No | `auto` | `auto`: tool saves sessions automatically and supports resume. `manual`: user must explicitly save. `none`: sessions are ephemeral. |
 | `max-turns` | integer | No | 0 | Maximum agent turns (tool calls + responses) per session. Maps to Claude Code's `--max-turns`, Windsurf's 20 tool calls per prompt. 0 = unlimited. |
-| `max-cost` | number | No | 0 | Maximum cost in USD per session. Maps to Claude Code's `--max-budget-usd`. 0 = unlimited. Tools without cost tracking ignore this field. |
+| `max-cost` | number | No | 0 | Maximum cost in USD per session. Maps to Claude Code's `--max-budget-usd`. 0 = unlimited. Tools without cost tracking ignore this field. Tools that use non-USD units (Windsurf credits, Devin ACUs, Copilot premium requests) should approximate the conversion to USD or ignore the field and note the limitation in their compiler output. |
 | `checkpoint` | enum | No | `none` | `shadow-git`: create shadow git commits for undo/redo (Cline, Roo Code, Kilo Code pattern). `snapshot`: tool-specific checkpoint mechanism. `none`: no checkpoints. |
 
 ### Compiler mapping

@@ -33,6 +33,10 @@ An agent in the Harness Protocol is not a binary or a service — it is a named 
 
 By default, an agent inherits the parent harness's instructions, permissions, and environment. The agent definition overrides only what it declares. This follows the same inheritance model as `extends`.
 
+### Resolution order
+
+The `agents` section depends on the `models` section (agents default to `models.main` for their model). Implementations must resolve the `models` section before resolving agent defaults. If `models.main` is not declared, agents without an explicit `model` field use the tool's built-in default model.
+
 ### Agents are optional
 
 Tools that do not support multi-agent workflows ignore the `agents` section. The compiler emits a warning when targeting a tool without agent support and includes the agent definitions as reference documentation in the operational instructions.
@@ -83,7 +87,8 @@ agents:
 |---|---|---|---|---|
 | `description` | string | No | — | Human-readable description. Used in agent selection UIs and compiler output. |
 | `model` | string | No | Inherits from `models.main` | Model reference (same `provider/model-id` format as the `models` section). |
-| `instructions` | string | No | Inherits from parent | Agent-specific instructions. Appended to (not replacing) the parent harness instructions. |
+| `instructions` | string | No | Inherits from parent | Agent-specific instructions. Combined with parent instructions per `instructions-mode`. |
+| `instructions-mode` | enum | No | `append` | How agent instructions combine with parent: `append` (agent instructions added after parent), `replace` (agent instructions replace parent entirely), `prepend` (agent instructions added before parent). |
 | `tools.allow` | array | No | Inherits from parent `permissions.tools.allow` | Tools this agent may use. |
 | `tools.deny` | array | No | Inherits from parent `permissions.tools.deny` | Tools this agent may not use. |
 | `isolation` | enum | No | `none` | Execution isolation: `none` (shares parent context), `worktree` (git worktree), `container` (Docker/sandbox). |

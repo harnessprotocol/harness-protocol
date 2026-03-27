@@ -36,6 +36,12 @@ Model references use the `provider/model-id` pattern, which has emerged as the d
 
 When a tool is locked to a single provider (Claude Code → Anthropic, Gemini CLI → Google), the `provider/` prefix is optional — the tool ignores it and uses the model ID directly.
 
+**Format specification**: Model references match the pattern `[provider/]model-id` where:
+- `provider` is a lowercase identifier (letters, digits, hyphens): e.g., `anthropic`, `openai`, `ollama`
+- `model-id` is the provider's model identifier, which may contain letters, digits, hyphens, dots, and colons: e.g., `claude-sonnet-4-5-20250514`, `gpt-4o`, `gemini-2.0-flash`
+- The `/` separator appears at most once (no nested paths like `provider/family/model`)
+- A bare `model-id` (no provider prefix) is valid and means "use whichever provider the tool is configured with"
+
 ### Role-based model assignment
 
 Different tasks benefit from different models. The research identified three convergent role patterns:
@@ -68,7 +74,7 @@ models:
   # Reasoning configuration
   reasoning:
     effort: medium    # low | medium | high | max
-    budget: 16384     # Maximum thinking tokens (0 = disabled)
+    budget: 16384     # Maximum thinking tokens (0 = use tool default)
 
   # Optional: embeddings model (for tools that support semantic search)
   embed: openai/text-embedding-3-small
@@ -89,7 +95,7 @@ models:
 | `editor` | string | No | Same as `main` | Model optimized for code editing. May use a different edit format (e.g., Aider's editor model uses whole-file format). |
 | `embed` | string | No | Tool default | Embeddings model for semantic search and indexing. Only used by tools with codebase indexing. |
 | `reasoning.effort` | enum | No | `medium` | Reasoning effort level: `low`, `medium`, `high`, `max`. Maps to tool-specific levels (Claude Code's 4 levels, Codex CLI's 5, etc.). |
-| `reasoning.budget` | integer | No | 0 (unlimited) | Maximum thinking tokens. 0 means use the tool's default. Maps to Aider's `--thinking-tokens`, Gemini CLI's `thinkingConfig.budget`. |
+| `reasoning.budget` | integer | No | 0 | Maximum thinking tokens. `0` means use the tool's default (which may be unlimited or a tool-specific cap). Any positive value sets an explicit token budget. Maps to Aider's `--thinking-tokens`, Gemini CLI's `thinkingConfig.budget`. |
 | `fallback` | array of strings | No | `[]` | Ordered list of fallback models. If the primary model is unavailable, try the next. Gemini CLI pattern. |
 
 ### Role mapping across tools

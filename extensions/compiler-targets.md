@@ -64,9 +64,11 @@ MCP server declarations compile to tool-specific JSON configuration files.
 
 | Harness field | Claude Code | GitHub Copilot / VS Code | Cursor | Windsurf |
 |---|---|---|---|---|
-| `mcp-servers` | `.mcp.json` | `.vscode/mcp.json` | `.cursor/mcp.json` | `~/.codeium/windsurf/mcp_config.json` |
+| `mcp-servers` | `.mcp.json` | `.vscode/mcp.json` | `.cursor/mcp.json` | `~/.codeium/windsurf/mcp_config.json` (global) |
 
-All four target paths use the same JSON structure (the MCP JSON format), but at different file paths. The compiler translates the `harness.yaml` MCP server map to the target's JSON format:
+All four target paths use the same JSON structure (the MCP JSON format), but at different file paths.
+
+**Windsurf MCP scope note**: Unlike the other three targets, Windsurf's MCP configuration path is global (user-level), not project-local. MCP servers declared in a harness will be added to the user's global Windsurf config, affecting all projects. The compiler should warn about this scope difference and avoid overwriting existing MCP entries. Windsurf does not currently support a project-local `.windsurf/mcp.json` equivalent. The compiler translates the `harness.yaml` MCP server map to the target's JSON format:
 
 ```json
 {
@@ -158,7 +160,7 @@ Skills compile to tool-specific directory structures via the [agentskills.io](ht
 
 `AGENTS.md` has emerged as a de facto cross-tool instruction file, read by at least 10 tools: Codex CLI, Gemini CLI, OpenCode, Cursor, GitHub Copilot, Windsurf, Cline, Roo Code, Kilo Code, JetBrains (Junie), and Devin. Several tools auto-detect it without any configuration.
 
-When the compiler generates output for any target, it should additionally generate an `AGENTS.md` file containing the operational instructions, unless the harness author has explicitly opted out. This provides baseline compatibility with tools that have no dedicated compiler target.
+When the compiler generates output for any target, it should additionally generate an `AGENTS.md` file containing the operational instructions, unless the harness author has explicitly opted out via `x-agents-md: false` in the harness metadata or the `--no-agents-md` CLI flag. This provides baseline compatibility with tools that have no dedicated compiler target.
 
 The `AGENTS.md` fallback is not a substitute for the tool-specific compilation (which produces idiomatic output), but it ensures that any tool reading the project directory gets the core instructions even if the compiler does not have a dedicated target for it.
 
@@ -191,6 +193,8 @@ The following tools are documented as potential compiler targets based on featur
 | Skills | `~/.codex/skills/<name>/SKILL.md` (global) or `.codex/skills/` (project) |
 
 Codex CLI uses a three-tier instruction discovery: `~/.codex/instructions.md` (global) → `AGENTS.md` (project root) → `AGENTS.md` (subdirectory). The compiler writes to the project-root `AGENTS.md`.
+
+Because Codex CLI's primary instruction target is `AGENTS.md`, the universal fallback (which also writes `AGENTS.md`) is redundant for this target. When targeting Codex CLI, the compiler should skip the universal fallback to avoid duplicate content.
 
 ### Gemini CLI (Google)
 
