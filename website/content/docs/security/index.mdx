@@ -1,0 +1,17 @@
+---
+title: Security
+description: Threat model, trust boundaries, secrets handling, permission model, and integrity verification for Harness Protocol v1.
+---
+
+import { Cards, Card } from 'fumadocs-ui/components/card';
+
+The Security section defines the threat model and security properties that all conformant implementations must uphold. It covers the trust hierarchy between spec, implementations, profiles, and remote content; rules for handling sensitive environment variables; the permission model; and the instruction injection threat specific to AI coding agents.
+
+<Cards className="mt-8">
+  <Card title="Threat Model" description="Threat categories, attack surfaces, and the security design decisions behind the protocol." href="/docs/security/threat-model" />
+  <Card title="Trust Boundaries" description="Trust hierarchy between the spec, implementations, harness profiles, and remote content." href="/docs/security/trust-boundaries" />
+  <Card title="Secrets Handling" description="Sensitive variable declaration, storage patterns, and what implementations must never do." href="/docs/security/secrets" />
+  <Card title="Permission Model" description="Permission modes, tool allow/deny lists, and how permissions compose across extends chains." href="/docs/security/permissions" />
+  <Card title="Integrity Verification" description="SHA-256 content integrity for plugins and remote sources — verification requirements and failure modes." href="/docs/security/integrity" />
+  <Card title="Instruction Injection" description="The instruction injection threat unique to AI coding agents and the mitigations the protocol defines." href="/docs/security/instruction-injection" />
+</Cards>

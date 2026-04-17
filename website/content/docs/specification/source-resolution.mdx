@@ -1,0 +1,203 @@
+---
+title: Source Resolution
+description: How source fields resolve to fetchable content — the owner/repo format, version resolution, entry points, and caching.
+---
+
+This document specifies how `source` fields in `harness.yaml` resolve to fetchable content. The `plugins[].source` and `extends[].source` fields reference external harnesses and plugin manifests that an implementation MUST locate, version-match, and retrieve before the harness can be compiled into an effective configuration.
+
+---
+
+## Overview
+
+A `source` value appears in two contexts:
+
+| Context | Field | What it references |
+|---------|-------|--------------------|
+| Plugins | `plugins[].source` | A repository containing a `plugin.json` manifest |
+| Inheritance | `extends[].source` | A repository (or local path) containing a `harness.yaml` |
+
+Both contexts share the `owner/repo` remote format. Extends additionally supports paths within repositories and local filesystem references. The resolution algorithm is the same for both contexts, differing only in the entry point that is expected at the resolved location.
+
+---
+
+## Source Formats
+
+### Remote: `owner/repo`
+
+The default format. Refers to a repository on a git host.
+
+```
+source: my-org/base-harness
+source: harnessprotocol/harness-kit
+```
+
+For `plugins[].source`, the schema constrains the value to the pattern `^[a-zA-Z0-9_][a-zA-Z0-9_.-]*/[a-zA-Z0-9_][a-zA-Z0-9_.-]*$`. This pattern permits exactly two path segments separated by a single `/` — an owner and a repository name. Each segment must start with an alphanumeric character or underscore; subsequent characters may also include dots and hyphens.
+
+For `extends[].source`, no pattern constraint is enforced at the schema level because extends sources support additional formats described below.
+
+### Remote with Path: `owner/repo/path/to/file.yaml`
+
+Extends only. Refers to a specific file within a repository.
+
+```
+extends:
+  - source: my-org/configs/teams/data-team.harness.yaml
+    version: "^1.0.0"
+```
+
+The first two `/`-separated segments are the owner and repository. All remaining segments form the path within the repository. Implementations MUST resolve the first two segments as `owner/repo` and treat the remainder as a file path relative to the repository root.
+
+This format is NOT valid for `plugins[].source` — the schema pattern rejects it.
+
+### Local: `./relative` or `../parent`
+
+Extends only. Refers to a harness file on the local filesystem.
+
+```
+extends:
+  - source: ./shared/base.harness.yaml
+  - source: ../org-standards/harness.yaml
+```
+
+A source that begins with `./` or `../` is a local reference. Implementations MUST resolve the path relative to the directory containing the consuming `harness.yaml` file. Path traversal beyond the filesystem root MUST be rejected.
+
+Local sources have no version constraint — the filesystem state at resolution time IS the version. The `version` field on an `extends[]` entry with a local source SHOULD be omitted. If present, implementations MUST ignore it.
+
+Local sources are NOT valid for `plugins[].source`. The schema pattern `^[a-zA-Z0-9_][a-zA-Z0-9_.-]*/[a-zA-Z0-9_][a-zA-Z0-9_.-]*$` requires each segment to start with an alphanumeric character or underscore, rejecting paths that begin with `.` or `-`.
+
+---
+
+## Remote Resolution Algorithm
+
+When an implementation encounters a remote source (any source that does not begin with `./` or `../`), it MUST resolve the reference using the following steps:
+
+1. **Parse segments.** Split the source string on `/`. The first segment is the `owner`, the second is the `repo`. Any remaining segments form the `path` within the repository.
+
+2. **Determine the git host.** The git host is implementation-configured. GitHub (`github.com`) is the conventional default. Implementations MAY support alternative hosts (GitLab, Bitbucket, self-hosted) via configuration. The protocol does not mandate a specific host.
+
+3. **Enumerate available versions.** Retrieve the list of git tags from the resolved repository. Tags matching the pattern `v{semver}` (e.g., `v1.2.0`, `v0.5.0-beta.1`) are candidate versions.
+
+4. **Select the best match.** Apply the semver range from the `version` field against the candidate versions. Select the highest version that satisfies the range. See [Version Resolution](#version-resolution) for the full matching rules.
+
+5. **Fetch content.** Check out or retrieve the repository contents at the git ref corresponding to the selected version tag.
+
+6. **Locate the entry point.** Find the expected file at the resolved ref. See [Entry Points](#entry-points) for the file expected in each context.
+
+If any step fails, the implementation MUST surface a clear error. See [Error Handling](#error-handling).
+
+---
+
+## Version Resolution
+
+The `version` field on `plugins[]` and `extends[]` entries is a semver range string that constrains which tags are eligible.
+
+### Tag Format
+
+Implementations SHOULD resolve against git tags matching `v{semver}` — a `v` prefix followed by a valid semantic version string (e.g., `v1.0.0`, `v2.1.0-rc.1`). Tags without the `v` prefix (e.g., `1.0.0`) MAY also be checked as a fallback.
+
+### Matching Rules
+
+| Scenario | Behavior |
+|----------|----------|
+| Range specified (e.g., `^1.0.0`) | Select the highest tag satisfying the range |
+| No version specified | Select the latest tag matching `v*` (highest semver) |
+| No tags exist in repository | Fall back to default branch HEAD; implementations SHOULD emit a warning |
+| Pre-release tags (e.g., `v1.0.0-beta.1`) | Only matched when the range explicitly includes a pre-release identifier (e.g., `>=1.0.0-beta.1`) |
+
+### Semver Range Operators
+
+Implementations MUST support at minimum the following range operators:
+
+| Operator | Meaning | Example |
+|----------|---------|---------|
+| Exact | Matches a single version | `1.2.3` |
+| `^` (caret) | Compatible with version — allows changes that do not modify the left-most non-zero digit | `^1.2.0` matches `>=1.2.0, <2.0.0` |
+| `~` (tilde) | Patch-level changes allowed | `~1.2.0` matches `>=1.2.0, <1.3.0` |
+| `>=` | Greater than or equal | `>=0.2.0` |
+
+Implementations MAY support additional range syntax (e.g., `||`, hyphen ranges, `*` wildcards). Unrecognized range formats MUST cause a validation error rather than silent fallback.
+
+### Equivalence Requirement
+
+Implementations that use alternative resolution mechanisms (e.g., a registry lookup instead of git tags) MUST produce semver results equivalent to the git-tag-based algorithm described above. A source that resolves to `v1.5.0` via git tags MUST NOT resolve to a different version via an alternative mechanism, given the same range.
+
+---
+
+## Entry Points
+
+When the resolution algorithm reaches step 6, the implementation locates the entry point file based on the context:
+
+| Context | Entry Point |
+|---------|-------------|
+| `plugins[].source` (bare `owner/repo`) | `plugin.json` at the repository root |
+| `extends[].source` (bare `owner/repo`) | `harness.yaml` at the repository root |
+| `extends[].source` (with path `owner/repo/path/to/file.yaml`) | The file at the specified path within the repository |
+| `extends[].source` (local `./path`) | The file at the resolved local path |
+
+If the expected entry point file does not exist at the resolved location, the implementation MUST fail with a fatal error. There is no fallback — a missing entry point is not recoverable.
+
+---
+
+## Caching
+
+Implementations are RECOMMENDED to cache resolved sources to avoid redundant network requests and to support offline use.
+
+### Cache Invalidation
+
+Implementations MUST invalidate cached resolutions when the version constraint on the consuming entry could match a newer ref than the cached one. For example, if the cache holds `v1.2.0` for a `^1.0.0` range and the remote repository has since published `v1.3.0`, the cache is stale.
+
+### Force Refresh
+
+Implementations MUST provide a mechanism for users to force a fresh resolution, bypassing the cache entirely. This is necessary for debugging version mismatches and for picking up newly published tags.
+
+### Offline Mode
+
+When the network is unavailable, implementations MUST work from cache if the cache contains a valid resolution for the requested source and version range. If the cache does not contain a valid resolution and the network is unavailable, this is a fatal error (see [Error Handling](#error-handling)).
+
+---
+
+## Error Handling
+
+All source resolution errors are fatal. An implementation MUST NOT proceed with harness compilation when any source fails to resolve.
+
+| Error Condition | Severity | Description |
+|----------------|----------|-------------|
+| Repository not found | Fatal | The `owner/repo` does not exist on the configured git host |
+| No version matching constraint | Fatal | No tag in the repository satisfies the declared semver range |
+| Entry point missing | Fatal | The expected file (`plugin.json` or `harness.yaml`) does not exist at the resolved ref |
+| Network unavailable, no cache | Fatal | The source requires a network fetch but the network is unavailable and no cached resolution exists |
+| Integrity mismatch | Fatal | For plugins with `integrity.sha256`, the fetched content does not match the declared hash |
+
+Error messages MUST include the source string, the version constraint (if any), and the specific reason for failure. Implementations SHOULD suggest corrective action where possible (e.g., "Did you mean `owner/other-repo`?" or "Available versions: v1.0.0, v1.1.0").
+
+---
+
+## Security Considerations
+
+Source resolution is a trust-sensitive operation. Fetching and executing content from external sources exposes the consumer to supply-chain risks.
+
+### Trust Boundaries
+
+See [Trust Boundaries](../security/trust-boundaries) for the full trust model. Key points relevant to source resolution:
+
+- **Extends sources:** Implementations MUST warn users when `extends` references a source they have not previously explicitly trusted. Trust-on-first-use (TOFU) is the minimum acceptable model — the first time a source is resolved, the user confirms trust; subsequent resolutions of the same source proceed without prompting unless the source changes.
+
+- **Plugin integrity:** When a plugin entry includes `integrity.sha256`, implementations MUST verify the fetched `plugin.json` content against the declared hash. A mismatch is a fatal error. See [Integrity](../security/integrity) for the verification algorithm.
+
+- **Local paths:** Local sources (`./`, `../`) bypass the network trust model — the content is already on the user's filesystem. However, local sources still participate in the filesystem trust model: implementations MUST NOT resolve local paths that escape the workspace boundary without explicit user consent.
+
+### Resolution Provenance
+
+Implementations SHOULD record the resolved ref (commit SHA or tag) for each source in the effective configuration metadata. This allows consumers to audit exactly what content was used, even if the tag is later moved or deleted.
+
+---
+
+## Relationship to the Registry Layer (v2)
+
+*Non-normative:* The v2 Registry layer will provide an alternative resolution path for sources. When a registry is available:
+
+- `owner/repo` sources MAY be resolved via the registry instead of (or in addition to) direct git access.
+- The registry provides additional metadata: audit status, publisher identity, download counts, vulnerability reports.
+- Registry resolution MUST produce the same semver matching results as git-tag resolution for the same source and range.
+
+The registry is additive — it does not replace the git-based resolution described in this document. Implementations that support registry resolution MUST also support direct git resolution as a fallback. The `owner/repo` format remains valid regardless of whether a registry is configured.

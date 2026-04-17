@@ -1,0 +1,10 @@
+{
+  "title": "Harness Protocol",
+  "pages": [
+    "getting-started",
+    "specification",
+    "security",
+    "extensions",
+    "reference"
+  ]
+}

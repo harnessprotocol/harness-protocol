@@ -1,0 +1,20 @@
+---
+title: Specification
+description: The normative harness.yaml field reference and application semantics for Harness Protocol v1.
+---
+
+import { Cards, Card } from 'fumadocs-ui/components/card';
+
+The Specification section contains the normative documents for the Harness Protocol v1 Schema layer. These documents define the `harness.yaml` format, how harness files are applied to AI coding sessions, and how plugins and MCP servers are resolved.
+
+<Cards className="mt-8">
+  <Card title="Profile Schema" description="Complete harness.yaml field reference — all top-level sections, field types, and validation rules." href="/docs/specification/profile-schema" />
+  <Card title="MCP Declarations" description="MCP server transport types, variable substitution, lifecycle semantics, and security rules." href="/docs/specification/mcp-declarations" />
+  <Card title="Instructions" description="Instruction slots, content sources (file://, inline), and import modes." href="/docs/specification/instructions" />
+  <Card title="Environment" description="Environment variable declarations, required/optional semantics, and sensitive data handling." href="/docs/specification/environment" />
+  <Card title="Fragments" description="kind: fragment — partial harness documents designed for composition in the Exchange layer." href="/docs/specification/fragments" />
+  <Card title="Inheritance" description="extends resolution order, per-section merge rules, and cycle detection." href="/docs/specification/inheritance" />
+  <Card title="Application Semantics" description="The 6-step application pipeline from parsing to effective configuration." href="/docs/specification/application" />
+  <Card title="Source Resolution" description="Algorithm for resolving owner/repo and local path references to harness files." href="/docs/specification/source-resolution" />
+  <Card title="Plugin Manifest" description="The plugin.json format that plugin authors use to declare what their plugin provides." href="/docs/specification/plugin-manifest" />
+</Cards>

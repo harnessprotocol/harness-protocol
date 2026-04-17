@@ -1,0 +1,494 @@
+---
+title: Examples
+description: Annotated example harness.yaml profiles for common use cases.
+---
+
+These examples are from the [examples/](https://github.com/harnessprotocol/harness-protocol/tree/main/examples) directory of the spec repository. Copy and adapt them as a starting point.
+
+## Minimal profile
+
+The smallest valid `harness.yaml`:
+
+```yaml
+# Minimal valid Harness Protocol v1 profile.
+# This is the smallest possible harness.yaml that passes schema validation.
+# All other fields (plugins, mcp-servers, env, instructions, permissions, extends) are optional.
+
+$schema: https://harnessprotocol.io/schema/v1/harness.schema.json
+version: "1"
+metadata:
+  name: minimal
+  description: The simplest valid Harness Protocol v1 profile.
+```
+
+## Data engineer
+
+A complete profile for data engineering work:
+
+```yaml
+# Complete Harness Protocol v1 profile for a data engineering workflow.
+# Exercises every v1 section: metadata, plugins, mcp-servers, env, instructions,
+# permissions, and extends.
+#
+# Scenario: working with PostgreSQL databases, dbt models, and data pipelines.
+# Install with: harness apply data-engineer.harness.yaml
+
+$schema: https://harnessprotocol.io/schema/v1/harness.schema.json
+version: "1"
+
+# ----------------------------------------------------------------------------
+# Profile identity and discovery metadata
+# ----------------------------------------------------------------------------
+metadata:
+  name: data-engineer
+  description: Harness for SQL database work, dbt model development, and data pipeline debugging.
+  author:
+    name: alice
+    url: https://github.com/alice
+  version: "1.0.0"
+  license: Apache-2.0
+  tags:
+    - data-engineering
+    - sql
+    - dbt
+    - analytics
+    - postgresql
+
+# ----------------------------------------------------------------------------
+# Plugins — extend the harness with skills and agents from harness-kit.
+# source format: owner/repo (resolved via GitHub by default)
+# ----------------------------------------------------------------------------
+plugins:
+  # Traces data lineage across models, tables, and upstream sources.
+  - name: data-lineage
+    source: harnessprotocol/harness-kit
+    version: ">=0.3.0"
+    description: Trace column-level lineage across dbt models and raw tables.
+
+  # Explains SQL queries and dbt model DAG decisions in plain language.
+  - name: explain
+    source: harnessprotocol/harness-kit
+    description: Explain SQL query plans and dbt model dependencies.
+
+  # Research skill for querying documentation and package registries.
+  - name: research
+    source: harnessprotocol/harness-kit
+
+# ----------------------------------------------------------------------------
+# MCP servers — local and remote tool servers.
+# stdio: harness launches a local subprocess.
+# http: harness connects to a remote endpoint.
+# Every ${VAR} reference must have a matching entry in env[].
+# ----------------------------------------------------------------------------
+mcp-servers:
+  # Local PostgreSQL MCP server launched via uvx.
+  # Provides query execution, schema introspection, and explain-plan tools.
+  postgres:
+    transport: stdio
+    command: uvx
+    args:
+      - mcp-server-postgres
+      - "${DB_CONNECTION_STRING}"
+
+  # Remote analytics API — exposes dashboarding and metric query tools.
+  # Treated as untrusted remote content by the harness runtime.
+  analytics-api:
+    transport: http
+    url: https://analytics.example.com/mcp/v1
+    headers:
+      Authorization: "Bearer ${ANALYTICS_API_KEY}"
+
+# ----------------------------------------------------------------------------
+# Environment variable declarations.
+# sensitive: true (the default) — harness prompts the user; default is FORBIDDEN.
+# sensitive: false — non-secret values; default is allowed.
+# ----------------------------------------------------------------------------
+env:
+  # PostgreSQL connection string used by the postgres MCP server.
+  - name: DB_CONNECTION_STRING
+    description: "PostgreSQL connection string for the project database. Example: postgresql://user:pass@localhost:5432/mydb"
+    required: true
+    sensitive: true  # Credentials in the connection string — never allow a default.
+
+  # API key for the remote analytics MCP server.
+  - name: ANALYTICS_API_KEY
+    description: API key for the analytics MCP server endpoint.
+    required: false
+    sensitive: true  # Secret token — default is forbidden.
+    when: When using the analytics MCP server.
+
+# ----------------------------------------------------------------------------
+# Instructions — injected into the AI harness at apply time.
+# import-mode: merge appends to existing instructions (preserves user safety rules).
+# ----------------------------------------------------------------------------
+instructions:
+  operational: |
+    This harness is configured for data engineering work with PostgreSQL and dbt.
+    Prefer set-based SQL rewrites over row-by-row loops, and always check the dbt
+    model DAG before modifying a shared source model.
+  behavioral: |
+    When debugging slow queries, start with EXPLAIN ANALYZE before suggesting
+    schema changes. Propose incremental dbt model refactors rather than full rewrites.
+  import-mode: merge
+
+# ----------------------------------------------------------------------------
+# Permissions — declarative capability intent.
+# Documents what this harness needs; implementations enforce their own model.
+# ----------------------------------------------------------------------------
+permissions:
+  tools:
+    allow:
+      - Read
+      - Glob
+      - Bash
+      - mcp__postgres__*
+    deny:
+      # Never allow destructive DDL through the MCP server.
+      - mcp__*__drop_*
+      - mcp__*__delete_*
+    ask:
+      # Confirm before running any migration scripts.
+      - mcp__postgres__execute_migration
+
+  paths:
+    writable:
+      - models/        # dbt model SQL files
+      - seeds/         # dbt seed CSV files
+    readonly:
+      - prod_config/   # Production connection configs — read only, never modify
+
+  network:
+    allowed-hosts:
+      - "*.github.com"     # dbt package registry and source lookups
+      - "pypi.org"         # uvx / pip package resolution
+      - "hub.getdbt.com"   # dbt Hub package registry
+      - "analytics.example.com"
+
+# ----------------------------------------------------------------------------
+# Extends — inherit from a base profile.
+# Child values override parent values; see protocol/inheritance.md.
+# ----------------------------------------------------------------------------
+extends:
+  - source: harnessprotocol/profiles/base
+    version: ">=1.0.0"
+```
+
+## Team overlay
+
+Using `extends` to build on a base harness:
+
+```yaml
+# Harness Protocol v1 profile — team overlay example.
+#
+# Scenario: The Acme backend engineering team inherits from a shared base
+# profile and overlays team-specific MCP servers, additional plugins, and
+# stricter destructive-operation guards.
+#
+# Inheritance chain:
+#   harnessprotocol/profiles/backend-dev (base)
+#     └── acme-backend-team (this file)
+#
+# Install with: harness apply team-overlay.harness.yaml
+
+$schema: https://harnessprotocol.io/schema/v1/harness.schema.json
+version: "1"
+
+# ----------------------------------------------------------------------------
+# Profile identity
+# ----------------------------------------------------------------------------
+metadata:
+  name: acme-backend-team
+  description: Backend team overlay for Acme Engineering. Adds GHE tooling, team Postgres, and stricter permission guards.
+  version: "1.0.0"
+  tags:
+    - backend
+    - team
+    - acme
+
+# ----------------------------------------------------------------------------
+# Base profile — the shared backend-dev profile maintained by the platform team.
+# This overlay's fields are merged on top; see protocol/inheritance.md.
+# ----------------------------------------------------------------------------
+extends:
+  - source: harnessprotocol/profiles/backend-dev
+    version: ">=1.0.0"
+
+# ----------------------------------------------------------------------------
+# Additional plugins beyond what backend-dev provides.
+# Plugin names must be unique within this array; any name that collides with
+# the base profile's plugins will override the base version.
+# ----------------------------------------------------------------------------
+plugins:
+  # Generates API documentation from source code and OpenAPI annotations.
+  - name: docgen
+    source: harnessprotocol/harness-kit
+    version: ">=0.4.0"
+    description: Generate and update API documentation from source annotations.
+
+  # Lightweight code review assistant focused on backend patterns.
+  - name: code-review
+    source: harnessprotocol/harness-kit
+    version: ">=0.3.0"
+    description: Backend-focused code review — consistency, error handling, and API contract checks.
+
+# ----------------------------------------------------------------------------
+# MCP servers added by this overlay.
+# The base profile's servers are inherited unchanged; these are unioned in.
+# ----------------------------------------------------------------------------
+mcp-servers:
+  # GitHub Enterprise MCP server for internal repository and PR tooling.
+  # transport: http — harness connects to the remote GHE MCP endpoint.
+  github-enterprise:
+    transport: http
+    url: "${GITHUB_ENTERPRISE_URL}/mcp/v1"
+    headers:
+      Authorization: "Bearer ${GHE_TOKEN}"
+      X-Harness-Client: acme-backend-team
+
+  # Team Postgres replica — read-heavy workloads and schema introspection.
+  # transport: stdio — harness launches a local uvx subprocess.
+  team-postgres:
+    transport: stdio
+    command: uvx
+    args:
+      - mcp-server-postgres
+      - "${TEAM_DB_URL}"
+
+# ----------------------------------------------------------------------------
+# Environment variable declarations.
+# sensitive: true (the default) — harness prompts the user; default is FORBIDDEN.
+# sensitive: false — non-secret value; default is allowed.
+# ----------------------------------------------------------------------------
+env:
+  # Base URL for the GitHub Enterprise instance.
+  # This is a URL, not a credential — safe to carry a company default.
+  - name: GITHUB_ENTERPRISE_URL
+    description: "Base URL of the Acme GitHub Enterprise instance (e.g., https://github.acme.internal)."
+    required: true
+    sensitive: false
+    default: "https://github.acme.internal"
+
+  # Personal access token for GitHub Enterprise.
+  - name: GHE_TOKEN
+    description: Personal access token for GitHub Enterprise API authentication.
+    required: true
+    sensitive: true  # Secret — default is forbidden.
+
+  # Connection string for the team Postgres replica.
+  - name: TEAM_DB_URL
+    description: "PostgreSQL connection string for the Acme backend team replica. Example: postgresql://user:pass@db.acme.internal:5432/backend"
+    required: true
+    sensitive: true  # Credentials in the connection string — default is forbidden.
+
+# ----------------------------------------------------------------------------
+# Instructions — appended after the base profile's instructions (import-mode: merge).
+# ----------------------------------------------------------------------------
+instructions:
+  operational: |
+    Follow the Acme backend engineering standards at https://wiki.acme.internal/backend/standards.
+    All PRs must reference a JIRA ticket; use the GHE MCP server to open and update PRs directly.
+  import-mode: merge
+
+# ----------------------------------------------------------------------------
+# Permissions — layered on top of what the base profile grants.
+# allow: intersected (most restrictive wins across chain).
+# deny:  unioned (any ancestor's denial propagates — these can only tighten).
+# ----------------------------------------------------------------------------
+permissions:
+  tools:
+    allow:
+      - Read
+      - Glob
+      - Grep
+      - Write
+      - Edit
+      - Bash
+      - mcp__github-enterprise__*
+      - mcp__team-postgres__*
+    deny:
+      # Prevent any destructive delete or drop operations through any MCP server.
+      - mcp__*__delete_*
+      - mcp__*__drop_*
+    ask:
+      # Confirm before running schema migrations against the team database.
+      - mcp__team-postgres__execute_migration
+
+  paths:
+    writable:
+      - src/          # Application source
+      - tests/        # Test files
+      - migrations/   # Schema migration files
+    readonly:
+      - infra/        # Infrastructure configs — read only, never modify locally
+
+  network:
+    allowed-hosts:
+      - "github.acme.internal"    # GitHub Enterprise instance
+      - "db.acme.internal"        # Team Postgres host
+      - "wiki.acme.internal"      # Internal documentation
+      - "*.github.com"            # Public GitHub (package resolution)
+      - "pypi.org"                # uvx / pip package resolution
+```
+
+## Fragment: MCP server
+
+A reusable fragment declaring an MCP server:
+
+```yaml
+# Harness Protocol v1 fragment — a partial profile for sharing and composition.
+#
+# Fragments are reusable pieces of a harness configuration. They are not
+# complete profiles: they skip required-field validation (so metadata is optional)
+# and are intended to be imported into a full profile via an 'extends' reference
+# or a harness registry import.
+#
+# This fragment declares a PostgreSQL MCP server via uvx. To use it, reference
+# this file from a full profile:
+#
+#   extends:
+#     - source: harnessprotocol/harness-kit/examples/fragment-mcp-server.harness.yaml
+#
+# The consuming profile is responsible for satisfying the env[] declarations
+# (e.g., providing DB_CONNECTION_STRING) if it does not already declare them.
+
+$schema: https://harnessprotocol.io/schema/v1/harness.schema.json
+version: "1"
+kind: fragment
+
+# metadata is optional for fragments, but including it aids discovery and attribution.
+metadata:
+  name: postgres-mcp
+  description: PostgreSQL MCP server via uvx. Import this fragment to add database tooling to any profile.
+
+# The MCP server this fragment contributes.
+# Consumers must supply DB_CONNECTION_STRING via their own env[] section
+# or rely on the declaration below being merged in.
+mcp-servers:
+  postgres:
+    transport: stdio
+    command: uvx
+    args:
+      - mcp-server-postgres
+      - "${DB_CONNECTION_STRING}"
+
+# Environment variable required by the postgres MCP server above.
+# sensitive: true (the default) — harness will prompt the user; no default allowed.
+env:
+  - name: DB_CONNECTION_STRING
+    description: "PostgreSQL connection string for the target database. Example: postgresql://user:pass@localhost:5432/mydb"
+    required: true
+    sensitive: true
+```
+
+## Common Mistakes
+
+These invalid examples show errors the schema or a conformant implementation will catch.
+
+### `sensitive: true` with `default` (forbidden)
+
+```yaml
+# INVALID — sensitive variables must not have defaults.
+env:
+  - name: API_TOKEN
+    description: API bearer token
+    required: true
+    sensitive: true
+    default: "dev-placeholder"  # FORBIDDEN — validation error
+```
+
+A default value is stored in `harness.yaml`, which may be committed to version control. The schema prohibits defaults on sensitive variables. Put example values in the `description` field instead.
+
+### `version: 1` (integer instead of string)
+
+```yaml
+# INVALID — version must be a string, not an integer.
+version: 1         # WRONG: integer
+version: "1"       # CORRECT: string
+```
+
+YAML parses unquoted `1` as an integer. Implementations MUST reject `version: 1` with a clear error suggesting the quoted form.
+
+### Undeclared `${VAR_NAME}` reference
+
+```yaml
+# INVALID — DB_PASSWORD is used in mcp-servers but not declared in env.
+mcp-servers:
+  postgres:
+    transport: stdio
+    command: uvx
+    args: [mcp-server-postgres, "${DB_PASSWORD}"]
+
+env: []  # No declaration for DB_PASSWORD — validation error
+```
+
+Every `${VAR_NAME}` reference in `mcp-servers` MUST have a corresponding entry in the `env` array.
+
+### Circular `extends` chain
+
+```yaml
+# file: a.harness.yaml
+extends:
+  - source: ./b.harness.yaml
+
+# file: b.harness.yaml
+extends:
+  - source: ./a.harness.yaml
+```
+
+Circular inheritance is a fatal error. Implementations MUST detect cycles and report which harnesses form the loop.
+
+---
+
+## Fragment: Plugin bundle
+
+A reusable fragment declaring a set of plugins:
+
+```yaml
+# Harness Protocol v1 fragment — data stack plugin bundle.
+#
+# This fragment bundles the core data engineering plugins used by the Acme
+# data team. It is intentionally minimal: no MCP servers, no env requirements,
+# no instructions — just a curated plugin list ready to be composed into any
+# full profile.
+#
+# Usage — reference this fragment from a full profile or another fragment:
+#
+#   extends:
+#     - source: harnessprotocol/harness-kit/examples/fragment-plugin-bundle.harness.yaml
+#
+# The consuming profile inherits all four plugins below and can override any
+# entry by declaring a plugin with the same name.
+
+$schema: https://harnessprotocol.io/schema/v1/harness.schema.json
+version: "1"
+kind: fragment
+
+# metadata is optional for fragments; included here for registry discoverability.
+metadata:
+  name: data-stack-bundle
+  description: Data engineering plugin bundle for new team members.
+
+# ----------------------------------------------------------------------------
+# Plugins — the full data stack in one import.
+# ----------------------------------------------------------------------------
+plugins:
+  # Traces column-level lineage across dbt models and raw tables.
+  - name: data-lineage
+    source: harnessprotocol/harness-kit
+    version: ">=0.3.0"
+
+  # Explains SQL query plans and dbt model DAG dependencies in plain language.
+  - name: explain
+    source: harnessprotocol/harness-kit
+    version: ">=0.2.0"
+
+  # Research skill for querying documentation and package registries.
+  - name: research
+    source: harnessprotocol/harness-kit
+    version: ">=0.2.0"
+
+  # Generates and updates data model documentation from source annotations.
+  - name: docgen
+    source: harnessprotocol/harness-kit
+    version: ">=0.2.0"
+```

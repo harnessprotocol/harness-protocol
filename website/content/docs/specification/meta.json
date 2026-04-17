@@ -1,0 +1,15 @@
+{
+  "title": "Specification",
+  "pages": [
+    "index",
+    "profile-schema",
+    "mcp-declarations",
+    "instructions",
+    "environment",
+    "fragments",
+    "inheritance",
+    "application",
+    "source-resolution",
+    "plugin-manifest"
+  ]
+}

@@ -1,0 +1,227 @@
+@import 'tailwindcss';
+@import 'fumadocs-ui/style.css';
+
+/* ── Font system ── */
+body {
+  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), ui-monospace, monospace;
+  font-variant-ligatures: none;
+}
+
+/* ── Light theme — warm neutrals + blue accent ── */
+:root {
+  --color-fd-primary: 217 91% 60%;
+  --color-fd-primary-foreground: 0 0% 100%;
+  --color-fd-background: 35 15% 93%;
+  --color-fd-foreground: 30 15% 12%;
+  --color-fd-card: 35 12% 90%;
+  --color-fd-card-foreground: 30 15% 12%;
+  --color-fd-muted: 35 8% 86%;
+  --color-fd-muted-foreground: 30 8% 42%;
+  --color-fd-border: 30 8% 80%;
+  --color-fd-accent: 213 60% 94%;
+  --color-fd-accent-foreground: 217 70% 35%;
+  --color-fd-popover: 35 15% 98%;
+  --color-fd-popover-foreground: 30 15% 12%;
+  --color-fd-secondary: 35 8% 94%;
+  --color-fd-secondary-foreground: 30 15% 12%;
+  --color-fd-ring: 217 91% 60%;
+}
+
+/* ── Dark theme — warm charcoal + blue accent ── */
+.dark {
+  --color-fd-primary: 213 94% 68%;
+  --color-fd-primary-foreground: 0 0% 100%;
+  --color-fd-background: 30 6% 7%;
+  --color-fd-foreground: 35 10% 90%;
+  --color-fd-card: 30 5% 10%;
+  --color-fd-card-foreground: 35 10% 90%;
+  --color-fd-muted: 30 4% 14%;
+  --color-fd-muted-foreground: 30 5% 48%;
+  --color-fd-border: 30 4% 16%;
+  --color-fd-accent: 213 35% 12%;
+  --color-fd-accent-foreground: 213 94% 72%;
+  --color-fd-popover: 30 6% 8%;
+  --color-fd-popover-foreground: 35 10% 90%;
+  --color-fd-secondary: 30 4% 11%;
+  --color-fd-secondary-foreground: 35 10% 90%;
+  --color-fd-ring: 213 94% 68%;
+}
+
+/* ── Page enter ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out both;
+  }
+}
+
+/* ── Heading typography ── */
+h1, h2, h3 {
+  letter-spacing: -0.02em;
+}
+
+/* ── Docs layout width ── */
+:root {
+  --fd-layout-width: 1400px;
+}
+
+/* ── Nav bar ── */
+[data-fumadocs-nav] {
+  border-bottom: none;
+}
+[data-fumadocs-nav]::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsl(var(--color-fd-primary) / 0.15), transparent);
+}
+
+/* ── Sidebar active item ── */
+[data-fumadocs-sidebar] [aria-current="page"],
+[data-fumadocs-sidebar] [data-active="true"] {
+  color: hsl(var(--color-fd-primary));
+  background: transparent;
+}
+
+/* ── TOC active item ── */
+[data-fumadocs-toc] [data-active="true"] {
+  color: hsl(var(--color-fd-primary));
+}
+
+/* ── Docs content ── */
+[data-fumadocs-body] {
+  line-height: 1.8;
+}
+
+.dark [data-fumadocs-body] {
+  color: hsl(35, 8%, 82%);
+}
+
+[data-fumadocs-body] h1,
+[data-fumadocs-body] h2,
+[data-fumadocs-body] h3 {
+  font-family: var(--font-display), ui-monospace, monospace;
+  font-variant-ligatures: none;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+[data-fumadocs-body] h2 {
+  margin-top: 2.5rem;
+}
+
+[data-fumadocs-body] h3 {
+  margin-top: 2rem;
+}
+
+[data-fumadocs-body] p {
+  margin-bottom: 1.25em;
+}
+
+[data-fumadocs-body] li {
+  margin-bottom: 0.35em;
+}
+
+/* ── Code blocks ── */
+pre {
+  border-radius: 0.75rem;
+  border: 1px solid hsl(var(--color-fd-border));
+}
+
+.dark pre {
+  background: hsl(30, 6%, 6%) !important;
+}
+
+/* ── Inline code ── */
+[data-fumadocs-body] :not(pre) > code {
+  border: none !important;
+  background: hsl(var(--color-fd-muted));
+  color: hsl(var(--color-fd-foreground));
+  padding: 3px 5px;
+  border-radius: 5px;
+  font-size: 13px;
+}
+
+.dark [data-fumadocs-body] :not(pre) > code {
+  background: hsla(30, 5%, 12%, 0.8);
+}
+
+/* ── Blockquotes ── */
+blockquote {
+  border-left: 3px solid hsl(var(--color-fd-primary));
+  border-radius: 0 0.5rem 0.5rem 0;
+  padding: 0.75rem 1rem;
+  background: hsl(var(--color-fd-accent));
+}
+
+.dark blockquote {
+  background: hsla(213, 25%, 10%, 0.3);
+}
+
+/* ── Horizontal rules ── */
+[data-fumadocs-body] hr {
+  border-color: hsl(var(--color-fd-border) / 0.3);
+  border-top-width: 1px;
+  border-bottom: none;
+  border-left: none;
+  border-right: none;
+}
+
+.dark [data-fumadocs-body] hr {
+  border-color: hsla(30, 4%, 20%, 0.25);
+}
+
+/* ── Tables ── */
+table {
+  border: 1px solid hsl(var(--color-fd-border) / 0.3);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+table td,
+table th {
+  border-color: hsl(var(--color-fd-border) / 0.2);
+}
+
+table thead {
+  background: hsl(var(--color-fd-muted));
+}
+
+table tbody tr:nth-child(even) {
+  background: hsl(var(--color-fd-secondary));
+}
+
+.dark table thead {
+  background: hsla(30, 6%, 10%, 0.8);
+}
+
+.dark table tbody tr:nth-child(even) {
+  background: hsla(30, 6%, 8%, 0.5);
+}
+
+/* ── Callout ── */
+[data-fumadocs-callout] {
+  border-radius: 0.5rem;
+  border-width: 1px;
+}
+
+/* ── Tabs active underline uses primary color ── */
+[data-fumadocs-tabs] [role="tab"][data-state="active"] {
+  color: hsl(var(--color-fd-primary));
+  box-shadow: inset 0 -2px 0 hsl(var(--color-fd-primary));
+}
