@@ -3,6 +3,8 @@ title: MCP Declarations
 description: MCP server transport types, variable substitution, and security requirements.
 ---
 
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+
 This document specifies how MCP (Model Context Protocol) servers are declared in `harness.yaml` under the `mcp-servers:` key. For the reference field table, see [Profile Schema: mcp-servers](./profile-schema#mcp-servers). This document provides expanded detail, security requirements, and practical examples.
 
 ---
@@ -29,6 +31,51 @@ MCP servers communicate over one of several transports. The Harness Protocol v1 
 | `ws` | `"ws"` | Remote server accessed via WebSocket. |
 
 The `transport` field is required on every MCP server declaration. A declaration without a `transport` field fails validation.
+
+<Tabs items={["stdio", "http", "sse", "ws"]}>
+  <Tab value="stdio">
+    ```yaml
+    mcp-servers:
+      postgres:
+        transport: stdio
+        command: uvx
+        args:
+          - mcp-server-postgres
+          - --connection-string
+          - "${DB_CONNECTION_STRING}"
+    ```
+  </Tab>
+  <Tab value="http">
+    ```yaml
+    mcp-servers:
+      data-api:
+        transport: http
+        url: "https://api.example.com/mcp"
+        headers:
+          Authorization: "Bearer ${DATA_API_TOKEN}"
+    ```
+  </Tab>
+  <Tab value="sse">
+    ```yaml
+    mcp-servers:
+      legacy-api:
+        transport: sse
+        url: "https://api.example.com/sse"
+        headers:
+          Authorization: "Bearer ${API_TOKEN}"
+    ```
+  </Tab>
+  <Tab value="ws">
+    ```yaml
+    mcp-servers:
+      realtime-api:
+        transport: ws
+        url: "wss://api.example.com/mcp"
+        headers:
+          Authorization: "Bearer ${API_TOKEN}"
+    ```
+  </Tab>
+</Tabs>
 
 ---
 

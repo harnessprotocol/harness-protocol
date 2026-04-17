@@ -1,6 +1,7 @@
 {
   "title": "Extensions",
   "pages": [
+    "index",
     "extension-points",
     "---v2 Design Sketches (pre-HEP)---",
     "hooks",

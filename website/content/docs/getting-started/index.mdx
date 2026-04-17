@@ -37,14 +37,15 @@ Version 1 of the Harness Protocol specifies the **Schema layer**:
 
 ## How It Relates to harness-kit
 
-*Non-normative:* [harness-kit](https://github.com/harnessprotocol/harness-kit) is the **reference implementation** of the Harness Protocol. The relationship mirrors MCP and Claude Desktop: the protocol is the open specification; harness-kit is the first complete implementation that exercises and validates it.
+import { Callout } from 'fumadocs-ui/components/callout';
 
-harness-kit provides:
-- A parser and validator for `harness.yaml` against the v1 JSON Schema
-- Plugin resolution and loading via the `source: owner/repo` mechanism
-- MCP server lifecycle management
-- Instruction file merging with the configured `import-mode`
-- Permission enforcement at the tool boundary
+<Callout type="info" title="Non-normative">
+  This section describes the reference implementation. It is informational and not part of the normative specification.
+</Callout>
+
+[harness-kit](https://github.com/harnessprotocol/harness-kit) is the **reference implementation** of the Harness Protocol. The relationship mirrors MCP and Claude Desktop: the protocol is the open specification; harness-kit is the first complete implementation that exercises and validates it.
+
+harness-kit provides a CLI, parser, validator, plugin resolver, and a desktop app for authoring and applying harnesses. It handles instruction file merging with the configured `import-mode` and integrates with Claude Code's native permission system for applying the `permissions` block.
 
 Conformance to the Harness Protocol does not require using harness-kit. Any implementation that correctly validates and applies `harness.yaml` according to this specification is a conformant implementation.
 

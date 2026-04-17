@@ -213,3 +213,15 @@ table tbody tr:nth-child(even) {
 .dark table tbody tr:nth-child(even) {
   background: hsla(30, 6%, 8%, 0.5);
 }
+
+/* ── Callout ── */
+[data-fumadocs-callout] {
+  border-radius: 0.5rem;
+  border-width: 1px;
+}
+
+/* ── Tabs active underline uses primary color ── */
+[data-fumadocs-tabs] [role="tab"][data-state="active"] {
+  color: hsl(var(--color-fd-primary));
+  box-shadow: inset 0 -2px 0 hsl(var(--color-fd-primary));
+}

@@ -11,8 +11,7 @@
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.17.1",
-    "@supabase/supabase-js": "^2.99.2",
-    "fumadocs-core": "^15.0.0",
+"fumadocs-core": "^15.0.0",
     "fumadocs-mdx": "^11.0.0",
     "fumadocs-ui": "^15.0.0",
     "next": "^15.0.0",

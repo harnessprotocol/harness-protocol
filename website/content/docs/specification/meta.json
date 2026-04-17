@@ -1,6 +1,7 @@
 {
   "title": "Specification",
   "pages": [
+    "index",
     "profile-schema",
     "mcp-declarations",
     "instructions",

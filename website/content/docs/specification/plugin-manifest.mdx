@@ -3,6 +3,8 @@ title: Plugin Manifest
 description: plugin.json format, field reference, and validation requirements for plugin authors.
 ---
 
+import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
+
 This document specifies the `plugin.json` format that plugin authors use to declare what their plugin provides and requires. The manifest is the plugin's contract with the Harness Protocol ecosystem.
 
 ---
@@ -333,6 +335,21 @@ Plugin-bundled MCP servers and profile-level MCP servers (declared in `harness.y
 
 ## Full Example
 
+<Tabs items={["Minimal", "Full"]}>
+  <Tab value="Minimal">
+    ```json
+    {
+      "name": "my-plugin",
+      "description": "A brief description of what this plugin does.",
+      "version": "1.0.0",
+      "requires": {
+        "min-protocol": "1"
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="Full">
+
 ```json
 {
   "name": "data-lineage",
@@ -374,6 +391,9 @@ Plugin-bundled MCP servers and profile-level MCP servers (declared in `harness.y
   }
 }
 ```
+
+  </Tab>
+</Tabs>
 
 ---
 

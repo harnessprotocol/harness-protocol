@@ -3,10 +3,11 @@ title: Integrity
 description: Content integrity verification via SHA-256 checksums.
 ---
 
-**Status:** Draft
-**Version:** Harness Protocol v1
+import { Callout } from 'fumadocs-ui/components/callout';
 
----
+<Callout type="warn" title="Integrity verification is mandatory">
+  Conforming implementations MUST verify `integrity.sha256` when the field is present and MUST fail installation if the computed hash does not match. Skipping verification silently defeats the entire integrity model.
+</Callout>
 
 ## What Integrity Verification Protects Against
 

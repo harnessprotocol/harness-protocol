@@ -6,6 +6,9 @@ on:
   pull_request:
     paths: [schema/**, protocol/**, examples/**, eval/**]
 
+permissions:
+  contents: read
+
 jobs:
   eval:
     runs-on: ubuntu-latest

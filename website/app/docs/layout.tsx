@@ -9,11 +9,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       nav={{
         title: (
           <span className="flex items-center gap-2 text-sm font-medium">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 200 200"
-              className="size-8"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" className="size-8">
               <circle cx="100" cy="100" r="62" fill="none" stroke="#60a5fa" strokeWidth="5.5" />
               <line x1="100" y1="58" x2="63.63" y2="121" stroke="#78706a" strokeWidth="2.5" opacity="0.55" />
               <line x1="63.63" y1="121" x2="136.37" y2="121" stroke="#78706a" strokeWidth="2.5" opacity="0.55" />
@@ -23,10 +19,24 @@ export default function Layout({ children }: { children: ReactNode }) {
               <circle cx="136.37" cy="121" r="9.5" fill="#e8e0d6" />
             </svg>
             <span className="font-display">Harness Protocol</span>
+            <span className="font-display ml-1 rounded-full bg-fd-accent px-2 py-0.5 text-xs font-medium text-fd-accent-foreground">
+              v1
+            </span>
           </span>
         ),
       }}
       links={[
+        {
+          type: 'main',
+          text: 'Spec',
+          url: '/docs/getting-started',
+        },
+        {
+          type: 'main',
+          text: 'harness-kit',
+          url: 'https://github.com/harnessprotocol/harness-kit',
+          external: true,
+        },
         {
           type: 'icon',
           text: 'GitHub',
