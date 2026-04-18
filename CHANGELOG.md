@@ -4,7 +4,7 @@ All notable changes to the Harness Protocol specification are documented here.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The Harness Protocol uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for specification versions.
 
-## [v1] — Unreleased (Candidate)
+## [v1.0.0-candidate] — 2026-04-18
 
 **Status:** Feature-complete. Seeking implementation feedback before stabilization.
 
