@@ -62,7 +62,7 @@ Emeritus maintainers retain no decision-making authority but are welcome to re-e
 
 The Harness Protocol uses a **consensus-seeking** model. Most decisions are made through discussion on issues and pull requests, with maintainers working toward agreement.
 
-For significant changes — anything that requires a HEP — the process is:
+For significant changes — anything that requires a HEP — the process is described in [CONTRIBUTING.md](CONTRIBUTING.md#hep-process) and accepted HEPs are filed in [`heps/`](heps/). The short version:
 
 1. Discussion on the HEP pull request until objections are resolved or acknowledged
 2. A maintainer sets the final status (Accepted or Rejected) based on the discussion

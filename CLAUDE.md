@@ -30,7 +30,7 @@ ajv validate -s schema/draft/plugin.schema.json  -d <path-to-plugin-manifest.jso
 - **JSON Schema is the source of truth.** `schema/draft/harness.schema.json` and `schema/draft/plugin.schema.json` are canonical. `website/public/schema/v1/*.json` is the published mirror — keep in sync on release.
 - **Dual spec surfaces.** `protocol/*.md` is authoritative spec prose. `website/content/docs/specification/*.mdx` mirrors it for the docs site. Changing one without the other is a bug — always update both in the same commit.
 - **Deployment.** GitHub Actions deploys to Cloudflare Workers on push to `main`. Never run `npm run deploy` locally — all deploys go through CI.
-- **`heps/` directory.** Not yet initialized. HEP-1 will bootstrap it.
+- **`heps/` directory.** Contains accepted HEPs. HEP-1 bootstrapped the process; new HEPs follow the format in CONTRIBUTING.md.
 
 ## Gotchas
 
