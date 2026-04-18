@@ -19,7 +19,7 @@ If you are not sure which category your change falls into, open an issue and ask
 
 ## HEP Process
 
-A **Harness Enhancement Proposal** (HEP) is the mechanism for proposing significant changes to the Harness Protocol. HEPs are modeled after Python PEPs: they provide a structured way to discuss, refine, and record decisions about the protocol.
+A **Harness Enhancement Proposal** (HEP) is the mechanism for proposing significant changes to the Harness Protocol. HEPs provide a structured way to discuss, refine, and record decisions about the protocol.
 
 ### What Requires a HEP
 
@@ -37,19 +37,60 @@ A **Harness Enhancement Proposal** (HEP) is the mechanism for proposing signific
 - Reorganizing documents without changing content
 - Updating cross-references and links
 
+### HEP Types
+
+All HEPs fall into one of three categories:
+
+| Type | Purpose |
+|------|---------|
+| **Standards Track** | Changes the Harness Protocol normatively: new schema fields, behavioral changes, security model changes, or new protocol layers. Requires a prototype before Accepted. |
+| **Informational** | Design guidance, analysis, or documentation. Does not change what conformant implementations must do. Extension sketches, design explorations, and architecture notes fall here. |
+| **Process** | Changes to governance, the HEP process itself, or release procedures. |
+
+The `type:` field in the HEP frontmatter identifies which category applies.
+
 ### HEP Lifecycle
 
 ```
-Draft → Review → Accepted / Rejected / Withdrawn
+Draft → [sponsor found] → Review → Accepted / Rejected / Withdrawn
+  |                          ↑
+  └── Dormant ───────────────┘
+      (no sponsor after 6 months; revivable — find a sponsor to return to Draft → Review)
 ```
 
 | Status | Meaning |
 |--------|---------|
 | **Draft** | The HEP is being written and is not yet ready for formal review |
-| **Review** | The HEP is complete and open for community discussion |
+| **Review** | The HEP has a named sponsor and is open for community discussion |
 | **Accepted** | The HEP has been accepted and will be implemented in a future spec version |
 | **Rejected** | The HEP was reviewed and will not be adopted |
 | **Withdrawn** | The author withdrew the HEP before a decision was reached |
+| **Dormant** | The HEP has been in Draft for more than 6 months without a sponsor; it is not rejected and can be revived at any time |
+
+**Dormant is not rejection.** A Dormant HEP means no maintainer has taken it on yet — the idea may still be valid. If circumstances change or a sponsor steps forward, the HEP can be moved back to Draft.
+
+### Sponsor Requirement
+
+Before a HEP can move to Review, it needs a **named maintainer sponsor**. The sponsor is responsible for:
+
+- Reviewing the proposal and providing constructive feedback
+- Facilitating community discussion
+- Updating the HEP status as it progresses
+- Ensuring the proposal meets quality standards before formal review
+
+To find a sponsor: post your Draft HEP in an issue, tag relevant maintainers from [MAINTAINERS.md](MAINTAINERS.md), and ask. The 6-month clock starts when the Draft PR is opened. If no sponsor has claimed the HEP by then, it enters Dormant status — it is preserved and can be revived by any future sponsor.
+
+### Prototype Requirement (Standards Track)
+
+For **Standards Track HEPs**: a working prototype must exist before the HEP can be moved to Accepted. Acceptable prototypes:
+
+- A fork or branch of the reference implementation demonstrating the change
+- A JSON Schema test suite validating the proposed additions
+- A standalone proof-of-concept showing the proposed behavior works as described
+
+The prototype does not need to be production-ready. Its purpose is to verify feasibility and surface implementation issues before the spec is finalized. Pseudocode is not sufficient.
+
+Informational and Process HEPs may omit the Prototype section.
 
 ### HEP Numbering
 
@@ -63,8 +104,10 @@ HEPs live in the `heps/` directory (not yet created — it will be initialized w
 ---
 title: Short descriptive title
 hep: NNN
-status: Draft | Review | Accepted | Rejected | Withdrawn
+type: Standards Track | Informational | Process
+status: Draft | Review | Accepted | Rejected | Withdrawn | Dormant
 authors: [Name <github-handle>]
+sponsor: Name <github-handle> (or "Unsponsored" if in Draft)
 created: YYYY-MM-DD
 ---
 
@@ -79,6 +122,12 @@ The normative change being proposed. Be precise. For schema changes, include the
 proposed JSON Schema diff or the new field definition. For behavioral changes,
 describe exactly what a conformant implementation must do differently.
 
+## Rationale
+
+Why was this specific design chosen? What tradeoffs were made? How does it align
+with the design principles in PRINCIPLES.md? Address any design alternatives that
+were considered and why they were not chosen.
+
 ## Backward Compatibility
 
 Does this change break existing valid `harness.yaml` files? If so, what is the
@@ -89,9 +138,11 @@ migration path? If not, explain why.
 Does this change affect the security model, trust boundaries, or any
 security-sensitive field behavior? If the answer is no, say so explicitly.
 
-## Alternatives Considered
+## Prototype
 
-What other approaches were considered and why were they rejected?
+[Standards Track only] Link to or describe the prototype implementation. If the
+prototype is not yet complete, state that here and note it will be required before
+Accepted status.
 ```
 
 ### Submitting a HEP
@@ -99,8 +150,9 @@ What other approaches were considered and why were they rejected?
 1. Open an issue describing the problem you want to solve. This is required before drafting a HEP — it lets the community validate that the problem is real before significant effort goes into the proposal.
 2. Once there is rough agreement on the problem, fork the repository, create `heps/hep-NNN.md` (use the next available number), and write the HEP in Draft status.
 3. Open a pull request. The PR title should be `HEP-NNN: <title>`.
-4. When the HEP is complete, change its status to Review in the PR.
-5. Maintainers will facilitate discussion. Once discussion has converged, a maintainer will set the final status and merge or close the PR.
+4. Find a sponsor: tag relevant maintainers in the PR and post in any community channels. Add the sponsor's name to the `sponsor:` frontmatter field.
+5. When the HEP is complete and has a sponsor, change its status to Review in the PR.
+6. Maintainers will facilitate discussion. Once discussion has converged, a maintainer will set the final status and merge or close the PR.
 
 ---
 
@@ -126,6 +178,25 @@ Please search existing issues before opening a new one.
 4. A maintainer will review and merge if appropriate.
 
 **Spec changes**: Open an issue or HEP first. Do not submit a spec-change PR without a prior HEP being Accepted — it will be closed with a request to go through the process.
+
+### What Makes a Good Pull Request
+
+| Harder to review | Thoughtful contribution |
+|---|---|
+| Large PR mixing unrelated changes | Focused PR addressing one thing |
+| Vague commit message ("fix stuff") | Concise message explaining what and why |
+| Spec change without a HEP | HEP-first for normative changes |
+| No examples or tests | Example YAML or schema test demonstrating the change |
+| Submitting with CI failing | All checks green before requesting review |
+| PR description restating the diff | PR description explaining motivation and design intent |
+
+---
+
+## AI-Assisted Contributions
+
+AI tools are welcome for drafting, editing, and researching contributions. If you used AI assistance, note it briefly in your pull request description — a single sentence is enough.
+
+The key requirement is that **you understand and stand behind what you contributed**: you can explain the change, articulate why it is needed, and verify that it behaves as described. This matters most for Standards Track HEPs and normative JSON Schema changes, where reviewers may ask you to explain design decisions without the AI.
 
 ---
 

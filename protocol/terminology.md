@@ -140,8 +140,18 @@ See [Source Resolution](./source-resolution.md) for the full specification.
 
 ## HEP
 
-**Harness Enhancement Proposal.** The process for proposing changes to the Harness Protocol specification. An HEP is a structured document describing a proposed change, its motivation, design, backward compatibility impact, and security considerations. The HEP process gates all changes to the core schema and protocol layers.
+**Harness Enhancement Proposal.** The mechanism for proposing changes to the Harness Protocol specification. An HEP is a structured document describing a proposed change, its motivation, design, backward compatibility impact, and security considerations. The HEP process gates all changes to the core schema and protocol layers.
 
-HEPs are authored against the `harnessprotocol` GitHub organization and follow a numbered sequence (HEP-1, HEP-2, ...). A change is not part of the specification until the corresponding HEP is accepted and merged.
+HEPs are numbered sequentially (HEP-1, HEP-2, ...) and fall into one of three types:
 
-The HEP process does not govern implementation-specific behavior, `x-` extension fields, or blog/example content.
+| Type | Purpose |
+|------|---------|
+| **Standards Track** | Normative changes — new schema fields, behavioral changes, security model changes. Requires a prototype before Accepted. |
+| **Informational** | Design guidance, analysis, or documentation. No conformance impact. |
+| **Process** | Changes to governance, the HEP process, or release procedures. |
+
+HEP lifecycle: `Draft → Review → Accepted / Rejected / Withdrawn`. A Draft HEP that goes 6 months without a named maintainer sponsor enters **Dormant** status — it is not rejected and can be revived at any time by a sponsor stepping forward.
+
+A change is not part of the specification until the corresponding HEP is accepted and merged. The HEP process does not govern implementation-specific behavior, `x-` extension fields, or blog/example content.
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for the full HEP submission process.

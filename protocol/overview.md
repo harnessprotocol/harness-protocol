@@ -72,6 +72,7 @@ The Harness Protocol builds on established standards:
 |----------|---------|
 | [Terminology](./terminology.md) | Glossary of all terms used in the spec |
 | [Architecture](./architecture.md) | System diagram, layer interactions, trust model |
+| [Design Principles](./principles.md) | Values that guide protocol decisions and HEP evaluation |
 | [Profile Schema](./profile-schema.md) | Full `harness.yaml` field reference |
 | [Plugin Manifest](./plugin-manifest.md) | `plugin.json` format for plugin authors |
 | [MCP Declarations](./mcp-declarations.md) | MCP server transport types, variable substitution, security |
