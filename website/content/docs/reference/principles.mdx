@@ -1,0 +1,64 @@
+---
+title: Design Principles
+description: The values that guide Harness Protocol design decisions and HEP evaluation.
+---
+
+These principles exist to make decisions consistent, not to make them automatic — every principle involves judgment. They guide how the Harness Protocol is designed, how proposals are evaluated, and how tradeoffs are resolved. When a new feature is proposed or an existing rule is questioned, these principles are the rubric.
+
+HEP authors should consult this document before drafting a proposal. A proposal that conflicts with one of these principles is not automatically rejected, but it must address the conflict explicitly in its Rationale section.
+
+---
+
+## Declarative over imperative
+
+A harness describes **what an agent needs**, not **how to provision it**. The runtime interprets declarations; harness authors do not script execution. This separation keeps harnesses portable: a profile that declares an MCP server, a set of env requirements, and an instruction set can be applied by any conformant implementation, not only the one it was built for.
+
+A corollary: the protocol should not expose implementation details of any specific harness runtime. If a feature can only be expressed as a procedure, it belongs in the implementing tool, not in the schema.
+
+---
+
+## Declared over implicit
+
+Every external dependency a harness relies on must appear somewhere in the harness document. Environment variables referenced in `mcp-servers.env` must appear in `env[]`. Trust assumptions must be visible in the inheritance chain. Permission grants must be explicit.
+
+Implicit state is both a security risk and a portability problem: it binds harnesses to a specific environment without making that binding auditable. The protocol requires declaration not as ceremony but as a prerequisite for validation.
+
+---
+
+## Safety by default
+
+The default position is always the more conservative one. Sensitive environment variables default to `sensitive: true`; opting out of protection requires an explicit declaration. Instruction inheritance defaults to `merge` (additive); `replace` (destructive) requires an explicit choice and user confirmation at apply time. Integrity checking is strongly recommended even when optional.
+
+The practical implication: a misconfigured harness should fail in ways that are safe, not in ways that silently expose credentials or override safety instructions. The cost of an overly cautious default is inconvenience; the cost of an overly permissive default is a security incident.
+
+---
+
+## Portability over optimization
+
+Harness configurations should work across all conformant implementations, not only the tool they were originally written for. When a design decision trades portability for performance or convenience, portability wins.
+
+`x-` prefix fields exist precisely to isolate implementation-specific behavior from the portable core. A harness that uses `x-` fields has explicitly opted into non-portability for those fields. The core schema has no such escape hatch.
+
+---
+
+## Stability over velocity
+
+Protocol additions are permanent. Once a field is in the normative spec and implementations have shipped against it, removing it is a breaking change that disrupts every deployed harness relying on it. Every HEP is a permanent commitment to support the added surface indefinitely.
+
+This is not an argument against change — the protocol must evolve. It is an argument for deliberate change. A proposal should be evaluated not only on whether it is useful but on whether it is worth the permanent commitment. A "no" today keeps the option open; a "yes" closes it.
+
+---
+
+## Validate early
+
+The application pipeline runs all validation — schema validation, behavioral constraint checks, declaration coverage requirements — before any configuration reaches the agent. A harness that fails validation at any step is not applied at all. There is no partial application.
+
+This means the failure mode for a misconfigured harness is a clear error at load time, not silent misbehavior at runtime. Implementations must not silently degrade or skip validation to be more "compatible." Strictness at validation time is a feature.
+
+---
+
+## Composable from primitives
+
+Complex harnesses are built from simple building blocks. Profiles compose via `extends`. Fragments provide portable partial configurations. Plugins bundle reusable capability sets. The protocol defines the primitives and the composition rules; the resulting harnesses are the users' domain.
+
+New primitives should not be added to the core schema to accommodate specific composition patterns that can already be expressed with existing ones. If a use case can be built from profiles, fragments, plugins, and inheritance, it should be — not given its own top-level field.
