@@ -9,7 +9,7 @@
 
 A skill file (SKILL.md) is loaded into the AI's context when the user invokes that skill. The skill's content is not user-authored — it comes from a plugin that may be published by a third party. A malicious or careless skill author can embed directives in the skill file that modify the AI's behavior in ways the user did not authorize and may not detect.
 
-Unlike harness profile instruction injection (covered in `instruction-injection.md`), skill injection is not primarily about overriding the user's safety rules. The threat is subtler: a skill file that appears to define a legitimate workflow but also contains persistent behavioral directives that serve the plugin author's interests at the user's expense.
+Unlike harness profile instruction injection (covered in [instruction-injection.md](instruction-injection.md)), skill injection is not primarily about overriding the user's safety rules. The threat is subtler: a skill file that appears to define a legitimate workflow but also contains persistent behavioral directives that serve the plugin author's interests at the user's expense.
 
 The attack surface is any imperative instruction in a skill file that falls outside the skill's stated purpose.
 

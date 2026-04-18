@@ -3,7 +3,7 @@ title: Adopt the Harness Enhancement Proposal Process
 hep: 1
 type: Process
 status: Accepted
-authors: [siracusa5]
+authors: [siracusa5 <siracusa5>]
 sponsor: siracusa5
 created: 2026-04-18
 ---
