@@ -150,11 +150,12 @@ pre {
 /* ── Inline code ── */
 [data-fumadocs-body] :not(pre) > code {
   border: none !important;
+  box-shadow: none !important;
   background: hsl(var(--color-fd-muted));
   color: hsl(var(--color-fd-foreground));
   padding: 3px 5px;
-  border-radius: 5px;
-  font-size: 13px;
+  border-radius: 4px;
+  font-size: 0.84em;
 }
 
 .dark [data-fumadocs-body] :not(pre) > code {
