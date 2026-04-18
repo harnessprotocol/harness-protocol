@@ -1,14 +1,14 @@
 import './global.css';
 import { RootProvider } from 'fumadocs-ui/provider';
-import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
+import { Inter, Space_Grotesk } from 'next/font/google';
 import type { ReactNode } from 'react';
 
-const plusJakarta = Plus_Jakarta_Sans({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-body',
+  variable: '--font-inter',
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
   variable: '--font-display',
 });
@@ -25,7 +25,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${plusJakarta.variable} ${jetbrainsMono.variable}`}
+      className={`${inter.variable} ${spaceGrotesk.variable}`}
       suppressHydrationWarning
     >
       <body className="font-sans antialiased">
