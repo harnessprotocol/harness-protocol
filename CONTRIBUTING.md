@@ -98,7 +98,7 @@ HEPs are numbered sequentially: HEP-1, HEP-2, HEP-3, and so on. HEP-0 is this do
 
 ### HEP Format
 
-HEPs live in the `heps/` directory (not yet created — it will be initialized with HEP-1). Each HEP is a Markdown file named `hep-NNN.md`. A HEP must contain the following sections:
+HEPs live in the [`heps/`](../heps/) directory. Each HEP is a Markdown file named `hep-NNN.md`. A HEP must contain the following sections:
 
 ```
 ---

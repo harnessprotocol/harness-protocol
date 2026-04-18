@@ -1,0 +1,68 @@
+---
+title: "Harness Protocol v1 — Candidate"
+description: "We're publishing the first complete draft of the Harness Protocol v1 specification and inviting implementation feedback."
+date: 2026-04-18
+status: published
+---
+
+Today we're publishing the first complete draft of the Harness Protocol v1 specification and inviting the community to implement it, break it, and tell us what's missing.
+
+## What is it
+
+The Harness Protocol defines a vendor-neutral `harness.yaml` format for the complete operational context of an AI coding agent: plugins, MCP servers, environment requirements, behavioral instructions, and permissions.
+
+AI coding tools — Claude Code, Cursor, GitHub Copilot, and others — each have their own proprietary formats for capturing agent context. A developer who crafts a well-tuned configuration for one tool cannot share it with a teammate on a different tool, publish it for their team to reuse, or carry it when they switch tools.
+
+The Harness Protocol defines a common format so harness configurations become portable, shareable artifacts — the same way the Model Context Protocol made tool communication portable.
+
+## What v1 covers
+
+The v1 spec defines the **Schema layer**: the `harness.yaml` format, JSON Schema validation, security model, and plugin manifest.
+
+The full field reference is in [protocol/profile-schema.md](/docs/specification/profile-schema). The short version of what a harness profile captures:
+
+- **Plugins** — which plugins the harness loads, with version constraints and settings
+- **MCP servers** — MCP server declarations with transport type, arguments, and environment variable mappings
+- **Environment** — required variables with sensitivity classification and optional defaults
+- **Instructions** — instruction slots that get injected into the AI's context, from inline content or remote sources
+- **Permissions** — allowed tools, denied tools, explicit allow-lists
+- **Metadata** — name, description, author, and tags for discovery
+
+A minimal valid profile is 4 lines. A fully featured one covers an entire team's operational context.
+
+## The security model
+
+The protocol was designed with a concrete threat model, not as an afterthought. Two security documents that are worth reading if you're building an implementation:
+
+- [Instruction Injection](/docs/security/instruction-injection) — the highest-severity threat: a harness profile that overrides your safety rules and permissions. The spec defines merge modes, provenance markers, and meta-instruction requirements to mitigate it.
+- [Skill Behavioral Injection](/docs/security/skill-injection) — a subtler threat we've observed in the wild: skill files that contain marketing directives, competitor suppression, or persistent behavioral programming. The spec defines display requirements and a `behavioral_scope` declaration convention to make this visible.
+
+The security model is grounded in observed practice, not theoretical attacks.
+
+## What Candidate status means
+
+The v1 spec is feature-complete and has been validated against a reference implementation ([harness-kit](https://github.com/harnessprotocol/harness-kit)). Candidate means we believe the spec is ready to implement — not that it's frozen.
+
+We're looking for implementation feedback before stabilization:
+
+- Are there fields that are unclear or underspecified?
+- Are the security requirements implementable as written?
+- Are there common harness patterns the schema doesn't accommodate?
+
+The way to give feedback is to build something against the spec and tell us what broke. Open an issue, start a discussion, or propose a HEP if you have a concrete change to suggest.
+
+## What comes next
+
+**Tier 1 — stabilization**: address implementation feedback, cut a stable v1.0.0 release, snapshot the schema.
+
+**Tier 2 — Exchange layer**: harness-to-harness sharing — publish, fetch, and compose harnesses across tools and teams. This is where portable harnesses become really useful.
+
+**Tier 3 — Registry**: hosted discovery at harnessprotocol.io — search, publish, version resolution, integrity verification.
+
+Layers are intentionally decoupled. You can implement Schema-layer validation today without any dependency on exchange or registry infrastructure.
+
+## Get started
+
+The spec lives at [harnessprotocol.io](https://harnessprotocol.io). The JSON Schema is at `https://harnessprotocol.io/schema/v1/harness.schema.json` — add `$schema` to your harness files to get editor autocomplete immediately.
+
+If you're building an implementation or have feedback: open an issue at [github.com/harnessprotocol/harness-protocol](https://github.com/harnessprotocol/harness-protocol).

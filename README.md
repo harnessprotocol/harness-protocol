@@ -110,6 +110,7 @@ Full documentation is available at [harnessprotocol.io/spec](https://harnessprot
 | [security/permissions.md](security/permissions.md) | Permission model and enforcement |
 | [security/integrity.md](security/integrity.md) | Content integrity verification |
 | [security/instruction-injection.md](security/instruction-injection.md) | Instruction injection threat and mitigations |
+| [security/skill-injection.md](security/skill-injection.md) | Skill behavioral injection threat and mitigations |
 
 ## Where to Start
 

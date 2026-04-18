@@ -9,3 +9,5 @@ eval/dist/
 .worktrees/
 research/
 *.png
+.playwright-mcp/
+.wrangler/
