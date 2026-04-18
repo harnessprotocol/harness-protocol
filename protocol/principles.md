@@ -59,3 +59,15 @@ This means the failure mode for a misconfigured harness is a clear error at load
 Complex harnesses are built from simple building blocks. Profiles compose via `extends`. Fragments provide portable partial configurations. Plugins bundle reusable capability sets. The protocol defines the primitives and the composition rules; the resulting harnesses are the users' domain.
 
 New primitives should not be added to the core schema to accommodate specific composition patterns that can already be expressed with existing ones. If a use case can be built from profiles, fragments, plugins, and inheritance, it should be — not given its own top-level field.
+
+---
+
+## Constraints enable autonomy
+
+The counter-intuitive finding from production AI-maintained codebases is that imposing specific architectural patterns, enforced module boundaries, and standardized structures *improves* AI-generated code quality rather than limiting it.
+
+The mechanism: constraint reduces the solution space. Agents given an unconstrained design space make choices that are locally reasonable but globally inconsistent. Constrained agents have fewer degrees of freedom, producing code that is easier to verify, maintain, and compose.
+
+The protocol therefore favors opinionated constraint enforcement over flexibility. Schema-required declarations, strict validation, explicit permission grants, and enforced merge semantics are not bureaucratic overhead — they are the harness doing its job. An implementation that relaxes constraints to be "more compatible" undermines the purpose of the harness.
+
+A corollary: as AI systems generate more of a codebase, the rigor that was distributed across human review and careful writing relocates into the harness. The harness is not a convenience layer — it is where engineering discipline lives in an AI-assisted development workflow.
