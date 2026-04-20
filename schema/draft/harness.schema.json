@@ -127,6 +127,125 @@
         "additionalProperties": false
       }
     },
+    "architectural-constraints": {
+      "type": "object",
+      "description": "Declarative constraints enforcing architectural patterns, module boundaries, and structural invariants. Three enforcement levels: deterministic (linters, structural tests — cannot be overridden), review (LLM-based, can request exceptions), advisory (warnings, may be silenced).",
+      "properties": {
+        "linters": {
+          "type": "array",
+          "description": "Deterministic enforcement rules: naming conventions, module boundaries, code patterns. Violations block commits or merges.",
+          "items": {
+            "type": "object",
+            "required": ["name", "description"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Linter identifier (e.g., 'module-boundary-checker', 'naming-convention')."
+              },
+              "description": {
+                "type": "string",
+                "description": "What invariant this linter enforces."
+              },
+              "enforcement": {
+                "type": "string",
+                "enum": ["block", "warn"],
+                "default": "block",
+                "description": "'block' = violations prevent merge. 'warn' = violations logged but don't prevent merge."
+              },
+              "config": {
+                "type": "object",
+                "description": "Tool-specific linter configuration (keys are tool-dependent; e.g., eslint-compatible rules, ArchUnit assertions).",
+                "additionalProperties": true
+              },
+              "source": {
+                "type": "string",
+                "description": "Where this linter is defined: 'custom' (in this harness), or a GitHub path (e.g., 'owner/repo/path/to/linter.md')."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "structural-tests": {
+          "type": "array",
+          "description": "Programmatic tests verifying architectural invariants (e.g., ArchUnit, layered architecture tests, module isolation). Failures block deployment.",
+          "items": {
+            "type": "object",
+            "required": ["name", "description"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Test identifier (e.g., 'module-isolation', 'layered-architecture')."
+              },
+              "description": {
+                "type": "string",
+                "description": "What architectural invariant this test verifies."
+              },
+              "entrypoint": {
+                "type": "string",
+                "description": "Command to run the test (e.g., 'gradle architectureTest', 'python -m pytest tests/architecture/')."
+              },
+              "enforcement": {
+                "type": "string",
+                "enum": ["block", "warn"],
+                "default": "block",
+                "description": "'block' = test failures prevent merge. 'warn' = failures logged but don't prevent merge."
+              },
+              "source": {
+                "type": "string",
+                "description": "Where this test is defined: 'custom' (in this harness), or a GitHub path."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "review-policy": {
+          "type": "object",
+          "description": "LLM-based review policies: what patterns agents should watch for, when to flag for human review.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "description": "Whether LLM review is active for this harness."
+            },
+            "model": {
+              "type": "string",
+              "description": "Model to use for review (implementation-specific; e.g., 'gpt-4', 'claude-opus')."
+            },
+            "patterns": {
+              "type": "array",
+              "description": "Architectural patterns to verify. Each pattern is a prose guideline for the review agent.",
+              "items": {
+                "type": "object",
+                "required": ["name", "rule"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Pattern name (e.g., 'module-cohesion', 'circular-dependency-prevention')."
+                  },
+                  "rule": {
+                    "type": "string",
+                    "description": "Prose description of what the pattern enforces and why."
+                  },
+                  "severity": {
+                    "type": "string",
+                    "enum": ["error", "warning", "info"],
+                    "default": "warning",
+                    "description": "'error' = blocks merge if reviewer detects violation. 'warning' = flagged but merge allowed. 'info' = noted but non-blocking."
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "guidance": {
+              "type": "string",
+              "description": "Optional prose guidance document describing the harness's architectural philosophy. Agents use this to calibrate reviews."
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "mcp-servers": {
       "type": "object",
       "description": "MCP (Model Context Protocol) server declarations. Keys are server names used to reference them in the harness. Values describe how to connect to the server.",

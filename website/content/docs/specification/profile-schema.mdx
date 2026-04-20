@@ -21,6 +21,7 @@ metadata:
   description: "..."
 
 plugins: [...]
+architectural-constraints: { ... }
 mcp-servers: { ... }
 env: [...]
 instructions: { ... }
@@ -191,6 +192,123 @@ plugins:
   - name: sql-assist
     source: harnessprotocol/plugins
     version: "^2.0.0"
+```
+
+---
+
+## `architectural-constraints`
+
+`architectural-constraints` is an optional object that declares the structural rules, linters, and review policies enforced by this harness. It separates deterministic enforcement (linters, structural tests) from probabilistic review (LLM-based) — combining both creates defense-in-depth for AI-generated code.
+
+The field is derived from Böckeler's analysis of production AI-maintained codebases, which identifies a three-component harness model: context engineering, architectural constraints, and garbage collection. This section encodes the second component as a first-class protocol field.
+
+### Enforcement Levels
+
+| Level | Mechanism | Behavior |
+|-------|-----------|----------|
+| Deterministic | Linters, structural tests | Cannot be overridden; violations block commits or merges |
+| Review | LLM-based review agent | Probabilistic; can request exceptions or suggest alternatives |
+| Advisory | Linters or tests with `enforcement: warn` | Violations logged but do not block progress |
+
+### Sub-Sections
+
+#### `linters`
+
+An array of deterministic enforcement rules. Each linter entry:
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `name` | string | Yes | — | Linter identifier. Must be unique within the `linters` array. |
+| `description` | string | Yes | — | What architectural invariant this linter enforces. |
+| `enforcement` | enum | No | `block` | `block` = violations prevent merge. `warn` = violations logged but don't prevent merge. |
+| `config` | object | No | — | Tool-specific linter configuration. Schema is tool-dependent. |
+| `source` | string | No | — | `custom` (defined in this harness) or a GitHub path (e.g., `owner/repo/path`). |
+
+#### `structural-tests`
+
+An array of programmatic tests verifying architectural invariants (e.g., ArchUnit-style tests, layered architecture checks). Each entry:
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `name` | string | Yes | — | Test identifier. Must be unique within the `structural-tests` array. |
+| `description` | string | Yes | — | What architectural invariant this test verifies. |
+| `entrypoint` | string | No | — | Command to run the test (e.g., `gradle architectureTest`). |
+| `enforcement` | enum | No | `block` | `block` = failures prevent merge. `warn` = failures logged but don't prevent merge. |
+| `source` | string | No | — | `custom` or a GitHub path. |
+
+#### `review-policy`
+
+An object declaring LLM-based architectural review behavior:
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `enabled` | boolean | No | `true` | Whether LLM review is active. |
+| `model` | string | No | — | Model identifier for review (implementation-specific). |
+| `patterns` | array | No | — | Architectural patterns to verify. Each has `name`, `rule` (prose), and `severity` (`error`, `warning`, `info`). |
+| `guidance` | string | No | — | Prose document describing the harness's architectural philosophy. Agents use this to calibrate reviews. |
+
+`review-policy.patterns[].severity` values:
+- `error` — blocks merge if reviewer detects a violation
+- `warning` (default) — flagged but merge allowed
+- `info` — noted but non-blocking
+
+### Constraints
+
+- Linter `name` values MUST be unique within the `linters` array.
+- Structural test `name` values MUST be unique within the `structural-tests` array.
+- The `architectural-constraints` object MUST contain at least one of `linters`, `structural-tests`, or `review-policy` if the field is present.
+- `source: custom` declarations should be accompanied by documentation or supporting files in the harness repository.
+
+### Hybrid Enforcement Model
+
+The deterministic and review layers serve different roles. Linters and structural tests provide guarantees that a review agent cannot: a deterministic boundary check will never be convinced to accept a module boundary violation. The LLM review layer catches semantic and design-level issues that are impractical to express as rules.
+
+Together they form a defense-in-depth model: linters and structural tests catch mechanical violations, review agents catch architectural drift. This combination is well-evidenced in production AI-maintained codebases operating at scale.
+
+### Portability
+
+Implementations MUST:
+1. Discover and report all `block`-enforcement linters and structural tests declared in the harness
+2. Honor `enforcement: warn` by logging violations without blocking
+3. Apply the `review-policy` to configure LLM-based architectural review (if the implementation supports it)
+
+A harness using only `source: custom` constraints with inline `config` is fully portable. Harnesses referencing external `source` GitHub paths depend on tool support for fetching those sources.
+
+### Example
+
+```yaml
+architectural-constraints:
+  linters:
+    - name: module-boundary-checker
+      description: Enforces that agents do not import across module boundaries
+      enforcement: block
+      config:
+        boundaries:
+          - module: /src/auth
+            may_import_from: [/src/common, /src/types]
+          - module: /src/database
+            may_import_from: [/src/common, /src/types]
+      source: custom
+
+  structural-tests:
+    - name: layered-architecture
+      description: Verifies that each layer only depends on layers below it
+      entrypoint: gradle architectureTest
+      enforcement: block
+      source: custom
+
+  review-policy:
+    enabled: true
+    patterns:
+      - name: module-cohesion
+        rule: Each module should have a single, clear responsibility.
+        severity: warning
+      - name: dependency-direction
+        rule: Dependencies flow strictly one direction. Circular dependencies are never acceptable.
+        severity: error
+    guidance: |
+      Architecture follows a layered model:
+      api/ → service/ → repository/ → types/ (shared by all).
 ```
 
 ---
