@@ -4,6 +4,28 @@ All notable changes to the Harness Protocol specification are documented here.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The Harness Protocol uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for specification versions.
 
+## [Unreleased]
+
+Backward-compatible additions. Every change is an optional field or an additive enum value, so all existing `version: "1"` documents remain valid and the schema `$id` is unchanged.
+
+### Added
+
+- **Architectural constraints:** `architectural-constraints` section — deterministic linters, structural tests, and LLM review policies ([HEP-3](heps/hep-0003-architectural-constraints.md)).
+- **Skills:** first-class top-level `skills` section, so a harness can declare a portable `SKILL.md` capability directly (by `source`/`version`, with `enabled`, `loading`, and `integrity`) without bundling it in a plugin ([HEP-4](heps/hep-0004-skills.md)).
+- **MCP modernization:** `streamable-http` transport value (canonical remote transport; `http` retained as an alias), and optional `source`, `version`, and (stdio) `integrity` provenance fields on MCP server declarations ([HEP-5](heps/hep-0005-mcp-modernization.md)).
+- **Governance:** `policy` section — an org/team ceiling for approved MCP server / plugin / skill sources, allowed marketplaces, permission caps, and `require-integrity`. Accumulates across the inheritance chain (constraints only tighten) and is enforced as a fatal validation step ([HEP-6](heps/hep-0006-governance-layer.md)).
+- **Supply chain:** `integrity.sha256` extended to skills and stdio MCP server packages; `policy.require-integrity` can make integrity verification mandatory org-wide.
+
+### Changed
+
+- **Instructions:** `instructions.operational` now maps to `AGENTS.md` (the cross-tool instruction standard) as a first-class target alongside `CLAUDE.md` and other tool-specific files.
+- **Application pipeline:** now seven steps — a dedicated **Enforce Policy** step runs after merge and before variable substitution.
+- **Standards:** the overview now documents interoperation with the agent standards stack (AGENTS.md, Agent Skills / `SKILL.md`, the MCP registry) stewarded under the Agentic AI Foundation.
+
+### Deprecated
+
+- **MCP `sse` transport:** deprecated in favor of `streamable-http`; retained for compatibility. `ws` is documented as non-standard/implementation-specific. No transport value is removed.
+
 ## [v1.0.0-candidate] — 2026-04-18
 
 **Status:** Feature-complete. Seeking implementation feedback before stabilization.

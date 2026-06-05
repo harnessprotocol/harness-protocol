@@ -2,6 +2,7 @@ import type {
   HarnessDocument,
   EffectiveConfiguration,
   Plugin,
+  Skill,
   McpServerStdio,
   McpServerRemote,
   EnvEntry,
@@ -28,6 +29,18 @@ export function mergePlugins(base: Plugin[], overlay: Plugin[]): Plugin[] {
   const map = new Map<string, Plugin>()
   for (const p of base) map.set(p.name, p)
   for (const p of overlay) map.set(p.name, p) // overlay wins
+  return Array.from(map.values())
+}
+
+/**
+ * Rule 1b: skills — union by `name`; child/later wins on conflict.
+ * A child entry with `enabled: false` replaces (and thereby suppresses) the
+ * inherited entry of the same name.
+ */
+export function mergeSkills(base: Skill[], overlay: Skill[]): Skill[] {
+  const map = new Map<string, Skill>()
+  for (const s of base) map.set(s.name, s)
+  for (const s of overlay) map.set(s.name, s) // overlay wins
   return Array.from(map.values())
 }
 
@@ -155,6 +168,7 @@ function documentToEffective(doc: HarnessDocument): EffectiveConfiguration {
   return {
     metadata: doc.metadata,
     plugins: doc.plugins ?? [],
+    skills: doc.skills ?? [],
     'mcp-servers': doc['mcp-servers'] ?? {},
     env: doc.env ?? [],
     instructions: {
@@ -216,6 +230,7 @@ function mergeEffective(
     // metadata wins. The final child's metadata is applied last.
     metadata: overlay.metadata,
     plugins: mergePlugins(base.plugins, overlay.plugins),
+    skills: mergeSkills(base.skills, overlay.skills),
     'mcp-servers': mergeMcpServers(base['mcp-servers'], overlay['mcp-servers']),
     env: mergeEnv(base.env, overlay.env),
     instructions: {
@@ -247,6 +262,7 @@ function emptyEffective(): EffectiveConfiguration {
   return {
     metadata: undefined,
     plugins: [],
+    skills: [],
     'mcp-servers': {},
     env: [],
     instructions: {
@@ -290,7 +306,12 @@ export function resolveInheritance(
   options?: { maxDepth?: number }
 ): EffectiveConfiguration {
   const maxDepth = options?.maxDepth ?? DEFAULT_MAX_DEPTH
-  return resolveInheritanceInternal(child, registry, maxDepth, new Set<string>(), 0)
+  const result = resolveInheritanceInternal(child, registry, maxDepth, new Set<string>(), 0)
+  // Suppression is applied during merge (a child's `enabled: false` entry wins
+  // by name); the final effective configuration excludes disabled skills so
+  // consumers receive only the active set.
+  result.skills = result.skills.filter((s) => s.enabled !== false)
+  return result
 }
 
 function resolveInheritanceInternal(

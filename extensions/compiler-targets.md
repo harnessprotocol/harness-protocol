@@ -131,17 +131,27 @@ Warning: permissions.tools.deny is not machine-enforceable for target 'cursor'.
   but manual tool configuration is required.
 ```
 
+### Policy
+
+The `policy` section ([HEP-6](../heps/hep-0006-governance-layer.md)) is a governance ceiling, not per-session configuration, so it does not compile to instruction files. Where a target tool exposes an organization-managed settings tier (approved MCP server lists, plugin/marketplace allowlists, permission caps), the compiler maps the corresponding `policy` constraints to that tier. Where a target has no managed-settings concept, `policy` is enforced by the harness implementation at apply time (a violating profile fails to apply) and the compiler emits a warning that the ceiling is not natively representable in the target's own config:
+
+```
+Warning: policy ceiling is not natively enforced by target 'cursor'.
+  The harness implementation will reject profiles that violate the policy at apply time,
+  but the target tool's own configuration cannot express the ceiling.
+```
+
 ### Plugins
 
 Plugins have no standard cross-tool representation. The compiler does not generate plugin configuration for non-harness-kit targets. When a harness declares plugins, the compiler generates a human-readable plugin list in the operational instructions for non-Claude-Code targets, noting that harness-kit plugin support is required for automatic installation.
 
 For Claude Code (which uses harness-kit as its reference implementation), plugins compile to their harness-kit configuration format.
 
-Skills — the per-file SKILL.md deliverable of a plugin — now have a cross-platform representation via the agentskills.io standard. See the [Skills](#skills) section for compilation targets. The plugin system itself (marketplaces, install commands) remains Claude Code-specific.
+Skills now have a cross-platform representation via the portable SKILL.md (Agent Skills) standard, and are a first-class harness section as of [HEP-4](../heps/hep-0004-skills.md) — a skill can be declared directly in `skills[]` or bundled by a plugin. See the [Skills](#skills) section for compilation targets. The plugin *system* itself (marketplaces, install commands) remains Claude Code-specific.
 
 ### Skills
 
-Skills compile to tool-specific directory structures via the [agentskills.io](https://agentskills.io) standard. Each skill is a named directory containing a `SKILL.md` file; the containing directory path varies by tool and scope (global vs. project-local).
+Skills compile to tool-specific directory structures following the portable SKILL.md (Agent Skills) standard. The harness `skills` section (and any plugin-bundled skills) is the source. Each skill is a named directory containing a `SKILL.md` file; the containing directory path varies by tool and scope (global vs. project-local).
 
 | Concept | Claude Code | Cursor | Copilot |
 |---|---|---|---|
@@ -149,7 +159,7 @@ Skills compile to tool-specific directory structures via the [agentskills.io](ht
 | Skill directory (project) | N/A | `.cursor/skills/<name>/` or `.agents/skills/<name>/` | `.github/skills/<name>/` or `.agents/skills/<name>/` |
 | Skill file | `SKILL.md` | `SKILL.md` | `SKILL.md` |
 
-`.agents/skills/` is the agentskills.io-standard project-local shared location, supported by both Cursor and Copilot. By default the compiler writes to the tool-specific directory (`.cursor/skills/` for Cursor, `.github/skills/` for Copilot). `.agents/skills/` is used when a shared location is preferred — for example, when both tools are active in the same project and a single copy is sufficient.
+`.agents/skills/` is the conventional project-local shared skills location, supported by both Cursor and Copilot. By default the compiler writes to the tool-specific directory (`.cursor/skills/` for Cursor, `.github/skills/` for Copilot). `.agents/skills/` is used when a shared location is preferred — for example, when both tools are active in the same project and a single copy is sufficient.
 
 **Frontmatter adaptation rules** when compiling from Claude Code's SKILL.md format to Cursor or Copilot targets:
 

@@ -21,16 +21,19 @@ This is analogous to how `docker-compose.yml` declares services without tying th
 
 ## Transport Types
 
-MCP servers communicate over one of several transports. The Harness Protocol v1 supports:
+MCP servers communicate over one of several transports. The Harness Protocol supports:
 
-| Transport | Value | Description |
-|-----------|-------|-------------|
-| `stdio` | `"stdio"` | Local process launched by the implementation; communicates via stdin/stdout. |
-| `http` | `"http"` | Remote server accessed via HTTP(S) using the MCP Streamable HTTP transport. |
-| `sse` | `"sse"` | Remote server accessed via HTTP(S) using the legacy MCP SSE transport. |
-| `ws` | `"ws"` | Remote server accessed via WebSocket. |
+| Transport | Value | Status | Description |
+|-----------|-------|--------|-------------|
+| `stdio` | `"stdio"` | Recommended (local) | Local process launched by the implementation; communicates via stdin/stdout. |
+| `streamable-http` | `"streamable-http"` | Recommended (remote) | Remote server accessed via HTTP(S) using the canonical MCP streamable HTTP transport. |
+| `http` | `"http"` | Alias | Accepted alias for `streamable-http`. Implementations MUST treat it identically. |
+| `sse` | `"sse"` | Legacy / deprecated | Remote server accessed via the legacy MCP Server-Sent Events transport. Retained for compatibility; not recommended for new servers. |
+| `ws` | `"ws"` | Non-standard | WebSocket transport. Implementation-specific; not part of the recommended set. Retained for forward compatibility. |
 
 The `transport` field is required on every MCP server declaration. A declaration without a `transport` field fails validation.
+
+**Transport guidance.** New remote servers SHOULD use `streamable-http`. `http` remains accepted as an alias and existing declarations continue to work unchanged. `sse` is deprecated — implementations MAY warn when it is declared. `ws` is non-standard; an implementation that does not support a transport value SHOULD treat it as unsupported rather than failing the whole document (see the enum-additions guarantee in [Extension Points](../extensions/extension-points)).
 
 <Tabs items={["stdio", "http", "sse", "ws"]}>
   <Tab value="stdio">
@@ -91,6 +94,9 @@ The `stdio` transport starts a local process and communicates with it via standa
 | `command` | string | Yes | The executable to invoke. May be an absolute path, a binary on `$PATH`, or a package runner like `uvx` or `npx`. Supports `${VAR_NAME}` substitution. |
 | `args` | array of strings | No | Arguments passed to `command` in order. Each element supports `${VAR_NAME}` substitution. |
 | `env` | object | No | Key-value pairs added to the process environment. Values support `${VAR_NAME}` substitution. This object is **merged** with the inherited environment — it does not replace it. Keys present in both this object and the parent environment use the value from this object. |
+| `source` | string | No | Provenance identifier (reverse-DNS registry identity or `owner/repo`). Records where the server originates; does not change how `command` is invoked. See [Server Provenance and Integrity](#server-provenance-and-integrity). |
+| `version` | string | No | Version or semver range for the server package, complementing any version pinned in `args`. |
+| `integrity` | object | No | `{ sha256 }` — content verification for the server package, where verifiable. |
 
 ### Variable Substitution in `stdio`
 
@@ -120,17 +126,19 @@ The `command` field specifies an executable that the implementation will run on 
 
 ---
 
-## Transport: `http`
+## Transport: `streamable-http` (and the `http` alias)
 
-The `http` transport connects to a remote MCP server using the MCP Streamable HTTP transport over HTTPS. Use this for MCP servers that run as network services rather than local processes.
+The `streamable-http` transport connects to a remote MCP server using the canonical MCP streamable HTTP transport over HTTPS. Use this for MCP servers that run as network services rather than local processes. `http` is an accepted alias and behaves identically; new servers SHOULD declare `streamable-http`.
 
 ### Field Reference
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `transport` | string | Yes | Must be `"http"`. |
+| `transport` | string | Yes | `"streamable-http"` (canonical) or `"http"` (alias). |
 | `url` | string (URI) | Yes | The endpoint URL. Must be HTTPS in production contexts. Supports `${VAR_NAME}` substitution. |
 | `headers` | object | No | HTTP headers sent with every request to the server. Values support `${VAR_NAME}` substitution. Keys do not. |
+| `source` | string | No | Provenance identifier (reverse-DNS registry identity or `owner/repo`). See [Server Provenance and Integrity](#server-provenance-and-integrity). |
+| `version` | string | No | Version or semver range identifying the remote server build. |
 
 ### Variable Substitution in `http`
 
@@ -150,7 +158,7 @@ mcp-servers:
 
 ## Transport: `sse`
 
-The `sse` transport connects to a remote MCP server using the legacy MCP SSE (Server-Sent Events) transport. This transport is retained for compatibility with older MCP server implementations. New MCP servers SHOULD prefer `http`.
+The `sse` transport connects to a remote MCP server using the legacy MCP SSE (Server-Sent Events) transport. **This transport is deprecated.** It is retained only for compatibility with older MCP server implementations; new MCP servers SHOULD use `streamable-http`. Implementations MAY warn when `sse` is declared.
 
 ### Field Reference
 
@@ -264,6 +272,36 @@ URL validation MUST resolve hostnames before checking — a hostname that DNS-re
 Headers in remote transport declarations frequently carry bearer tokens. Header values support `${VAR_NAME}` substitution, and any variable holding a token SHOULD be declared `sensitive: true` in the `env` array. Implementations MUST NOT log resolved header values for sensitive variables.
 
 ---
+
+## Server Provenance and Integrity
+
+MCP server declarations may carry optional provenance metadata. These fields make a server's origin auditable and, for local packages, verifiable. They are declarative — they document and enable verification but do not change how a server is launched or contacted.
+
+| Field | Applies to | Description |
+|-------|-----------|-------------|
+| `source` | all transports | A provenance identifier: a registry identity in reverse-DNS form (e.g., `io.github.owner/server`) or `owner/repo`. Resolves against the MCP registry / `.well-known` server-card discovery. |
+| `version` | all transports | A version or semver range identifying the server build. |
+| `integrity.sha256` | `stdio` only | Lowercase hex SHA-256 of the server package archive. Implementations SHOULD verify when present and WARN when absent for externally-sourced servers. |
+
+`integrity` is `stdio`-only because remote transports have no fetched archive to hash; remote servers rely on TLS and registry/identity verification instead. This closes the gap noted under [Security Considerations: stdio](#security-considerations-stdio): the plugin `integrity` field never covered MCP server packages, and `mcp-servers[].integrity` now provides per-server verification. When an organization sets `policy.require-integrity: true` (see [Profile Schema: policy](./profile-schema#policy)), a missing integrity hash is a fatal validation error rather than a warning.
+
+```yaml
+mcp-servers:
+  postgres:
+    transport: stdio
+    command: uvx
+    args: [mcp-server-postgres, --connection-string, "${DB_CONNECTION_STRING}"]
+    source: "io.github.example/postgres"
+    version: "1.4.2"
+    integrity:
+      sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+```
+
+## Authorization, Registry, and Discovery
+
+**Authorization.** Remote MCP servers authorize callers with an OAuth 2.1 flow that binds an access token to a specific server (resource indicators), so a token issued for one server cannot be replayed against another. The Harness Protocol does not model this handshake — it is a runtime negotiation between the client and an authorization server. A portable harness supplies only the token *reference*: a `headers` value such as `Authorization: "Bearer ${SERVER_TOKEN}"` referencing a `sensitive` `env` entry. Implementations perform the OAuth flow at runtime and MUST NOT log resolved sensitive header values.
+
+**Registry and discovery.** A server's `source` identity resolves against the MCP registry (reverse-DNS names) and, where published, a `.well-known` server card describing the server's metadata and capabilities. These are resolution targets for `source`; the protocol does not require an implementation to consult them, but a conformant implementation that does SHOULD use them to surface provenance to the user before connecting.
 
 ## Inheritance
 

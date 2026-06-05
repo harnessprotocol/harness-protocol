@@ -1,6 +1,6 @@
 # Complete Harness Protocol v1 profile for a data engineering workflow.
-# Exercises every v1 section: metadata, plugins, mcp-servers, env, instructions,
-# permissions, and extends.
+# Exercises every v1 section: metadata, plugins, skills, mcp-servers, env,
+# instructions, permissions, and extends.
 #
 # Scenario: working with PostgreSQL databases, dbt models, and data pipelines.
 # Install with: harness apply data-engineer.harness.yaml
@@ -49,6 +49,25 @@ plugins:
     loading: deferred
 
 # ----------------------------------------------------------------------------
+# Skills — portable SKILL.md capabilities declared directly (no plugin needed).
+# loading defaults to 'deferred' (metadata at start, body on first use).
+# integrity pins the fetched skill archive against tampering.
+# ----------------------------------------------------------------------------
+skills:
+  # Remote skill, version-pinned and integrity-verified.
+  - name: sql-style-guide
+    source: harnessprotocol/skills/sql-style-guide
+    version: ">=1.0.0"
+    description: Enforce the team's SQL formatting and naming conventions.
+    integrity:
+      sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+  # Local skill loaded eagerly from a path relative to this file.
+  - name: dbt-conventions
+    source: ./skills/dbt-conventions
+    loading: eager
+
+# ----------------------------------------------------------------------------
 # MCP servers — local and remote tool servers.
 # stdio: harness launches a local subprocess.
 # http: harness connects to a remote endpoint.
@@ -66,9 +85,11 @@ mcp-servers:
 
   # Remote analytics API — exposes dashboarding and metric query tools.
   # Treated as untrusted remote content by the harness runtime.
+  # streamable-http is the canonical remote transport; source records provenance.
   analytics-api:
-    transport: http
+    transport: streamable-http
     url: https://analytics.example.com/mcp/v1
+    source: "io.github.example/analytics-mcp"
     headers:
       Authorization: "Bearer ${ANALYTICS_API_KEY}"
 

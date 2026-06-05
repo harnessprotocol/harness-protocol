@@ -4,10 +4,12 @@ export interface HarnessDocument {
   kind?: 'profile' | 'fragment';
   metadata?: Metadata;
   plugins?: Plugin[];
+  skills?: Skill[];
   'mcp-servers'?: Record<string, McpServerStdio | McpServerRemote>;
   env?: EnvEntry[];
   instructions?: Instructions;
   permissions?: Permissions;
+  policy?: Policy;
   extends?: ExtendsEntry[];
 }
 
@@ -29,17 +31,43 @@ export interface Plugin {
   integrity?: { sha256: string };
 }
 
+export interface Skill {
+  name: string;
+  source?: string;
+  version?: string;
+  description?: string;
+  enabled?: boolean;
+  loading?: 'eager' | 'deferred';
+  integrity?: { sha256: string };
+}
+
 export interface McpServerStdio {
   transport: 'stdio';
   command: string;
   args?: string[];
   env?: Record<string, string>;
+  source?: string;
+  version?: string;
+  integrity?: { sha256: string };
 }
 
 export interface McpServerRemote {
-  transport: 'http' | 'sse' | 'ws';
+  transport: 'streamable-http' | 'http' | 'sse' | 'ws';
   url: string;
   headers?: Record<string, string>;
+  source?: string;
+  version?: string;
+}
+
+export interface Policy {
+  'mcp-servers'?: { 'allowed-sources'?: string[]; 'denied-sources'?: string[] };
+  plugins?: { 'allowed-sources'?: string[]; 'denied-sources'?: string[]; 'allowed-marketplaces'?: string[] };
+  skills?: { 'allowed-sources'?: string[]; 'denied-sources'?: string[] };
+  permissions?: {
+    tools?: { allow?: string[]; deny?: string[] };
+    network?: { 'allowed-hosts'?: string[] };
+  };
+  'require-integrity'?: boolean;
 }
 
 export interface EnvEntry {
@@ -97,6 +125,7 @@ export interface PluginManifest {
 export interface EffectiveConfiguration {
   metadata?: Metadata;
   plugins: Plugin[];
+  skills: Skill[];
   'mcp-servers': Record<string, McpServerStdio | McpServerRemote>;
   env: EnvEntry[];
   instructions: {

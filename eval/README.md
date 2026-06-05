@@ -12,31 +12,36 @@ pnpm test
 
 ## What's Tested
 
-**216 tests** across 10 test files validating 46+ testable claims from the spec.
+**253 tests** across 14 test files validating the testable claims from the spec.
 
-### Schema Conformance (55 tests)
+### Schema Conformance (83 tests)
 
 Validates `harness.schema.json` and `plugin.schema.json` using Ajv 2020-12.
 
 - **Positive** (`harness-valid.test.ts`) — All 5 example files pass, plus edge cases: fragments, empty collections, all 4 transport types, extension fields, import-modes, boundary values.
 - **Negative** (`harness-invalid.test.ts`) — Every constraint that should reject: version format, metadata patterns, source format, env naming, integrity hashes, tags limits, sensitive+default interaction, transport requirements, unknown fields.
 - **Plugin** (`plugin-schema.test.ts`) — Plugin manifest validation: required fields, version format, name pattern.
+- **Skills** (`skills.test.ts`) — First-class `skills` section (HEP-4): required fields, name pattern, loading enum, integrity hash, `additionalProperties`.
+- **MCP modernization** (`mcp-modernization.test.ts`) — `streamable-http` transport, `http` alias, legacy `sse`, server `source`/`version`/`integrity` provenance, integrity rejected on remote transports (HEP-5).
+- **Policy** (`policy.test.ts`) — Governance `policy` section (HEP-6): allow/deny source lists, permission ceilings, `require-integrity`, structural rejections.
 
-### Semantic Validation (11 tests)
+### Semantic Validation (12 tests)
 
 Cross-field constraints that JSON Schema can't express (`semantic.ts`):
 
 - `${VAR_NAME}` references in `mcp-servers` must have matching `env[]` declarations
 - `plugins[].name` must be unique
+- `skills[].name` must be unique
 - `env[].name` must be unique
 
-### Inheritance Resolution (53 tests)
+### Inheritance Resolution (59 tests)
 
-Reference implementation of all 12 merge rules from `protocol/inheritance.md` (`resolver.ts`):
+Reference implementation of the merge rules from `protocol/inheritance.md` (`resolver.ts`):
 
 | Section | Rule |
 |---------|------|
 | `plugins` | Union by name; child wins |
+| `skills` | Union by name; child wins (`enabled: false` suppresses) |
 | `mcp-servers` | Union by name; full object replacement |
 | `env` | Union by name; child wins |
 | `instructions` | Governed by `import-mode` (merge/replace/skip) |
@@ -51,7 +56,7 @@ Also tests: multi-parent resolution, 3-level chains, fragment composition, circu
 
 Includes an end-to-end test reproducing the 3-level inheritance example from the spec (org-base → data-team → alice-data-engineer) and verifying every row of the expected effective configuration table.
 
-### Compiler — Claude Code Target (19 tests)
+### Compiler — Claude Code Target (20 tests)
 
 Compiles a resolved `EffectiveConfiguration` to Claude Code native config files (`compiler.ts`):
 
@@ -96,7 +101,7 @@ eval/
 │   │   ├── yaml.ts         # YAML parser (documents integer coercion trap)
 │   │   ├── types.ts        # TypeScript interfaces matching JSON schemas
 │   │   ├── semantic.ts     # Cross-field validation rules
-│   │   ├── resolver.ts     # Inheritance resolver (12 merge rules)
+│   │   ├── resolver.ts     # Inheritance resolver (13 merge rules)
 │   │   ├── compiler.ts     # Claude Code compiler prototype
 │   │   ├── source.ts       # Source string parsing + version resolution
 │   │   └── substitute.ts   # Variable substitution + error categorization

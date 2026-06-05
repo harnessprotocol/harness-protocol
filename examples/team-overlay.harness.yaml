@@ -40,16 +40,21 @@ extends:
 # ----------------------------------------------------------------------------
 plugins:
   # Generates API documentation from source code and OpenAPI annotations.
+  # Integrity hashes are present because this overlay sets policy.require-integrity: true.
   - name: docgen
     source: harnessprotocol/harness-kit
     version: ">=0.4.0"
     description: Generate and update API documentation from source annotations.
+    integrity:
+      sha256: "1a3b5c7d9e0f2a4b6c8d0e1f3a5b7c9d1e3f5a7b9c0d2e4f6a8b0c1d3e5f7a9b"
 
   # Lightweight code review assistant focused on backend patterns.
   - name: code-review
     source: harnessprotocol/harness-kit
     version: ">=0.3.0"
     description: Backend-focused code review — consistency, error handling, and API contract checks.
+    integrity:
+      sha256: "2b4c6d8e0f1a3b5c7d9e1f3a5b7c9d0e2f4a6b8c0d2e4f6a8b0c2d4e6f8a0b1c"
 
 # ----------------------------------------------------------------------------
 # MCP servers added by this overlay.
@@ -59,20 +64,26 @@ mcp-servers:
   # GitHub Enterprise MCP server for internal repository and PR tooling.
   # transport: http — harness connects to the remote GHE MCP endpoint.
   github-enterprise:
-    transport: http
+    transport: streamable-http
     url: "https://github.acme.internal/mcp/v1"
+    source: "io.github.acme/ghe-mcp"
     headers:
       Authorization: "Bearer ${GHE_TOKEN}"
       X-Harness-Client: acme-backend-team
 
   # Team Postgres replica — read-heavy workloads and schema introspection.
   # transport: stdio — harness launches a local uvx subprocess.
+  # Integrity hash present to satisfy policy.require-integrity (stdio packages).
   team-postgres:
     transport: stdio
     command: uvx
     args:
       - mcp-server-postgres
       - "${TEAM_DB_URL}"
+    source: "io.github.acme/postgres-mcp"
+    version: "1.4.2"
+    integrity:
+      sha256: "3c5d7e9f0a1b2c4d6e8f0a2b4c6d8e0f1a3b5c7d9e0f2a4b6c8d0e2f4a6b8c0d"
 
 # ----------------------------------------------------------------------------
 # Environment variable declarations.
@@ -148,3 +159,51 @@ permissions:
       - "wiki.acme.internal"      # Internal documentation
       - "*.github.com"            # Public GitHub (package resolution)
       - "pypi.org"                # uvx / pip package resolution
+
+# ----------------------------------------------------------------------------
+# Policy — org governance ceiling. Constrains what this profile and anything
+# extending it may grant; downstream profiles can narrow it but never widen it.
+# Enforced as a fatal validation step at apply time. See protocol/inheritance.md
+# and the HEP-6 governance layer.
+# ----------------------------------------------------------------------------
+policy:
+  # Only Acme-published or official MCP servers may be connected.
+  mcp-servers:
+    allowed-sources:
+      - "io.github.acme/*"
+      - "io.modelcontextprotocol/*"
+    denied-sources:
+      - "*/experimental-*"
+  # Plugins must come from Acme repos via the internal marketplace.
+  plugins:
+    allowed-sources:
+      - "acme/*"
+      - "harnessprotocol/*"
+    allowed-marketplaces:
+      - "acme/internal-marketplace"
+  # Skills must come from Acme or the official skills repo.
+  skills:
+    allowed-sources:
+      - "acme/*"
+      - "harnessprotocol/skills/*"
+  # Ceiling on grants: no profile may exceed these tools/hosts.
+  permissions:
+    tools:
+      allow:
+        - Read
+        - Glob
+        - Grep
+        - Write
+        - Edit
+        - Bash
+        - "mcp__*"
+      deny:
+        - "mcp__*__drop_*"
+        - "mcp__*__delete_*"
+    network:
+      allowed-hosts:
+        - "*.acme.internal"
+        - "*.github.com"
+        - "pypi.org"
+  # Every plugin, skill, and MCP server package must carry a verifiable hash.
+  require-integrity: true

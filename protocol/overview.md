@@ -4,7 +4,7 @@
 
 AI coding tools like Claude Code, Cursor, and GitHub Copilot each have their own proprietary formats for configuring an agent's context: which tools it can use, what MCP servers are connected, what instructions govern its behavior, what environment variables it needs. A developer who crafts a well-tuned configuration for one tool cannot share it, publish it, or carry it to another team without manual translation. There is no portable unit of "how this agent should work."
 
-The Harness Protocol defines that unit. A **harness** is the complete operational context for an AI coding agent: its plugins, MCP server declarations, environment requirements, behavioral instructions, permissions, and inheritance chain. The Harness Protocol specifies a vendor-neutral `harness.yaml` format for describing a harness, a validation model for ensuring it is well-formed and safe, and a layered architecture for exchange and discovery. It is to AI coding harnesses what the Model Context Protocol (MCP) is to tool communication — an open specification that implementations can build against, rather than a product any single vendor owns.
+The Harness Protocol defines that unit. A **harness** is the complete operational context for an AI coding agent: its plugins, skills, MCP server declarations, environment requirements, behavioral instructions, permissions, governance policy, and inheritance chain. The Harness Protocol specifies a vendor-neutral `harness.yaml` format for describing a harness, a validation model for ensuring it is well-formed and safe, and a layered architecture for exchange and discovery. It is to AI coding harnesses what the Model Context Protocol (MCP) is to tool communication — an open specification that implementations can build against, rather than a product any single vendor owns.
 
 ## Notational Conventions
 
@@ -26,7 +26,7 @@ The layers are intentionally decoupled. A tool can implement Schema-layer valida
 
 Version 1 of the Harness Protocol specifies the **Schema layer**:
 
-- **The `harness.yaml` format** — a structured YAML document with top-level sections for metadata, plugins, MCP servers, environment declarations, instructions, permissions, and inheritance. See [Profile Schema](./profile-schema.md) for the full specification.
+- **The `harness.yaml` format** — a structured YAML document with top-level sections for metadata, plugins, skills, architectural constraints, MCP servers, environment declarations, instructions, permissions, governance policy, and inheritance. See [Profile Schema](./profile-schema.md) for the full specification.
 - **The JSON Schema** — a machine-readable schema at `https://harnessprotocol.io/schema/v1/harness.schema.json` that implementations use to validate harness files. The JSON Schema is the authoritative source of truth; this documentation is normative prose on top of it.
 - **The security model** — rules for sensitive environment variables, permission inheritance, integrity verification, and trust boundaries. See [Security](../security/) for details.
 - **The plugin manifest format** — the `plugin.json` format that plugin authors use to declare what their plugin provides and requires. See [Plugin Manifest](./plugin-manifest.md).
@@ -49,7 +49,7 @@ Conformance to the Harness Protocol does not require using harness-kit. Any impl
 
 **For harness authors** (writing `harness.yaml` files): Start with [Profile Schema](./profile-schema.md) for the field reference, then [the examples](../examples/) to see real profiles. Refer to [Environment](./environment.md) and [Instructions](./instructions.md) as needed.
 
-**For tool implementers** (building a conformant implementation): Start with [Architecture](./architecture.md) for the system model, then [Application Semantics](./application.md) for the 6-step pipeline, then [Source Resolution](./source-resolution.md) for how `owner/repo` references resolve, then [Profile Schema](./profile-schema.md) for the normative field spec. The [Security](../security/) docs are essential reading.
+**For tool implementers** (building a conformant implementation): Start with [Architecture](./architecture.md) for the system model, then [Application Semantics](./application.md) for the 7-step pipeline, then [Source Resolution](./source-resolution.md) for how `owner/repo` references resolve, then [Profile Schema](./profile-schema.md) for the normative field spec. The [Security](../security/) docs are essential reading.
 
 ---
 
@@ -63,6 +63,16 @@ The Harness Protocol builds on established standards:
 - **[SPDX License List](https://spdx.org/licenses/)** — License identifiers in metadata
 - **[Model Context Protocol (MCP)](https://modelcontextprotocol.io/)** — Tool communication layer referenced in MCP server declarations
 - **[PEP process](https://peps.python.org/pep-0001/)** — Governance model inspiration for the HEP (Harness Enhancement Proposal) process
+
+### Interoperation with the agent standards stack
+
+A harness is the portable description that ties together the standards an engineering team already uses. The Harness Protocol interoperates with — and compiles to — the established formats in the ecosystem:
+
+- **AGENTS.md** — the cross-tool agent-instruction file read natively by most coding tools. The `instructions` section maps to it directly (see [Instructions](./instructions.md)).
+- **Agent Skills (`SKILL.md`)** — the portable skill capability format. The `skills` section declares them directly (see [HEP-4](../heps/hep-0004-skills.md)).
+- **The MCP registry and server cards** — provenance and discovery for MCP servers, referenced by the optional `source` field on server declarations (see [MCP Declarations](./mcp-declarations.md)).
+
+MCP, AGENTS.md, and Agent Skills are stewarded under the **Agentic AI Foundation** at the Linux Foundation. The Harness Protocol is the vendor-neutral layer that declares which of these an agent uses and how they compose — it does not replace any of them.
 
 ---
 

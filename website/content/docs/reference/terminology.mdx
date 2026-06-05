@@ -9,7 +9,7 @@ This document defines terms used throughout the Harness Protocol specification. 
 
 ## Harness
 
-The complete operational context for an AI coding agent: its plugins, MCP server declarations, environment variable requirements, behavioral instructions, permission boundaries, and any inherited configuration from parent harnesses. A harness is described by a `harness.yaml` file conforming to the Harness Protocol Schema.
+The complete operational context for an AI coding agent: its plugins, skills, MCP server declarations, environment variable requirements, behavioral instructions, permission boundaries, governance policy, and any inherited configuration from parent harnesses. A harness is described by a `harness.yaml` file conforming to the Harness Protocol Schema.
 
 A harness is not a tool, not a plugin, and not a model. It is the environment in which an agent operates — analogous to a shell environment for a Unix process, but for an AI coding session.
 
@@ -41,9 +41,11 @@ In `harness.yaml`, plugins are declared in the `plugins[]` array. Each entry ref
 
 ## Skill
 
-A prompt template that a plugin makes available as a slash command. Skills are invoked by the user at runtime (e.g., `/research "query"`). They are declared in a plugin's `plugin.json` manifest under `skills[]` and implemented as files within the plugin's repository.
+A portable, named capability packaged as a directory containing a `SKILL.md` file (with `name` and `description` frontmatter) and optional supporting resources. A skill is loaded on demand — its metadata is available at session start and its full content is loaded when the agent needs it (progressive disclosure).
 
-Skills are distinct from agents: a skill is a single prompt invocation; an agent is a persistent sub-agent with its own configuration and scope.
+Skills reach a harness two ways: declared directly in the top-level `skills[]` array (see HEP-4 and [Profile Schema: skills](../specification/profile-schema#skills)), or bundled by a plugin via its `plugin.json` manifest. A directly-declared skill does not require authoring a plugin.
+
+Skills are distinct from agents: a skill is a capability the agent loads to perform a task; an agent is a sub-agent with its own configuration and scope.
 
 ---
 
@@ -77,17 +79,31 @@ Import mode applies to the `instructions` section only, not to plugins, permissi
 
 ## Source
 
-The canonical reference for a plugin's origin, using `owner/repo` format (e.g., `harnessprotocol/harness-kit`). The `source` field in a `plugins[]` entry replaces the legacy `marketplace` indirection by pointing directly to the repository where the plugin lives.
+The canonical reference for an origin, using `owner/repo` format (e.g., `harnessprotocol/harness-kit`). A `source` appears in a `plugins[]` entry, a `skills[]` entry, an `extends[]` entry, and (as an optional provenance identifier) an `mcp-servers` declaration. The `source` field replaces the legacy `marketplace` indirection by pointing directly to where the artifact lives.
 
-A conformant implementation resolves a plugin source by fetching the `plugin.json` manifest from the specified repository at the specified version. The protocol does not mandate a specific hosting provider; GitHub is conventional but not required.
+A conformant implementation resolves a source by fetching the entry point (`plugin.json` for plugins, the `SKILL.md` directory for skills, `harness.yaml` for extends) from the specified repository at the specified version. The protocol does not mandate a specific hosting provider; GitHub is conventional but not required. For MCP servers, `source` may also be a registry identity in reverse-DNS form.
 
 ---
 
 ## Integrity
 
-A content-verification checksum for a plugin, declared in `plugins[].integrity.sha256`. The SHA-256 hash must match the content of the resolved plugin archive before the plugin is applied. If verification fails, the implementation must refuse to load the plugin and surface an error.
+A content-verification checksum (`integrity.sha256`) for a fetched artifact — a plugin (`plugins[].integrity`), a skill (`skills[].integrity`), or an MCP server package (`mcp-servers[].integrity`, `stdio` only). The SHA-256 hash must match the resolved artifact before it is loaded. If verification fails, the implementation must refuse to load it and surface an error.
 
-Integrity fields are optional in v1 but strongly recommended for any harness used in a production or shared context. The v2 Registry layer will enforce integrity for all registry-hosted plugins.
+Integrity fields are optional by default but strongly recommended for any harness used in a production or shared context. An organization can make them mandatory with `policy.require-integrity: true`. The v2 Registry layer will enforce integrity for all registry-hosted artifacts.
+
+---
+
+## Provenance
+
+The recorded origin of an artifact, used for auditability. For MCP servers, the optional `source` and `version` fields declare where a server originates (a registry identity or `owner/repo`) so a user or implementation can audit it before connecting — independently of how the server is launched or contacted. Provenance is declarative: it documents and enables verification but is not itself the enforcement boundary.
+
+---
+
+## Policy
+
+An organization or team governance ceiling, declared in the top-level `policy` section (see HEP-6). Unlike every other section, a `policy` constrains what extending or consuming profiles may grant and **cannot be widened by them** — downstream profiles may only narrow it. A policy can allowlist/denylist MCP server, plugin, and skill sources; cap tool and network grants; restrict marketplaces; and require integrity verification.
+
+Policies accumulate across the inheritance chain (allowlists intersect, denylists union, ceilings intersect, `require-integrity` is monotonic) and are enforced as a fatal validation step during application. A document with no `policy` imposes no constraints. This is the protocol's expression of the managed → project → personal precedence used in team deployments.
 
 ---
 
@@ -119,7 +135,7 @@ Example: `x-claude-model: claude-opus-4` is a valid extension field that a Claud
 
 ## Application Pipeline
 
-The 6-step process that transforms a validated `harness.yaml` into an active agent session: Parse, Validate, Resolve Sources, Merge, Substitute Variables, Apply. Each step either succeeds and passes its result to the next, or fails and halts the pipeline. There is no partial application — either the full harness applies or none of it does.
+The 7-step process that transforms a validated `harness.yaml` into an active agent session: Parse, Validate, Resolve Sources, Merge, Enforce Policy, Substitute Variables, Apply. Each step either succeeds and passes its result to the next, or fails and halts the pipeline. There is no partial application — either the full harness applies or none of it does.
 
 See [Application Semantics](../specification/application) for the full specification.
 

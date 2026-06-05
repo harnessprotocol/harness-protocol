@@ -120,7 +120,9 @@ The following top-level keys are reserved in v1:
 
 #### `execution-environment` design note
 
-Declares the execution environment type (local, sandbox, cloud) and backend configuration. Enables harnesses to specify filesystem backends, network isolation, and runtime requirements beyond environment variables. v1 implicitly assumes local execution; this field would make that assumption explicit and extensible for cloud/sandbox runtimes (e.g., LangChain's deepagents supports pluggable filesystem backends including in-memory, local disk, and sandboxed stores). Until specified, use `x-execution-environment` for experimental needs.
+Declares the execution environment type (local, sandbox, container, cloud) and its isolation configuration. Enables harnesses to specify filesystem read/write boundaries, network egress controls, and runtime requirements beyond environment variables. v1 implicitly assumes local execution; this field would make that assumption explicit and portable.
+
+The ecosystem has converged enough to inform this field's eventual design. Coding tools now ship OS-level sandboxes built on the same primitives — Seatbelt on macOS, Landlock/seccomp/bubblewrap on Linux, WSL2 on Windows — exposing filesystem allow/deny paths and network domain allowlists; devcontainers have become the de facto portable hard-isolation boundary; and permission "modes" (plan, accept-edits, auto, bypass) are a widely shared concept for how autonomously an agent may act. A future `execution-environment` HEP would model the portable subset of these (isolation type, filesystem boundaries, network egress, permission posture) while leaving the enforcement mechanism to the implementation. The `permissions` section already declares path and network intent; `execution-environment` would declare *where and how* the agent runs. Until specified, use `x-execution-environment` for experimental needs.
 
 **Validation behavior for reserved fields:**
 

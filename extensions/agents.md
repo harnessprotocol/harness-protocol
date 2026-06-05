@@ -7,9 +7,11 @@
 
 ## Purpose
 
-12 of 15 surveyed AI coding tools support sub-agents or multi-agent workflows. The patterns range from Claude Code's 6 built-in agents with custom definitions, to Roo Code's boomerang orchestration, to Copilot's `.agent.md` files, to Devin's Managed Devins for multi-session orchestration.
+12 of 15 surveyed AI coding tools support sub-agents or multi-agent workflows. The patterns range from Claude Code's built-in and custom agent definitions, to Roo Code's boomerang orchestration, to Copilot's `.agent.md` files, to Devin's multi-session orchestration.
 
 The Harness Protocol v1 has no native agent concept. The `agents` section lets a harness profile declare named agents with per-agent model selection, permissions, instructions, and isolation modes — enabling portable multi-agent workflows.
+
+**Ecosystem note (June 2026).** Multi-agent has matured along two axes a future `agents` HEP should account for. (1) *Orchestration primitives* beyond simple sub-agents — agent teams (a lead supervising peer sessions) and scripted fan-out workflows (a runtime orchestrating many subagents, with results held outside the context window) are now in production tooling; isolation modes (e.g., per-agent git worktrees) are common. (2) *Inter-agent interoperation* — the agent-to-agent (A2A) protocol, with capability-advertising Agent Cards published at well-known locations, is in production for cross-system agent coordination, and complements MCP (tool access) rather than competing with it. A portable `agents` section should model the declarative agent *configuration* (model, instructions, permissions, isolation) and MAY reference an external A2A Agent Card for agents that live outside the harness, while leaving orchestration strategy to the implementation.
 
 ---
 

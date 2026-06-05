@@ -1,6 +1,6 @@
 # Source Resolution
 
-This document specifies how `source` fields in `harness.yaml` resolve to fetchable content. The `plugins[].source` and `extends[].source` fields reference external harnesses and plugin manifests that an implementation MUST locate, version-match, and retrieve before the harness can be compiled into an effective configuration.
+This document specifies how `source` fields in `harness.yaml` resolve to fetchable content. The `plugins[].source`, `skills[].source`, and `extends[].source` fields reference external harnesses, plugin manifests, and skill directories that an implementation MUST locate, version-match, and retrieve before the harness can be compiled into an effective configuration.
 
 ---
 
@@ -11,9 +11,10 @@ A `source` value appears in two contexts:
 | Context | Field | What it references |
 |---------|-------|--------------------|
 | Plugins | `plugins[].source` | A repository containing a `plugin.json` manifest |
+| Skills | `skills[].source` | A repository, a path within a repository, or a local path containing a `SKILL.md` directory |
 | Inheritance | `extends[].source` | A repository (or local path) containing a `harness.yaml` |
 
-Both contexts share the `owner/repo` remote format. Extends additionally supports paths within repositories and local filesystem references. The resolution algorithm is the same for both contexts, differing only in the entry point that is expected at the resolved location.
+These contexts share the `owner/repo` remote format. Skills and extends additionally support paths within repositories and local filesystem references (`./`, `../`). The resolution algorithm is the same for all contexts, differing only in the entry point expected at the resolved location (`plugin.json`, a `SKILL.md` directory, or `harness.yaml`). MCP server declarations may also carry a `source`, but as a provenance identifier rather than a fetched entry point — see [MCP Declarations](./mcp-declarations.md#server-provenance-and-integrity).
 
 ---
 

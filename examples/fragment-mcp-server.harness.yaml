@@ -5,8 +5,9 @@
 # and are intended to be imported into a full profile via an 'extends' reference
 # or a harness registry import.
 #
-# This fragment declares a PostgreSQL MCP server via uvx. To use it, reference
-# this file from a full profile:
+# This fragment declares MCP servers — a local PostgreSQL server via uvx (with
+# provenance and an integrity hash) and a remote metrics server over the
+# streamable-http transport. To use it, reference this file from a full profile:
 #
 #   extends:
 #     - source: harnessprotocol/harness-kit/examples/fragment-mcp-server.harness.yaml
@@ -23,21 +24,42 @@ metadata:
   name: postgres-mcp
   description: PostgreSQL MCP server via uvx. Import this fragment to add database tooling to any profile.
 
-# The MCP server this fragment contributes.
-# Consumers must supply DB_CONNECTION_STRING via their own env[] section
-# or rely on the declaration below being merged in.
+# The MCP servers this fragment contributes.
+# Consumers must supply DB_CONNECTION_STRING / METRICS_API_TOKEN via their own
+# env[] section or rely on the declarations below being merged in.
 mcp-servers:
+  # Local server via uvx, with provenance (source/version) and an integrity hash
+  # pinning the fetched package against tampering.
   postgres:
     transport: stdio
     command: uvx
     args:
       - mcp-server-postgres
       - "${DB_CONNECTION_STRING}"
+    source: "io.github.example/postgres"
+    version: "1.4.2"
+    integrity:
+      sha256: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
 
-# Environment variable required by the postgres MCP server above.
+  # Remote server over the canonical streamable-http transport, with provenance.
+  metrics:
+    transport: streamable-http
+    url: "https://metrics.example.com/mcp"
+    source: "io.github.example/metrics-mcp"
+    version: ">=2.0.0"
+    headers:
+      Authorization: "Bearer ${METRICS_API_TOKEN}"
+
+# Environment variables required by the MCP servers above.
 # sensitive: true (the default) — harness will prompt the user; no default allowed.
 env:
   - name: DB_CONNECTION_STRING
     description: "PostgreSQL connection string for the target database. Example: postgresql://user:pass@localhost:5432/mydb"
     required: true
     sensitive: true
+
+  - name: METRICS_API_TOKEN
+    description: Bearer token for the remote metrics MCP server.
+    required: false
+    sensitive: true
+    when: When using the metrics MCP server.

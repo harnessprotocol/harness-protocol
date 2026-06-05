@@ -9,6 +9,7 @@ import type { EffectiveConfiguration } from '../../lib/types.js'
 function makeConfig(overrides: Partial<EffectiveConfiguration> = {}): EffectiveConfiguration {
   return {
     plugins: [],
+    skills: [],
     'mcp-servers': {},
     env: [],
     instructions: {
@@ -218,6 +219,22 @@ describe('.mcp.json generation', () => {
     })
   })
 
+  it('normalizes streamable-http transport to type: http', () => {
+    const config = makeConfig({
+      'mcp-servers': {
+        api: {
+          transport: 'streamable-http',
+          url: 'https://api.example.com/mcp',
+          source: 'io.github.example/api',
+        },
+      },
+    })
+    const result = compileToClaudeCode(config)
+    const parsed = JSON.parse(result.files.get('.mcp.json')!)
+    expect(parsed.mcpServers.api.type).toBe('http')
+    expect(parsed.mcpServers.api.url).toBe('https://api.example.com/mcp')
+  })
+
   it('omits .mcp.json when no servers declared', () => {
     const config = makeConfig()
     const result = compileToClaudeCode(config)
@@ -333,6 +350,7 @@ describe('full pipeline', () => {
     const config: EffectiveConfiguration = {
       metadata: { name: 'data-engineer', description: 'Full stack data engineering harness' },
       plugins: [{ name: 'lineage', source: 'org/lineage', version: '1.0.0' }],
+      skills: [],
       'mcp-servers': {
         postgres: {
           transport: 'stdio',

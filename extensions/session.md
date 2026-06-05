@@ -11,6 +11,8 @@
 
 The `session` and `memory` sections let a harness profile declare how sessions should be managed and where knowledge should persist — enabling portable session behavior across tools.
 
+**Ecosystem note (June 2026).** Session and memory state has become a significant portability problem: long-running sessions and cross-session memory are now standard, but state and memory formats are tool-specific and proprietary, making them one of the harder lock-in surfaces to escape. A portable `session`/`memory` section cannot standardize the *storage* format, but it can declare the portable *intent* — persistence policy, memory scope and location, retention — so a team can express "where knowledge persists" once. This sketch remains pre-HEP; the design should stay declarative and avoid encoding any single tool's session-store layout.
+
 ---
 
 ## Reserved Fields in v1

@@ -58,10 +58,12 @@ export function compileToClaudeCode(config: EffectiveConfiguration): CompilerOut
         }
         mcpServers[serverName] = entry
       } else {
-        // http | sse | ws — remote transport
+        // streamable-http | http | sse | ws — remote transport.
+        // 'streamable-http' is the canonical value; Claude Code's .mcp.json uses
+        // its alias 'http', so normalize on output.
         const remote = serverConfig as McpServerRemote
         const entry: Record<string, unknown> = {
-          type: remote.transport,
+          type: remote.transport === 'streamable-http' ? 'http' : remote.transport,
           url: remote.url,
         }
         if (remote.headers !== undefined) {

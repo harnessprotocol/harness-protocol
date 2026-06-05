@@ -42,6 +42,8 @@ Upgrade to a v2-compatible implementation to use hooks.
 
 v2 defines eight hook trigger points, corresponding to distinct moments in the session lifecycle. The original design had four; four more were added based on evidence from a 15-tool feature matrix analysis (2026-03-27) showing that 10/15 tools implement hooks with 5–35 events each.
 
+**Ecosystem note (June 2026).** Lifecycle hooks have continued to converge. Most major coding tools now support hooks, with shared conventions emerging: a `settings.json`-style config, regex/exact event matchers, a JSON-over-stdout protocol, blocking decisions, and `additionalContext` injection. Beyond the `command` hook type, implementations have added `http` hooks (POST to an endpoint), hooks that call an MCP server tool, prompt-evaluated and subagent-evaluated hooks, and async/non-blocking hooks that can re-wake the agent. The eight portable trigger points below remain the right cross-tool subset; the additional hook *types* are candidates for an `on` discriminator when this sketch becomes a HEP. The portability goal is unchanged: declare the lifecycle reaction once, let each implementation map it to its own hook system.
+
 ### `pre-session`
 
 Triggered once when the harness is fully loaded and before the agent accepts its first prompt. This is the initialization hook.

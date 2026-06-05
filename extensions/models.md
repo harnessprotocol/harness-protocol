@@ -11,6 +11,8 @@ Every AI coding tool surveyed (15/15 in the March 2026 feature matrix) implement
 
 The `models` section lets a harness profile declare which models should be used for which roles, what reasoning effort to apply, and what provider to prefer — without locking the harness to a specific tool or provider.
 
+**Ecosystem note (June 2026).** Two patterns have firmed up since the March matrix. (1) *Reasoning-effort tiers* (e.g., low/medium/high and beyond) are now a common per-request control, distinct from model identity — a portable `models` section should model effort as its own field. (2) *Provider/model allowlists* have moved into enterprise admin tiers: organizations restrict which models or providers may be used, by speed tier or context size. That governance concern is addressed by the [`policy`](../protocol/profile-schema.md#policy) section (a model allowlist is a natural future addition to `policy`), keeping `models` focused on per-role preference and effort while `policy` expresses the org ceiling.
+
 ---
 
 ## Reserved Field in v1

@@ -75,6 +75,19 @@ child:   data-lineage@>=0.3.0
 effective: data-lineage@>=0.3.0 (child's version), sql-formatter@^1.0.0 (from parent)
 ```
 
+### `skills`
+
+**Merge behavior: union by `name`; child/later wins on conflict.**
+
+All skills from all parents are included in the effective skill set. If two harnesses declare a skill with the same `name`, the child's (or later parent's) declaration is used entirely. A child sets `enabled: false` to suppress a skill it inherits without re-declaring its `source`.
+
+```
+parent: pdf-forms@>=1.0.0, house-style
+child:   pdf-forms (enabled: false)
+
+effective: house-style (from parent); pdf-forms is suppressed by the child
+```
+
 ### `mcp-servers`
 
 **Merge behavior: union by server name; child/later wins on conflict.**
@@ -159,6 +172,27 @@ To remove a path restriction that a parent imposed, use the team overlay syntax 
 
 The effective `allowed-hosts` is the union of all ancestors' lists. A child can add permitted hosts but cannot remove hosts that a parent permitted.
 
+### `policy`
+
+**Merge behavior: accumulation as a ceiling — constraints only ever tighten.**
+
+`policy` is the one section that does not follow child-wins or simple union/intersection. It is a *managed layer*: a constraint that downstream profiles may narrow but never widen. The effective policy is computed by accumulating every `policy` section in the resolution set so that the result is at least as strict as each contributor:
+
+| Policy field | Accumulation rule |
+|--------------|-------------------|
+| `*.allowed-sources`, `permissions.tools.allow`, `permissions.network.allowed-hosts` | **Intersection** — a value must satisfy every layer that declares that allowlist/ceiling. |
+| `*.denied-sources`, `permissions.tools.deny` | **Union** — any layer's denial applies. |
+| `plugins.allowed-marketplaces` | **Intersection.** |
+| `require-integrity` | **Monotonic OR** — `true` if any layer sets it `true`. |
+
+This inverts the normal child-override relationship on purpose: a child cannot relax a policy a parent established. If `policy` merged child-wins like other sections, a child could re-declare a laxer policy and escape the ceiling, which would make the managed layer unenforceable.
+
+**Only declared lists participate.** A layer that does not declare a given allowlist or ceiling imposes no restriction from that layer — exactly as with `permissions.tools.allow`. A child that omits `policy.mcp-servers.allowed-sources` inherits the parent's allowlist unchanged; it does not reset it to "allow everything." The intersection is taken only across layers that actually declare the list. A consequence worth noting: because allowlists intersect, two layers with disjoint allowlists (parent `["acme/*"]`, child `["other/*"]`) leave nothing permitted. This is intentional — a child cannot add an allowance the parent did not grant — but it means a child should *narrow within* the parent's set, not introduce unrelated patterns.
+
+The accumulated policy is then enforced against the merged effective configuration during [Application Step 5: Enforce Policy](./application#step-5-enforce-policy). A violation is a fatal error; the harness is not applied. A resolution set with no `policy` section imposes no constraints — the behavior before this section existed.
+
+Because constraints only tighten, a managed root profile (one that declares a `policy` and is extended by team and individual profiles) remains authoritative no matter how deep or wide the `extends` graph beneath it is. This is how the protocol expresses the managed → project → personal precedence that team deployments rely on.
+
 ### `metadata`
 
 **Merge behavior: child's metadata is used as-is; parent metadata is not inherited.**
@@ -178,6 +212,7 @@ The child's `kind` is used. Parent `kind` values are not inherited.
 | Section | Merge Rule |
 |---------|------------|
 | `plugins` | Union by `name`; child/later wins |
+| `skills` | Union by `name`; child/later wins (`enabled: false` suppresses) |
 | `mcp-servers` | Union by server name; child/later wins |
 | `env` | Union by `name`; child/later wins |
 | `instructions` | Governed by child's `import-mode` |
@@ -187,6 +222,7 @@ The child's `kind` is used. Parent `kind` values are not inherited.
 | `permissions.paths.writable` | Union (additive) |
 | `permissions.paths.readonly` | Union (additive) |
 | `permissions.network.allowed-hosts` | Union (additive) |
+| `policy` | Accumulation as a ceiling — allowlists/ceilings intersect, denylists union, `require-integrity` monotonic; child can only tighten |
 | `metadata` | Child's metadata; parent not inherited |
 | `kind` | Child's kind |
 

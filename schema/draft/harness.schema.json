@@ -127,6 +127,64 @@
         "additionalProperties": false
       }
     },
+    "skills": {
+      "type": "array",
+      "description": "Skills to make available in the harness. A skill is a portable, named capability — a directory containing a SKILL.md file — that an agent loads on demand. Skills may be bundled by a plugin or declared directly here; this section declares them directly without requiring a full plugin.",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "description": "A skill declaration. 'source' is required unless the entry only suppresses an inherited skill via 'enabled: false'.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$",
+            "description": "Skill identifier in lowercase kebab-case. Max 64 characters. Should match the skill's SKILL.md frontmatter name."
+          },
+          "source": {
+            "type": "string",
+            "description": "Where the skill is fetched from: 'owner/repo', 'owner/repo/path/to/skill' (GitHub), or './local/path' (local path). Resolves per the Source Resolution algorithm."
+          },
+          "version": {
+            "type": "string",
+            "description": "Semver range constraint for owner/repo sources. Examples: '>=1.0.0', '^2.1.0', '1.2.3'. Ignored for local-path sources."
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description for this skill in this profile's context. Overrides the skill's own description for display purposes."
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether this skill is active. Set to false to declare a skill without activating it — for example, to disable a skill inherited from a parent profile."
+          },
+          "loading": {
+            "type": "string",
+            "enum": ["eager", "deferred"],
+            "default": "deferred",
+            "description": "When the skill's full content is loaded. 'deferred' (default) loads only the skill's metadata at session start and the body on first invocation. 'eager' loads the full skill at session start."
+          },
+          "integrity": {
+            "type": "object",
+            "description": "Content integrity verification. Implementations SHOULD verify the hash when present and WARN when absent for skills fetched from external sources.",
+            "properties": {
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$",
+                "description": "Lowercase hex-encoded SHA-256 hash of the skill archive."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false,
+        "if": {
+          "properties": { "enabled": { "const": false } },
+          "required": ["enabled"]
+        },
+        "then": {},
+        "else": { "required": ["source"] }
+      }
+    },
     "architectural-constraints": {
       "type": "object",
       "description": "Declarative constraints enforcing architectural patterns, module boundaries, and structural invariants. Three enforcement levels: deterministic (linters, structural tests — cannot be overridden), review (LLM-based, can request exceptions), advisory (warnings, may be silenced).",
@@ -250,7 +308,7 @@
       "type": "object",
       "description": "MCP (Model Context Protocol) server declarations. Keys are server names used to reference them in the harness. Values describe how to connect to the server.",
       "additionalProperties": {
-        "description": "An MCP server declaration. The 'transport' field discriminates between local (stdio) and remote (http/sse/ws) servers.",
+        "description": "An MCP server declaration. The 'transport' field discriminates between local (stdio) and remote (streamable-http/sse/ws) servers.",
         "oneOf": [
           {
             "title": "stdio transport",
@@ -280,20 +338,40 @@
                 "additionalProperties": {
                   "type": "string"
                 }
+              },
+              "source": {
+                "type": "string",
+                "description": "Optional provenance identifier for the server package: a registry identity in reverse-DNS form (e.g., 'io.github.owner/server') or 'owner/repo'. Declares where the server originates, for auditability. Does not change how 'command' is invoked."
+              },
+              "version": {
+                "type": "string",
+                "description": "Optional version or semver range for the server package, complementing any version pinned in 'args'."
+              },
+              "integrity": {
+                "type": "object",
+                "description": "Optional content integrity verification for the server package, where verifiable. Implementations SHOULD verify the hash when present and WARN when absent for servers fetched from external sources.",
+                "properties": {
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$",
+                    "description": "Lowercase hex-encoded SHA-256 hash of the server package archive."
+                  }
+                },
+                "additionalProperties": false
               }
             },
             "additionalProperties": false
           },
           {
-            "title": "HTTP/SSE/WebSocket transport",
+            "title": "Remote transport (streamable-http / sse / ws)",
             "description": "MCP server communicating over a network transport. Treated as untrusted remote content.",
             "type": "object",
             "required": ["transport", "url"],
             "properties": {
               "transport": {
                 "type": "string",
-                "enum": ["http", "sse", "ws"],
-                "description": "Transport type. 'http' for HTTP, 'sse' for Server-Sent Events, 'ws' for WebSocket."
+                "enum": ["streamable-http", "http", "sse", "ws"],
+                "description": "Transport type. 'streamable-http' is the canonical remote transport; 'http' is an accepted alias for it. 'sse' (Server-Sent Events) is the legacy transport, retained for compatibility and deprecated for new servers. 'ws' (WebSocket) is non-standard and implementation-specific."
               },
               "url": {
                 "type": "string",
@@ -306,6 +384,14 @@
                 "additionalProperties": {
                   "type": "string"
                 }
+              },
+              "source": {
+                "type": "string",
+                "description": "Optional provenance identifier for the server: a registry identity in reverse-DNS form (e.g., 'io.github.owner/server') or 'owner/repo'. Declares where the server originates, for auditability."
+              },
+              "version": {
+                "type": "string",
+                "description": "Optional version or semver range identifying the remote server build."
               }
             },
             "additionalProperties": false
@@ -480,6 +566,108 @@
             }
           },
           "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "policy": {
+      "type": "object",
+      "description": "Organization or team governance constraints. A policy acts as a ceiling: it constrains what extending or consuming profiles may grant and cannot be widened by them. A document with no 'policy' section imposes no managed constraints (the current behavior). The protocol declares intent; enforcement is the implementation's responsibility. See protocol/inheritance.md for precedence semantics.",
+      "properties": {
+        "mcp-servers": {
+          "type": "object",
+          "description": "Constraints on which MCP servers may be declared.",
+          "properties": {
+            "allowed-sources": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Allowlist of permitted MCP server source identities or host patterns. When present, a declared server whose source/host matches none of these is rejected."
+            },
+            "denied-sources": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Denylist of forbidden MCP server source identities or host patterns. Deny overrides allow."
+            }
+          },
+          "additionalProperties": false
+        },
+        "plugins": {
+          "type": "object",
+          "description": "Constraints on which plugins may be installed.",
+          "properties": {
+            "allowed-sources": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Allowlist of permitted plugin 'owner/repo' sources or patterns."
+            },
+            "denied-sources": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Denylist of forbidden plugin sources or patterns. Deny overrides allow."
+            },
+            "allowed-marketplaces": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Allowlist of marketplaces or registries from which plugins may be fetched."
+            }
+          },
+          "additionalProperties": false
+        },
+        "skills": {
+          "type": "object",
+          "description": "Constraints on which skills may be declared.",
+          "properties": {
+            "allowed-sources": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Allowlist of permitted skill sources or patterns."
+            },
+            "denied-sources": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Denylist of forbidden skill sources or patterns. Deny overrides allow."
+            }
+          },
+          "additionalProperties": false
+        },
+        "permissions": {
+          "type": "object",
+          "description": "A ceiling on permission grants. Extending or consuming profiles MAY narrow these grants but MUST NOT widen them.",
+          "properties": {
+            "tools": {
+              "type": "object",
+              "properties": {
+                "allow": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Maximum set of tools that may be granted. Glob patterns supported. A profile cannot grant a tool that matches none of these patterns."
+                },
+                "deny": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Tools that are always denied regardless of profile grants. Deny overrides allow."
+                }
+              },
+              "additionalProperties": false
+            },
+            "network": {
+              "type": "object",
+              "properties": {
+                "allowed-hosts": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Maximum set of network hosts that may be contacted. A profile cannot allow a host that matches none of these patterns."
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "require-integrity": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, integrity verification is mandatory for all plugins, skills, and MCP server packages. Declarations without a verifiable integrity hash are rejected."
         }
       },
       "additionalProperties": false

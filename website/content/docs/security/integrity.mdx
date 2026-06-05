@@ -54,6 +54,40 @@ Using both together is the most secure configuration: `version` constrains resol
 
 ---
 
+## Integrity for Skills and MCP Server Packages
+
+Plugins are not the only executable third-party content a harness pulls in. Skills are behavioral instructions (and may bundle scripts) fetched from external sources, and `stdio` MCP servers run a package on the user's machine. Both are supply-chain surfaces with the same failure modes described above, and both now carry the same optional `integrity.sha256` field:
+
+```yaml
+skills:
+  - name: pdf-forms
+    source: harnessprotocol/skills/pdf-forms
+    version: ">=1.0.0"
+    integrity:
+      sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+mcp-servers:
+  postgres:
+    transport: stdio
+    command: uvx
+    args: [mcp-server-postgres, --connection-string, "${DB_CONNECTION_STRING}"]
+    source: "io.github.example/postgres"
+    integrity:
+      sha256: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+```
+
+The same format, scope, and verification rules apply: a 64-character lowercase hex SHA-256 over the fetched artifact, verified before use, fatal on mismatch. For skills, the hash covers the skill archive (the `SKILL.md` directory as distributed). For MCP servers, `integrity` is available on `stdio` declarations, where there is a fetchable package; remote transports have no archive to hash and rely on TLS and registry/identity verification instead (see [MCP Declarations](../specification/mcp-declarations#server-provenance-and-integrity)).
+
+This closes a gap that earlier versions of this document called out: plugin integrity never covered the MCP server binaries a `stdio` declaration invokes, nor skill content. Per-artifact `integrity` now spans all three.
+
+The risk this addresses is not hypothetical. Public skill and MCP marketplaces have shipped capability artifacts containing credential exfiltration, untrusted runtime fetches, and malicious payloads. A pinned hash means a harness an author reviewed cannot be silently swapped for a tampered artifact after publication. The transparency over *what* a skill instructs the agent to do is handled separately — see [Skill Behavioral Injection](skill-injection).
+
+## Mandatory Integrity via Policy
+
+An organization can promote integrity from "optional with warning" to "required" without waiting for v2. Setting `policy.require-integrity: true` (see [Profile Schema: policy](../specification/profile-schema#policy)) makes a missing or unverifiable integrity hash on any plugin, skill, or **stdio** MCP server package a **fatal validation error** rather than a warning. (Remote MCP servers have no fetched package and are exempt — they are verified via TLS and registry/identity.) This is the recommended posture for any team or production deployment, and it eliminates the warning-fatigue problem described below by making the absence of a hash a hard failure instead of a dismissible prompt.
+
+---
+
 ## v1 Behavior: OPTIONAL With Mandatory Warning
 
 In Harness Protocol v1, `integrity.sha256` is optional. The schema does not require it. This reflects the reality that many plugins in circulation were published before integrity hashes were standardized, and requiring them immediately would break a large fraction of existing profiles.
