@@ -80,7 +80,7 @@ The risk this addresses is not hypothetical. Public skill and MCP marketplaces h
 
 ## Mandatory Integrity via Policy
 
-An organization can promote integrity from "optional with warning" to "required" without waiting for v2. Setting `policy.require-integrity: true` (see [Profile Schema: policy](../protocol/profile-schema.md#policy)) makes a missing or unverifiable integrity hash on any plugin, skill, or MCP server package a **fatal validation error** rather than a warning. This is the recommended posture for any team or production deployment, and it eliminates the warning-fatigue problem described below by making the absence of a hash a hard failure instead of a dismissible prompt.
+An organization can promote integrity from "optional with warning" to "required" without waiting for v2. Setting `policy.require-integrity: true` (see [Profile Schema: policy](../protocol/profile-schema.md#policy)) makes a missing or unverifiable integrity hash on any plugin, skill, or **stdio** MCP server package a **fatal validation error** rather than a warning. (Remote MCP servers have no fetched package and are exempt — they are verified via TLS and registry/identity.) This is the recommended posture for any team or production deployment, and it eliminates the warning-fatigue problem described below by making the absence of a hash a hard failure instead of a dismissible prompt.
 
 ---
 

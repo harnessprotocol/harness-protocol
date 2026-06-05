@@ -55,7 +55,7 @@ Fields:
 | `policy.permissions.tools.allow` | string[] | Ceiling: the maximum set of tools that may be granted. A profile cannot grant a tool matching none of these. |
 | `policy.permissions.tools.deny` | string[] | Tools always denied regardless of any grant. Deny overrides allow. |
 | `policy.permissions.network.allowed-hosts` | string[] | Ceiling: maximum set of network hosts that may be contacted. |
-| `policy.require-integrity` | boolean (default `false`) | When `true`, every plugin, skill, and MCP server package MUST carry a verifiable integrity hash; declarations without one are rejected. |
+| `policy.require-integrity` | boolean (default `false`) | When `true`, every plugin, skill, and **stdio** MCP server MUST carry a verifiable integrity hash; declarations without one are rejected. Remote MCP servers have no fetched package and are exempt (verified via TLS / registry). |
 
 ### Precedence semantics (the managed layer)
 
@@ -66,7 +66,7 @@ The effective configuration is computed by the [application pipeline](../protoco
 3. The candidate configuration is checked against the effective policy:
    - Any `mcp-servers`, `plugins`, or `skills` entry whose source/host is not permitted by the relevant allowlist, or is matched by a denylist, causes a **validation error** — the harness is not applied (per the "validate early" principle; there is no partial application).
    - Any `permissions.tools.allow` or `permissions.network.allowed-hosts` entry outside the corresponding policy ceiling is an error. `policy.permissions.*.deny` is unioned into the effective deny set.
-   - If `require-integrity` is `true`, any plugin/skill/MCP-server-package declaration lacking a verifiable integrity hash is an error.
+   - If `require-integrity` is `true`, any plugin, skill, or stdio MCP server declaration lacking a verifiable integrity hash is an error. Remote MCP servers (`streamable-http`/`sse`/`ws`) carry no package and are exempt — they are verified via TLS and registry/identity.
 
 The rule in one sentence: **a profile may narrow what a policy permits, never widen it.**
 

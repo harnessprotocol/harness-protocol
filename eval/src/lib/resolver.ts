@@ -306,7 +306,12 @@ export function resolveInheritance(
   options?: { maxDepth?: number }
 ): EffectiveConfiguration {
   const maxDepth = options?.maxDepth ?? DEFAULT_MAX_DEPTH
-  return resolveInheritanceInternal(child, registry, maxDepth, new Set<string>(), 0)
+  const result = resolveInheritanceInternal(child, registry, maxDepth, new Set<string>(), 0)
+  // Suppression is applied during merge (a child's `enabled: false` entry wins
+  // by name); the final effective configuration excludes disabled skills so
+  // consumers receive only the active set.
+  result.skills = result.skills.filter((s) => s.enabled !== false)
+  return result
 }
 
 function resolveInheritanceInternal(

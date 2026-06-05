@@ -12,7 +12,7 @@ pnpm test
 
 ## What's Tested
 
-**248 tests** across 14 test files validating the testable claims from the spec.
+**249 tests** across 14 test files validating the testable claims from the spec.
 
 ### Schema Conformance (81 tests)
 
@@ -33,7 +33,7 @@ Cross-field constraints that JSON Schema can't express (`semantic.ts`):
 - `plugins[].name` must be unique
 - `env[].name` must be unique
 
-### Inheritance Resolution (58 tests)
+### Inheritance Resolution (59 tests)
 
 Reference implementation of the merge rules from `protocol/inheritance.md` (`resolver.ts`):
 
@@ -100,7 +100,7 @@ eval/
 │   │   ├── yaml.ts         # YAML parser (documents integer coercion trap)
 │   │   ├── types.ts        # TypeScript interfaces matching JSON schemas
 │   │   ├── semantic.ts     # Cross-field validation rules
-│   │   ├── resolver.ts     # Inheritance resolver (12 merge rules)
+│   │   ├── resolver.ts     # Inheritance resolver (13 merge rules)
 │   │   ├── compiler.ts     # Claude Code compiler prototype
 │   │   ├── source.ts       # Source string parsing + version resolution
 │   │   └── substitute.ts   # Variable substitution + error categorization

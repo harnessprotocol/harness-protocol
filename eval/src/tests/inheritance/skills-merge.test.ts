@@ -52,6 +52,25 @@ describe('resolveInheritance carries skills (HEP-4)', () => {
     expect(eff.skills.map((s) => s.name).sort()).toEqual(['house-style', 'pdf-forms'])
   })
 
+  it('child enabled: false suppresses an inherited skill (excluded from effective config)', () => {
+    const reg = registry({
+      'org/base': makeDoc({
+        metadata: { name: 'base', description: 'base' },
+        skills: [
+          { name: 'house-style', source: 'org/skills/house-style' },
+          { name: 'noisy', source: 'org/skills/noisy' },
+        ],
+      }),
+    })
+    const child = makeDoc({
+      metadata: { name: 'child', description: 'child' },
+      extends: [{ source: 'org/base' }],
+      skills: [{ name: 'noisy', source: 'org/skills/noisy', enabled: false }],
+    })
+    const eff = resolveInheritance(child, reg)
+    expect(eff.skills.map((s) => s.name)).toEqual(['house-style'])
+  })
+
   it('child overrides an inherited skill by name', () => {
     const reg = registry({
       'org/base': makeDoc({

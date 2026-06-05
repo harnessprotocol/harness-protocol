@@ -103,7 +103,7 @@ The following are **fatal errors** (the harness is not applied):
 
 - An `mcp-servers`, `plugins`, or `skills` entry whose `source`/host is not permitted by the relevant `policy` allowlist, or is matched by a denylist.
 - A `permissions.tools.allow` or `permissions.network.allowed-hosts` entry that exceeds the corresponding policy ceiling. Policy `permissions.tools.deny` is unioned into the effective deny set.
-- A plugin, skill, or MCP server package lacking a verifiable integrity hash when `policy.require-integrity` is `true`.
+- A plugin, skill, or **stdio** MCP server lacking a verifiable integrity hash when `policy.require-integrity` is `true`. Remote MCP servers (`streamable-http`/`sse`/`ws`) have no fetched package and are exempt — they are verified via TLS and registry/identity, not a hash.
 
 A policy violation MUST be surfaced as a clear error. Implementations MUST NOT silently strip violating entries and apply a degraded configuration. A document with no `policy` in its resolution set skips this step entirely (the v1 behavior before this step existed). See [Profile Schema: policy](./profile-schema#policy) and [Inheritance](./inheritance).
 
