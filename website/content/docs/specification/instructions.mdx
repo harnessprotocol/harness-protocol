@@ -11,13 +11,13 @@ This document specifies the `instructions:` section of `harness.yaml`. Instructi
 
 Different AI coding tools use different files and mechanisms to give the agent standing context:
 
-| Slot | Claude Code | GitHub Copilot | Cursor |
-|------|-------------|----------------|--------|
-| `operational` | `CLAUDE.md` | `.github/copilot-instructions.md` | `.cursor/rules/` |
-| `behavioral` | `AGENT.md` | Behavioral preference file (tool-defined) | Behavioral settings file (tool-defined) |
-| `identity` | `SOUL.md` | Not supported | Not supported |
+| Slot | AGENTS.md (cross-tool) | Claude Code | GitHub Copilot | Cursor |
+|------|-----------------------|-------------|----------------|--------|
+| `operational` | `AGENTS.md` | `CLAUDE.md` | `.github/copilot-instructions.md` | `.cursor/rules/` |
+| `behavioral` | `AGENTS.md` (appended) | `AGENT.md` | Behavioral preference file (tool-defined) | Behavioral settings file (tool-defined) |
+| `identity` | (not supported) | `SOUL.md` | Not supported | Not supported |
 
-The `instructions:` section maps to these slots in a harness-neutral way. A harness author writes their instructions once; a conformant implementation applies them to the right file for the tool it is managing.
+`AGENTS.md` is the cross-tool instruction file read natively by most implementations, and is the primary portable target for the `operational` slot (with `behavioral` content appended). Tool-specific files such as `CLAUDE.md` remain supported where an implementation reads them. A harness author writes their instructions once; a conformant implementation applies them to the right file(s) for the tool it is managing — typically `AGENTS.md` plus any tool-specific file.
 
 The three slots are independent. A harness may declare any combination of them. Omitting a slot is not an error — the implementation leaves that slot's target file untouched.
 
@@ -27,8 +27,8 @@ The three slots are independent. A harness may declare any combination of them. 
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `operational` | string or null | No | — | Instructions for how to work: build commands, architecture, gotchas, project conventions. Maps to `CLAUDE.md` (Claude Code), `.github/copilot-instructions.md` (Copilot), `.cursor/rules/` (Cursor). |
-| `behavioral` | string or null | No | — | Instructions for how to behave: communication tone, autonomy level, workflow conventions, what to ask vs. proceed silently. Maps to `AGENT.md` (Claude Code) and behavioral preference files in other harnesses. |
+| `operational` | string or null | No | — | Instructions for how to work: build commands, architecture, gotchas, project conventions. Maps to `AGENTS.md` (the cross-tool standard), `CLAUDE.md` (Claude Code), `.github/copilot-instructions.md` (Copilot), `.cursor/rules/` (Cursor). |
+| `behavioral` | string or null | No | — | Instructions for how to behave: communication tone, autonomy level, workflow conventions, what to ask vs. proceed silently. Maps to `AGENT.md` (Claude Code), an appended section of `AGENTS.md`, and behavioral preference files in other harnesses. |
 | `identity` | string or null | No | — | Identity framing for the agent: values, relationship context, persistent self-model. Maps to `SOUL.md` (Claude Code). Set to `null` to explicitly declare that this harness provides no identity instructions. Not all harness implementations support this slot; implementations that do not support it MUST ignore it (not error). |
 | `import-mode` | enum | No | `merge` | How this harness's instructions combine with inherited instructions from `extends`. Values: `merge`, `replace`, `skip`. See Import Modes below. |
 
