@@ -12,9 +12,9 @@ pnpm test
 
 ## What's Tested
 
-**249 tests** across 14 test files validating the testable claims from the spec.
+**253 tests** across 14 test files validating the testable claims from the spec.
 
-### Schema Conformance (81 tests)
+### Schema Conformance (83 tests)
 
 Validates `harness.schema.json` and `plugin.schema.json` using Ajv 2020-12.
 
@@ -25,12 +25,13 @@ Validates `harness.schema.json` and `plugin.schema.json` using Ajv 2020-12.
 - **MCP modernization** (`mcp-modernization.test.ts`) — `streamable-http` transport, `http` alias, legacy `sse`, server `source`/`version`/`integrity` provenance, integrity rejected on remote transports (HEP-5).
 - **Policy** (`policy.test.ts`) — Governance `policy` section (HEP-6): allow/deny source lists, permission ceilings, `require-integrity`, structural rejections.
 
-### Semantic Validation (11 tests)
+### Semantic Validation (12 tests)
 
 Cross-field constraints that JSON Schema can't express (`semantic.ts`):
 
 - `${VAR_NAME}` references in `mcp-servers` must have matching `env[]` declarations
 - `plugins[].name` must be unique
+- `skills[].name` must be unique
 - `env[].name` must be unique
 
 ### Inheritance Resolution (59 tests)
@@ -55,7 +56,7 @@ Also tests: multi-parent resolution, 3-level chains, fragment composition, circu
 
 Includes an end-to-end test reproducing the 3-level inheritance example from the spec (org-base → data-team → alice-data-engineer) and verifying every row of the expected effective configuration table.
 
-### Compiler — Claude Code Target (19 tests)
+### Compiler — Claude Code Target (20 tests)
 
 Compiles a resolved `EffectiveConfiguration` to Claude Code native config files (`compiler.ts`):
 

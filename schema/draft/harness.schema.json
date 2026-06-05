@@ -132,8 +132,8 @@
       "description": "Skills to make available in the harness. A skill is a portable, named capability — a directory containing a SKILL.md file — that an agent loads on demand. Skills may be bundled by a plugin or declared directly here; this section declares them directly without requiring a full plugin.",
       "items": {
         "type": "object",
-        "required": ["name", "source"],
-        "description": "A skill declaration.",
+        "required": ["name"],
+        "description": "A skill declaration. 'source' is required unless the entry only suppresses an inherited skill via 'enabled: false'.",
         "properties": {
           "name": {
             "type": "string",
@@ -176,7 +176,13 @@
             "additionalProperties": false
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "if": {
+          "properties": { "enabled": { "const": false } },
+          "required": ["enabled"]
+        },
+        "then": {},
+        "else": { "required": ["source"] }
       }
     },
     "architectural-constraints": {

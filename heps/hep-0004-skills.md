@@ -48,7 +48,7 @@ Field definitions:
 
 **Inheritance.** The `skills` array is merged by `name` following the same rule as `mcp-servers`: union by name, child wins entirely for a matching name, new names from parent and child are both retained. A child sets `enabled: false` to suppress an inherited skill.
 
-**Resolution order relative to plugins.** A skill bundled by a plugin and a skill declared directly in `skills` are both registered for the session. If a directly-declared skill and a plugin-bundled skill share a `name`, the directly-declared `skills` entry wins (the harness author's explicit declaration is more specific than a transitive plugin payload).
+**Resolution order relative to plugins.** A skill bundled by a plugin and a skill declared directly in `skills` are both registered for the session. If a directly-declared skill and a plugin-bundled skill share a `name`, the directly-declared `skills` entry wins (the harness author's explicit declaration is more specific than a transitive plugin payload). A directly-declared entry with `enabled: false` suppresses both an inherited `skills` entry and a plugin-bundled skill of the same name.
 
 **Apply behavior.** Skill content is third-party content subject to the installation-review and provenance requirements in [Skill Behavioral Injection](../security/skill-injection.md) and [Integrity](../security/integrity.md). Declaring a skill does not exempt its content from review.
 

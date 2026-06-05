@@ -121,6 +121,19 @@ describe('Semantic Validation — Cross-Field Constraints', () => {
     expect(result.errors.some((e) => e.includes('my-plugin'))).toBe(true)
   })
 
+  it('duplicate skill names → invalid', () => {
+    const doc = makeDoc({
+      skills: [
+        { name: 'pdf-forms', source: 'org/skills/pdf-forms' },
+        { name: 'sql-style', source: 'org/skills/sql-style' },
+        { name: 'pdf-forms', source: 'org/skills/pdf-forms-2' },
+      ],
+    })
+    const result = validateSemantics(doc)
+    expect(result.valid).toBe(false)
+    expect(result.errors.some((e) => e.includes('pdf-forms'))).toBe(true)
+  })
+
   it('duplicate env names → invalid', () => {
     const doc = makeDoc({
       env: [

@@ -70,6 +70,18 @@ function checkPluginNameUniqueness(doc: HarnessDocument, errors: string[]): void
   }
 }
 
+function checkSkillNameUniqueness(doc: HarnessDocument, errors: string[]): void {
+  const skills = doc.skills ?? []
+  const seen = new Set<string>()
+  for (const skill of skills) {
+    if (seen.has(skill.name)) {
+      errors.push(`skills[].name "${skill.name}" is not unique`)
+    } else {
+      seen.add(skill.name)
+    }
+  }
+}
+
 function checkEnvNameUniqueness(doc: HarnessDocument, errors: string[]): void {
   const entries = doc.env ?? []
   const seen = new Set<string>()
@@ -87,13 +99,15 @@ function checkEnvNameUniqueness(doc: HarnessDocument, errors: string[]): void {
  * These are cross-field constraints that JSON Schema can't express:
  * 1. ${VAR_NAME} references in mcp-servers must have matching env[] declarations
  * 2. plugins[].name must be unique
- * 3. env[].name must be unique
+ * 3. skills[].name must be unique
+ * 4. env[].name must be unique
  */
 export function validateSemantics(doc: HarnessDocument): SemanticValidationResult {
   const errors: string[] = []
 
   checkVarReferences(doc, errors)
   checkPluginNameUniqueness(doc, errors)
+  checkSkillNameUniqueness(doc, errors)
   checkEnvNameUniqueness(doc, errors)
 
   return { valid: errors.length === 0, errors }

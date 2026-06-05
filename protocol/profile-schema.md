@@ -204,13 +204,15 @@ plugins:
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | `name` | string | Yes | — | Lowercase kebab-case identifier. Max 64 characters. Pattern `^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$`. Should match the skill's `SKILL.md` frontmatter `name`. |
-| `source` | string | Yes | — | `owner/repo`, `owner/repo/path/to/skill`, or `./local/path`. See [Source Resolution](./source-resolution.md). |
+| `source` | string | Yes¹ | — | `owner/repo`, `owner/repo/path/to/skill`, or `./local/path`. See [Source Resolution](./source-resolution.md). |
 | `version` | string | No | latest | Semver range constraint for `owner/repo` sources. Ignored for local-path sources. |
 | `description` | string | No | — | Display override for this skill in this profile's context. |
 | `enabled` | boolean | No | `true` | When `false`, the skill is declared but not activated — used to disable a skill inherited from a parent profile. |
 | `loading` | enum | No | `deferred` | When the skill's full content is loaded. See [Loading Mode](#skill-loading-mode). |
 | `integrity` | object | No | — | Content verification. |
 | `integrity.sha256` | string | No | — | SHA-256 hash of the skill archive. Hex-encoded, lowercase. 64 characters. |
+
+¹ `source` is required for any skill that is being declared. It is **optional** when the entry only suppresses an inherited skill via `enabled: false` — in that case `name` alone identifies the skill to suppress. The JSON Schema enforces this conditionally.
 
 ### Skill Loading Mode
 
@@ -232,7 +234,7 @@ Note that this default is the inverse of `plugins`, which default to `eager`. Sk
 
 ### Resolution Relative to Plugins
 
-A skill bundled by a plugin and a skill declared in `skills` are both registered for the session. If a directly-declared skill and a plugin-bundled skill share a `name`, the directly-declared `skills` entry wins — the harness author's explicit declaration is more specific than a transitive plugin payload.
+A skill bundled by a plugin and a skill declared in `skills` are both registered for the session. If a directly-declared skill and a plugin-bundled skill share a `name`, the directly-declared `skills` entry wins — the harness author's explicit declaration is more specific than a transitive plugin payload. A directly-declared entry with `enabled: false` therefore suppresses both an inherited `skills` entry and a plugin-bundled skill of the same name.
 
 ### Inheritance (via `extends`)
 
@@ -653,6 +655,8 @@ permissions:
 ### Enforcement
 
 A `policy` is applied after `extends` resolution produces a candidate effective configuration (see [Application](./application.md)). A violation — a server/plugin/skill source outside the allowlist or matched by the denylist, a permission grant exceeding a ceiling, or a missing integrity hash when `require-integrity` is `true` — is a **validation error**. The harness is not applied; there is no partial application and no silent stripping of violating entries.
+
+Constraints within `policy.plugins` are **conjunctive**: when both `allowed-sources` and `allowed-marketplaces` are present, a plugin must satisfy both — its `source` must match an allowed source *and* it must be fetched from an allowed marketplace.
 
 ### Inheritance
 

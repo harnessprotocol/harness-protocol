@@ -57,6 +57,7 @@ The parsed document is validated in two passes:
 
 - Every `${VAR_NAME}` reference in `mcp-servers` MUST have a corresponding entry in the top-level `env` array.
 - `plugins[].name` values MUST be unique within the array.
+- `skills[].name` values MUST be unique within the array.
 - `env[].name` values MUST be unique within the array.
 
 Semantic validation failure is a **fatal error**.
@@ -98,7 +99,7 @@ If any `policy` section is present in the resolution set, the accumulated policy
 
 The following are **fatal errors** (the harness is not applied):
 
-- An `mcp-servers`, `plugins`, or `skills` entry whose `source`/host is not permitted by the relevant `policy` allowlist, or is matched by a denylist.
+- An `mcp-servers`, `plugins`, or `skills` entry whose `source` is not permitted by the relevant `policy` allowlist, or is matched by a denylist. Allow/deny patterns match on the entry's `source` (and, for remote MCP servers, MAY additionally match the URL host). An entry that declares no `source` matches no `source` pattern: when an `allowed-sources` list is present it is therefore rejected (fail closed). Organizations that allow-list sources SHOULD require declarations to carry a `source`.
 - A `permissions.tools.allow` or `permissions.network.allowed-hosts` entry that exceeds the corresponding policy ceiling. Policy `permissions.tools.deny` is unioned into the effective deny set.
 - A plugin, skill, or **stdio** MCP server lacking a verifiable integrity hash when `policy.require-integrity` is `true`. Remote MCP servers (`streamable-http`/`sse`/`ws`) have no fetched package and are exempt — they are verified via TLS and registry/identity, not a hash.
 

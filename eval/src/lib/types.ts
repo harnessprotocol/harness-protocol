@@ -33,7 +33,7 @@ export interface Plugin {
 
 export interface Skill {
   name: string;
-  source: string;
+  source?: string;
   version?: string;
   description?: string;
   enabled?: boolean;

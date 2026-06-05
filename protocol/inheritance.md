@@ -184,6 +184,8 @@ The effective `allowed-hosts` is the union of all ancestors' lists. A child can 
 
 This inverts the normal child-override relationship on purpose: a child cannot relax a policy a parent established. If `policy` merged child-wins like other sections, a child could re-declare a laxer policy and escape the ceiling, which would make the managed layer unenforceable.
 
+**Only declared lists participate.** A layer that does not declare a given allowlist or ceiling imposes no restriction from that layer — exactly as with `permissions.tools.allow`. A child that omits `policy.mcp-servers.allowed-sources` inherits the parent's allowlist unchanged; it does not reset it to "allow everything." The intersection is taken only across layers that actually declare the list. A consequence worth noting: because allowlists intersect, two layers with disjoint allowlists (parent `["acme/*"]`, child `["other/*"]`) leave nothing permitted. This is intentional — a child cannot add an allowance the parent did not grant — but it means a child should *narrow within* the parent's set, not introduce unrelated patterns.
+
 The accumulated policy is then enforced against the merged effective configuration during [Application Step 5: Enforce Policy](./application.md#step-5-enforce-policy). A violation is a fatal error; the harness is not applied. A resolution set with no `policy` section imposes no constraints — the behavior before this section existed.
 
 Because constraints only tighten, a managed root profile (one that declares a `policy` and is extended by team and individual profiles) remains authoritative no matter how deep or wide the `extends` graph beneath it is. This is how the protocol expresses the managed → project → personal precedence that team deployments rely on.

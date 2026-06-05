@@ -47,6 +47,12 @@ describe('Schema — skills section (HEP-4)', () => {
       expect(result.valid, result.errors.join('\n')).toBe(true)
     })
 
+    it('enabled: false suppression WITHOUT source passes (name alone identifies the skill)', () => {
+      const doc = profile({ skills: [{ name: 'pdf-forms', enabled: false }] })
+      const result = validateHarness(doc)
+      expect(result.valid, result.errors.join('\n')).toBe(true)
+    })
+
     it('empty skills array passes', () => {
       const doc = profile({ skills: [] })
       const result = validateHarness(doc)
@@ -55,8 +61,13 @@ describe('Schema — skills section (HEP-4)', () => {
   })
 
   describe('invalid', () => {
-    it('missing required source fails', () => {
+    it('missing required source fails (no enabled flag)', () => {
       const doc = profile({ skills: [{ name: 'pdf-forms' }] })
+      expect(validateHarness(doc).valid).toBe(false)
+    })
+
+    it('enabled: true without source fails (declaration requires source)', () => {
+      const doc = profile({ skills: [{ name: 'pdf-forms', enabled: true }] })
       expect(validateHarness(doc).valid).toBe(false)
     })
 
