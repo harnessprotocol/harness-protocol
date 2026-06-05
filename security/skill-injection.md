@@ -146,6 +146,15 @@ Registries and marketplaces that distribute skills SHOULD apply review criteria 
 
 These are not absolute disqualifiers — there may be edge cases where such language is legitimate. But they are grounds for human review before a skill is listed in a public registry.
 
+### 4. Provenance and Integrity Pinning
+
+A skill declared directly in the top-level `skills` section (see [Profile Schema: skills](../protocol/profile-schema.md#skills)) carries optional `source`, `version`, and `integrity.sha256` fields. These do not detect behavioral injection — a hash verifies that the skill content is unchanged, not that the content is benign — but they bound the threat in two ways:
+
+- **Pinning content.** With `integrity.sha256`, a skill an author reviewed cannot be silently replaced by a tampered version after installation. This directly addresses the residual risk that "skill content can change after installation" (below).
+- **Mandatory verification.** An organization can set `policy.require-integrity: true` to reject any skill without a verifiable hash, and `policy.skills.allowed-sources` / `denied-sources` to restrict which sources a skill may come from at all. See [Integrity](integrity.md#mandatory-integrity-via-policy) and [Team governance (HEP-6)](../heps/hep-0006-governance-layer.md).
+
+Installation review (mitigation 1) remains the only defense against the *content* of a skill being adversarial; provenance pinning defends against the content *changing* and restricts *where skills may originate*.
+
 ---
 
 ## What v1 Mitigations Do NOT Provide

@@ -18,11 +18,13 @@ metadata:
   description: "..."
 
 plugins: [...]
+skills: [...]
 architectural-constraints: { ... }
 mcp-servers: { ... }
 env: [...]
 instructions: { ... }
 permissions: { ... }
+policy: { ... }
 extends: [...]
 ```
 
@@ -193,6 +195,67 @@ plugins:
 
 ---
 
+## `skills`
+
+`skills` is an array of skill declarations. A **skill** is a portable, named capability — a directory containing a `SKILL.md` file and optional supporting resources — that an agent loads on demand. Skills may be bundled by a plugin or declared directly here; this section lets a harness declare a skill without authoring or depending on a full plugin. See [HEP-4](../heps/hep-0004-skills.md).
+
+### Skill Entry Fields
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `name` | string | Yes | — | Lowercase kebab-case identifier. Max 64 characters. Pattern `^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$`. Should match the skill's `SKILL.md` frontmatter `name`. |
+| `source` | string | Yes | — | `owner/repo`, `owner/repo/path/to/skill`, or `./local/path`. See [Source Resolution](./source-resolution.md). |
+| `version` | string | No | latest | Semver range constraint for `owner/repo` sources. Ignored for local-path sources. |
+| `description` | string | No | — | Display override for this skill in this profile's context. |
+| `enabled` | boolean | No | `true` | When `false`, the skill is declared but not activated — used to disable a skill inherited from a parent profile. |
+| `loading` | enum | No | `deferred` | When the skill's full content is loaded. See [Loading Mode](#skill-loading-mode). |
+| `integrity` | object | No | — | Content verification. |
+| `integrity.sha256` | string | No | — | SHA-256 hash of the skill archive. Hex-encoded, lowercase. 64 characters. |
+
+### Skill Loading Mode
+
+A skill is progressive-disclosure by construction: only its `name` and `description` are needed at session start, with the body loaded on demand. The `loading` field controls this.
+
+| Value | Behavior |
+|-------|----------|
+| `deferred` (default) | Only the skill's metadata (name, description) is loaded at session start; the body is loaded on first invocation. This is the default — it keeps initial context small. |
+| `eager` | The full skill is loaded at session start. |
+
+Note that this default is the inverse of `plugins`, which default to `eager`. Skills default to `deferred` because the format is designed for on-demand loading.
+
+### Constraints
+
+- `name` MUST match the kebab-case pattern and be unique within the `skills` array.
+- `source` MUST resolve via the [Source Resolution](./source-resolution.md) algorithm.
+- `integrity.sha256`, if present, MUST be a 64-character lowercase hex string. If declared, implementations MUST verify the resolved skill archive against it before loading; a mismatch is a fatal error.
+- A skill is third-party content. Implementations MUST apply the installation-review requirements in [Skill Behavioral Injection](../security/skill-injection.md) regardless of how the skill is declared.
+
+### Resolution Relative to Plugins
+
+A skill bundled by a plugin and a skill declared in `skills` are both registered for the session. If a directly-declared skill and a plugin-bundled skill share a `name`, the directly-declared `skills` entry wins — the harness author's explicit declaration is more specific than a transitive plugin payload.
+
+### Inheritance (via `extends`)
+
+The `skills` array is **unioned** by `name`, following the same rule as `mcp-servers`: the child's full entry replaces a parent's entry with the same `name`; new names from parent and child are both retained. A child sets `enabled: false` to suppress an inherited skill.
+
+### Example
+
+```yaml
+skills:
+  - name: pdf-forms
+    source: harnessprotocol/skills/pdf-forms
+    version: ">=1.0.0"
+    description: "Fill and extract PDF form fields."
+    integrity:
+      sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+
+  - name: house-style
+    source: ./skills/house-style
+    loading: eager
+```
+
+---
+
 ## `architectural-constraints`
 
 `architectural-constraints` is an optional object that declares the structural rules, linters, and review policies enforced by this harness. It separates deterministic enforcement (linters, structural tests) from probabilistic review (LLM-based) — combining both creates defense-in-depth for AI-generated code.
@@ -322,18 +385,26 @@ architectural-constraints:
 | `command` | string | Yes | Executable to run (e.g., `uvx`, `npx`, `node`). |
 | `args` | array of strings | No | Arguments to pass to the command. |
 | `env` | object | No | Environment variable map passed to the process. Values may reference harness env declarations via `${VAR_NAME}` syntax. |
+| `source` | string | No | Provenance identifier: a registry identity in reverse-DNS form (e.g., `io.github.owner/server`) or `owner/repo`. Records where the server originates. Does not change how `command` is invoked. |
+| `version` | string | No | Version or semver range for the server package, complementing any version pinned in `args`. |
+| `integrity` | object | No | Content verification for the server package. |
+| `integrity.sha256` | string | No | SHA-256 of the server package archive. Hex-encoded, lowercase, 64 characters. |
 
-### Transport: http
+### Transport: streamable-http (and `http` alias)
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `transport` | string | Yes | Must be `"http"`. |
+| `transport` | string | Yes | `"streamable-http"` (canonical) or `"http"` (accepted alias — treated identically). |
 | `url` | string (URI) | Yes | HTTP(S) URL of the MCP server endpoint. |
 | `headers` | object | No | HTTP headers to include in requests. Values may reference harness env declarations via `${VAR_NAME}` syntax. |
+| `source` | string | No | Provenance identifier (reverse-DNS registry identity or `owner/repo`). |
+| `version` | string | No | Version or semver range identifying the remote server build. |
+
+`streamable-http` is the canonical remote transport and is RECOMMENDED for all remote servers. `http` is retained as an accepted alias and MUST be treated identically.
 
 ### Transport: sse and ws
 
-The `sse` (Server-Sent Events) and `ws` (WebSocket) transports share the same field structure as `http` (`transport`, `url`, `headers`). Use `sse` for legacy MCP SSE servers; use `ws` for WebSocket-based servers. See [MCP Declarations](./mcp-declarations.md) for full details and security considerations for all network transports.
+The `sse` (Server-Sent Events) and `ws` (WebSocket) transports share the same network field structure (`transport`, `url`, `headers`, plus optional `source`/`version`). `sse` is the **legacy** transport, deprecated for new servers and retained for compatibility; implementations MAY warn when it is declared. `ws` is **non-standard and implementation-specific** — not part of the recommended set, but retained for forward compatibility. New servers SHOULD use `streamable-http`. See [MCP Declarations](./mcp-declarations.md) for full details, transport guidance, and security considerations for all network transports.
 
 ### Environment Variable References
 
@@ -358,10 +429,13 @@ mcp-servers:
       - "${DB_CONNECTION_STRING}"
     env:
       PGAPPNAME: my-harness
+    source: "io.github.example/postgres"
+    version: "1.4.2"
 
   data-api:
-    transport: http
+    transport: streamable-http
     url: "https://api.example.com/mcp"
+    source: "io.github.example/data-api"
     headers:
       Authorization: "Bearer ${DATA_API_TOKEN}"
       X-Client-Version: "1.0"
@@ -436,7 +510,7 @@ env:
 
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `operational` | string or null | No | — | Instructions for how to work: build commands, architecture, gotchas. Maps to `CLAUDE.md` (Claude Code) or the equivalent operational context file in other implementations. Value is inline text, a `file://` path, or an `https://` URL. |
+| `operational` | string or null | No | — | Instructions for how to work: build commands, architecture, gotchas. Maps to `AGENTS.md` — the cross-tool instruction file read natively by most implementations — and to `CLAUDE.md` (Claude Code) or the equivalent operational context file. Value is inline text, a `file://` path, or an `https://` URL. |
 | `behavioral` | string or null | No | — | Instructions for how to behave: tone, autonomy level, workflow conventions. Maps to `AGENT.md` (Claude Code) or the equivalent behavioral instructions file. Same value formats. |
 | `identity` | string or null | No | — | Identity context for the agent. Maps to `SOUL.md` (Claude Code) or the equivalent identity context file. Same value formats. Set to `null` to explicitly declare no identity instructions. |
 | `import-mode` | enum | No | `merge` | How child instructions combine with parent instructions. Values: `merge`, `replace`, `skip`. |
@@ -556,6 +630,57 @@ permissions:
 
 ---
 
+## `policy`
+
+`policy` is an optional object expressing organization or team governance constraints. Unlike every other section, a `policy` is a **ceiling**: it constrains what extending or consuming profiles may grant, and downstream profiles may narrow it but never widen it. A document with no `policy` section imposes no managed constraints — exactly the behavior of v1 before this section existed. The protocol declares intent and specifies what implementations MUST reject at apply time; the runtime enforcement boundary remains the implementation's. See [HEP-6](../heps/hep-0006-governance-layer.md) and [Inheritance](./inheritance.md) for precedence semantics.
+
+### Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `mcp-servers.allowed-sources` | array of strings | Allowlist of MCP server source/host patterns. A declared server matching none is rejected. |
+| `mcp-servers.denied-sources` | array of strings | Denylist of MCP server source/host patterns. Deny overrides allow. |
+| `plugins.allowed-sources` | array of strings | Allowlist of plugin `owner/repo` patterns. |
+| `plugins.denied-sources` | array of strings | Denylist of plugin patterns. Deny overrides allow. |
+| `plugins.allowed-marketplaces` | array of strings | Allowlist of marketplaces/registries plugins may be fetched from. |
+| `skills.allowed-sources` | array of strings | Allowlist of skill source patterns. |
+| `skills.denied-sources` | array of strings | Denylist of skill source patterns. Deny overrides allow. |
+| `permissions.tools.allow` | array of strings | Ceiling: the maximum set of tools any profile may grant. A grant matching none of these is a violation. |
+| `permissions.tools.deny` | array of strings | Tools always denied regardless of any grant. |
+| `permissions.network.allowed-hosts` | array of strings | Ceiling: the maximum set of network hosts any profile may allow. |
+| `require-integrity` | boolean (default `false`) | When `true`, every plugin, skill, and MCP server package MUST carry a verifiable integrity hash; declarations without one are rejected. |
+
+### Enforcement
+
+A `policy` is applied after `extends` resolution produces a candidate effective configuration (see [Application](./application.md)). A violation — a server/plugin/skill source outside the allowlist or matched by the denylist, a permission grant exceeding a ceiling, or a missing integrity hash when `require-integrity` is `true` — is a **validation error**. The harness is not applied; there is no partial application and no silent stripping of violating entries.
+
+### Inheritance
+
+`policy` does not merge like other sections. The effective policy is the accumulation of all `policy` sections in the resolution set: allowlists intersect, denylists union, permission ceilings intersect, and `require-integrity` is `true` if any layer sets it. A child can only make a policy stricter, never laxer.
+
+### Example
+
+```yaml
+policy:
+  mcp-servers:
+    allowed-sources: ["io.github.acme/*", "io.modelcontextprotocol/*"]
+    denied-sources: ["*/experimental-*"]
+  plugins:
+    allowed-sources: ["acme/*"]
+    allowed-marketplaces: ["acme/internal-marketplace"]
+  skills:
+    allowed-sources: ["acme/*", "harnessprotocol/skills/*"]
+  permissions:
+    tools:
+      allow: [Read, Grep, Glob, Edit, Write, Bash, "mcp__*"]
+      deny: ["mcp__*__drop_*", "mcp__*__delete_*"]
+    network:
+      allowed-hosts: ["*.acme.internal", "api.anthropic.com"]
+  require-integrity: true
+```
+
+---
+
 ## `extends`
 
 `extends` is an ordered array of parent harness references. The current document is the child. Parents are resolved and applied before the child's fields are merged on top. See [Source Resolution](./source-resolution.md) for how `source` fields are resolved.
@@ -581,6 +706,7 @@ For a harness with `extends: [A, B]`:
 | Section | Merge behavior |
 |---------|----------------|
 | `plugins` | Union by `name`. Child/later wins on conflict. |
+| `skills` | Union by `name`. Child/later wins on conflict. `enabled: false` suppresses an inherited skill. |
 | `mcp-servers` | Union by server name. Child/later wins on conflict (full object, not field-level). |
 | `env` | Union by `name`. Child/later wins on conflict. |
 | `instructions` | Governed by `import-mode` (child's setting). |
@@ -589,6 +715,7 @@ For a harness with `extends: [A, B]`:
 | `permissions.tools.ask` | Union (any ancestor's ask propagates). |
 | `permissions.paths` | Union (additive only). |
 | `permissions.network` | Union (additive only). |
+| `policy` | Does **not** merge like other sections — it accumulates as a ceiling (allowlists intersect, denylists union, permission ceilings intersect, `require-integrity` monotonic). A child can only tighten it. See [`policy`](#policy). |
 | `metadata` | Child's metadata is used as-is; parent metadata is not merged. |
 | `kind` | Child's kind is used. |
 

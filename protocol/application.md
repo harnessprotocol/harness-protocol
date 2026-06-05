@@ -24,10 +24,12 @@ A conformant effective configuration MUST contain:
 |-------|------|-------------|
 | `metadata` | object (optional) | The child's metadata, if present. Parent metadata is not inherited. |
 | `plugins` | array | Unioned plugin set after inheritance resolution. |
+| `skills` | array | Unioned skill set after inheritance resolution (disabled skills excluded). |
 | `mcp-servers` | map | Unioned MCP server declarations after inheritance resolution, with all `${VAR_NAME}` references substituted. |
 | `env` | array | Unioned environment declarations after inheritance resolution. |
 | `instructions` | object | Merged/replaced/skipped instruction content per `import-mode`. |
 | `permissions` | object | Permission boundaries after inheritance resolution (intersection for allow, union for deny/ask/paths/network). |
+| `policy` | object (optional) | The accumulated governance ceiling, present if any `policy` section appears in the resolution set. Enforced against the configuration; a violation prevents application. |
 
 The effective configuration is a snapshot: it represents the harness's complete state at application time. Changes to parent harnesses, environment variables, or plugin sources after application do not retroactively alter an active session's effective configuration.
 
@@ -35,7 +37,7 @@ The effective configuration is a snapshot: it represents the harness's complete 
 
 ## Application Pipeline
 
-The application pipeline has six steps. Each step either succeeds and passes its result to the next step, or fails and halts the pipeline. There is no partial application.
+The application pipeline has seven steps. Each step either succeeds and passes its result to the next step, or fails and halts the pipeline. There is no partial application.
 
 ### Step 1: Parse
 
@@ -76,6 +78,7 @@ For the complete source resolution algorithm, see [Source Resolution](./source-r
 Apply section-specific merge rules to produce the pre-substitution effective configuration:
 
 - `plugins`: Union by name; child/later wins on conflict.
+- `skills`: Union by name; child/later wins on conflict.
 - `mcp-servers`: Union by server name; child/later wins (full object replacement).
 - `env`: Union by name; child/later wins.
 - `instructions`: Governed by child's `import-mode`.
@@ -84,11 +87,24 @@ Apply section-specific merge rules to produce the pre-substitution effective con
 - `permissions.tools.ask`: Union (any ask propagates).
 - `permissions.paths`: Union (additive).
 - `permissions.network`: Union (additive).
+- `policy`: Accumulated as a ceiling, not merged like other sections — allowlists intersect, denylists union, permission ceilings intersect, `require-integrity` is monotonic. See Step 5.
 - `metadata`: Child's metadata only; parent metadata is discarded.
 
 For the complete merge rule specification, see [Inheritance](./inheritance.md).
 
-### Step 5: Substitute Variables
+### Step 5: Enforce Policy
+
+If any `policy` section is present in the resolution set, the accumulated policy (computed per the `policy` merge rule above) is enforced against the candidate effective configuration produced by Step 4. This step is pure validation — it produces no side effects.
+
+The following are **fatal errors** (the harness is not applied):
+
+- An `mcp-servers`, `plugins`, or `skills` entry whose `source`/host is not permitted by the relevant `policy` allowlist, or is matched by a denylist.
+- A `permissions.tools.allow` or `permissions.network.allowed-hosts` entry that exceeds the corresponding policy ceiling. Policy `permissions.tools.deny` is unioned into the effective deny set.
+- A plugin, skill, or MCP server package lacking a verifiable integrity hash when `policy.require-integrity` is `true`.
+
+A policy violation MUST be surfaced as a clear error. Implementations MUST NOT silently strip violating entries and apply a degraded configuration. A document with no `policy` in its resolution set skips this step entirely (the v1 behavior before this step existed). See [Profile Schema: policy](./profile-schema.md#policy) and [Inheritance](./inheritance.md).
+
+### Step 6: Substitute Variables
 
 Resolve `${VAR_NAME}` references from the runtime environment.
 
@@ -97,7 +113,7 @@ Resolve `${VAR_NAME}` references from the runtime environment.
 | Transport | Substituted fields |
 |-----------|-------------------|
 | stdio | `command`, `args` elements, `env` values |
-| http/sse/ws | `url`, `headers` values |
+| streamable-http/http/sse/ws | `url`, `headers` values |
 
 **NOT substituted:** `env` entry keys, server names (map keys), plugin names, `metadata` fields, `instructions` content, `permissions` patterns. These are structural identifiers, not runtime values.
 
@@ -110,9 +126,9 @@ Resolve `${VAR_NAME}` references from the runtime environment.
    - Otherwise → the variable is absent. The implementation MAY substitute an empty string or leave the reference unresolved, depending on context.
 3. The implementation MUST NOT log, display, or store the resolved values of variables declared `sensitive: true`.
 
-### Step 6: Apply
+### Step 7: Apply
 
-With the effective configuration fully resolved and all variables substituted:
+With the effective configuration fully resolved, policy-checked, and all variables substituted:
 
 1. **Start MCP servers** — Launch or connect to each declared MCP server using its transport configuration. Startup order is implementation-defined. All servers MUST be operational before the session is considered active.
    This includes both profile-level MCP servers declared in `mcp-servers` and plugin-bundled MCP servers declared in `plugin.json` → `mcp`. Plugin-bundled servers are started when their plugin is loaded.
@@ -141,6 +157,7 @@ A fatal error means the harness MUST NOT be applied. The implementation MUST hal
 | Source repository not found | Resolve |
 | Entry point missing (`plugin.json` or `harness.yaml`) | Resolve |
 | Integrity mismatch (`sha256` verification failure) | Resolve |
+| Policy violation (forbidden source, exceeded ceiling, missing integrity under `require-integrity`) | Enforce Policy |
 | Missing required environment variable | Substitute |
 | MCP server start failure | Apply |
 
@@ -170,11 +187,11 @@ An informational note means the harness was applied normally. Implementations MA
 
 The application pipeline follows a **validate-then-apply** model:
 
-1. **All validation MUST complete before any side effects.** Steps 1–4 (Parse, Validate, Resolve Sources, Merge) MUST succeed before Step 5 (Substitute) and Step 6 (Apply) begin. This means an implementation MUST NOT start MCP servers while still resolving extends chains.
+1. **All validation MUST complete before any side effects.** Steps 1–5 (Parse, Validate, Resolve Sources, Merge, Enforce Policy) MUST succeed before Step 6 (Substitute) and Step 7 (Apply) begin. This means an implementation MUST NOT start MCP servers while still resolving extends chains or checking policy.
 
 2. **No partial application on validation failure.** If any step in the pipeline produces a fatal error, the implementation MUST NOT apply any part of the harness. The user's environment MUST remain unchanged.
 
-3. **Post-validation failure cleanup.** If a fatal error occurs during Step 6 (e.g., an MCP server fails to start after others have already started), the implementation MUST stop all successfully started servers. Cleanup is best-effort — the implementation SHOULD attempt to stop all started servers but is not required to guarantee transactional rollback of all side effects.
+3. **Post-validation failure cleanup.** If a fatal error occurs during Step 7 (e.g., an MCP server fails to start after others have already started), the implementation MUST stop all successfully started servers. Cleanup is best-effort — the implementation SHOULD attempt to stop all started servers but is not required to guarantee transactional rollback of all side effects.
 
 4. **No transactional rollback.** The protocol does not require implementations to support full transactional rollback (e.g., undoing file writes or reverting environment changes). The validate-then-apply model is designed to minimize the need for rollback by catching most failures before side effects begin.
 
@@ -186,7 +203,7 @@ Variable substitution happens at two distinct points, with different semantics:
 
 **At validation time (Step 2):** The implementation checks that every `${VAR_NAME}` reference in `mcp-servers` has a corresponding entry in the `env[]` array. This is a structural check — it verifies that the variable is *declared*, not that it has a *value*. A harness can validate without a runtime environment.
 
-**At application time (Step 5):** The implementation resolves `${VAR_NAME}` references against the actual runtime environment. A harness that validated successfully can still fail to apply if required variables are unset in the runtime environment.
+**At application time (Step 6):** The implementation resolves `${VAR_NAME}` references against the actual runtime environment. A harness that validated successfully can still fail to apply if required variables are unset in the runtime environment.
 
 This two-phase design enables:
 
@@ -218,6 +235,7 @@ Both strategies MUST produce the same effective configuration for the same input
 | Enforce cross-field semantic constraints | MUST | Validate |
 | Detect circular `extends` chains | MUST | Resolve |
 | Verify `integrity.sha256` when declared | MUST | Resolve |
+| Enforce `policy` ceiling as fatal validation; never silently strip | MUST | Enforce Policy |
 | Complete all validation before side effects | MUST | Atomicity |
 | No partial application on validation failure | MUST | Atomicity |
 | Substitute `${VAR_NAME}` only in specified `mcp-servers` fields | MUST | Substitute |
