@@ -4,9 +4,9 @@ All notable changes to the Harness Protocol specification are documented here.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The Harness Protocol uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for specification versions.
 
-## [Unreleased]
+## [v1.0.0] — 2026-06-05
 
-Backward-compatible additions. Every change is an optional field or an additive enum value, so all existing `version: "1"` documents remain valid and the schema `$id` is unchanged.
+First stable release, promoting `v1.0.0-candidate` with the mid-2026 additions below. Backward-compatible: every change is an optional field or an additive enum value, so all existing `version: "1"` documents remain valid and the schema `$id` is unchanged. The `schema/draft/` schema is snapshotted to `schema/2026-06-05/` and published to `website/public/schema/v1/`.
 
 ### Added
 
