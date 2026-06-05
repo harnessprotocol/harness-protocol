@@ -4,6 +4,17 @@ All notable changes to the Harness Protocol specification are documented here.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The Harness Protocol uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html) for specification versions.
 
+## [Unreleased] — v2 (in progress)
+
+Work on the **v2 milestone** has begun. v2 is **additive**: it introduces two new protocol layers on top of the stable Schema layer and does **not** change `harness.yaml` — the `version` field stays `"1"` and the `harness.schema.json` `$id` (`/schema/v1/...`) is frozen. A fragment authored against v1 is Exchange-compatible without modification. New v2 schema artifacts are grouped under the `/schema/v2/` `$id` namespace.
+
+### Added (draft)
+
+- **Exchange layer:** the signed **offer envelope** (`exchange.schema.json`) and the consent-first `Offer → Preview → Accept / Edit / Reject → Apply` flow for peer-to-peer (1:1) fragment sharing — "AirDrop for harnesses." ed25519 sender identity; optional X25519 payload encryption. Normative draft in [protocol/exchange.md](protocol/exchange.md), specified by [HEP-7](heps/hep-0007-exchange-layer.md). *Status: Draft.*
+- **Registry layer:** hosted discovery at harnessprotocol.io — indexing of public `owner/repo` profiles/fragments/plugins, search, SHA-256 integrity hashing, and an append-only transparency log (`registry.schema.json`). GitHub stays authoritative; the registry is a discovery convenience, not a trust anchor. Normative draft in [protocol/registry.md](protocol/registry.md), specified by [HEP-8](heps/hep-0008-registry-layer.md). *Status: Draft.* Verified authors, curation, and minisign registry signing are deferred to v3.
+
+These layers are in **Draft** status under the HEP process and are not yet released. Schema mirrors under `website/public/schema/v2/` are published at release, not during draft.
+
 ## [v1.0.0] — 2026-06-05
 
 First stable release, promoting `v1.0.0-candidate` with the mid-2026 additions below. Backward-compatible: every change is an optional field or an additive enum value, so all existing `version: "1"` documents remain valid and the schema `$id` is unchanged. The `schema/draft/` schema is snapshotted to `schema/2026-06-05/` and published to `website/public/schema/v1/`.

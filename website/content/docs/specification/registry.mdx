@@ -1,0 +1,140 @@
+---
+title: Registry
+description: "(v2 draft) Hosted discovery — indexing, search, SHA-256 integrity hashing, namespace design, and the transparency log."
+---
+
+This document specifies the **Registry layer** of the Harness Protocol: hosted discovery for harness profiles, fragments, and plugins. The Registry is introduced in the v2 milestone and specified normatively by [HEP-8](https://github.com/harnessprotocol/harness-protocol/blob/main/heps/hep-0008-registry-layer.md). The JSON document shapes it produces (transparency-log entries, registration request/response) are validated by [`registry.schema.json`](https://github.com/harnessprotocol/harness-protocol/blob/main/schema/draft/registry.schema.json); the HTTP discovery API is specified here in prose.
+
+> **Status:** Draft (v2). Basic indexing, search, integrity hashing, and the transparency log are v2 scope; verified authors, curation, and minisign registry signing are v3. Normative language follows [BCP 14](https://www.rfc-editor.org/info/bcp14).
+
+---
+
+## What the Registry Is
+
+The Schema layer resolves fragments and profiles by `owner/repo` — a GitHub-native address that needs no extra infrastructure. The Registry adds **discovery**: it answers "what fragments exist for data-engineering workflows?" or "which postgres MCP fragment is most widely used?" It is an **index, not a source of truth**.
+
+Two invariants define it:
+
+- **GitHub stays authoritative.** Every indexed entry has a canonical GitHub location. The registry indexes and validates that content; it does not host it. If the registry disappears, all published content remains at its GitHub URL — there is no lock-in.
+- **The registry is a discovery convenience, not a trust anchor.** Users ultimately trust the GitHub source — the repository, its history, its author. The registry adds integrity hashing (verify that what you fetched matches what was indexed) and search; it does **not** certify that a profile is safe to use. A profile can have a valid hash and still contain malicious instructions.
+
+The Registry complements [Exchange](/docs/specification/exchange): Exchange is 1:1 push (no infrastructure), the Registry is 1:many pull (hosted discovery). A fragment received through Exchange can later be published to the Registry as a separate, explicit step.
+
+---
+
+## What the Registry Indexes
+
+The registry indexes three v1 content types, adding **no** `harness.yaml` fields:
+
+| Content type | `kind:` value | Indexed as |
+|--------------|---------------|------------|
+| Complete profile | `profile` | Profile entry |
+| Reusable fragment | `fragment` | Fragment entry |
+| Plugin manifest | n/a (`plugin.json`) | Plugin entry |
+
+Each entry is a specific version of a specific document at a specific GitHub location. For each, the registry stores: **location** (`owner`, `repo`, `ref`, `path` — default `harness.yaml` at repo root), **content hash** (SHA-256, hex), extracted **metadata** (`name`, `description`, `tags`, `author`, `license`), an **index timestamp**, **validation status** at index time, and the declared **schema version**. The registry stores the hash and location, not the document content; clients fetch from GitHub and verify against the hash.
+
+---
+
+## Registration
+
+Registration submits a public GitHub repository to the index. It is **not** an approval process — any valid `harness.yaml` in a public repo can be registered. The registry fetches the document at the given ref, validates it against the v1 JSON Schema, computes its SHA-256, extracts metadata, and adds an entry. Invalid documents are rejected with the validation errors.
+
+```http
+POST /api/v1/register
+Content-Type: application/json
+```
+
+Request body (validated as `registrationRequest`):
+
+```json
+{ "repo": "harnessprotocol/harness-kit", "ref": "v1.2.0", "path": "harness.yaml" }
+```
+
+Success response (validated as `registrationResponse`):
+
+```json
+{
+  "id": "harnessprotocol/harness-kit@v1.2.0",
+  "url": "https://harnessprotocol.io/profiles/harnessprotocol/harness-kit",
+  "sha256": "a3f1e2b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2",
+  "indexed-at": "2026-03-09T14:30:22Z"
+}
+```
+
+`ref` defaults to the repository default branch. Authors are strongly encouraged to register tags (`v1.2.0`) rather than branches: branch registrations point to mutable content. The registry MAY poll registered repositories and auto-index new semver tags (`v*.*.*`); authors may opt out per `owner/repo`. Non-semver tags and branch pushes do not trigger auto-indexing.
+
+---
+
+## Discovery API
+
+The discovery API is versioned under `/api/v1/`. These responses are HTTP payloads specified in prose (not in `registry.schema.json`).
+
+**Profile search** — `GET /api/v1/profiles?q=&tags=&author=&license=&limit=&offset=`. `q` is full-text over name/description/tags; `tags` is comma-separated exact-match with AND semantics; `limit` defaults to 20 (max 100). Returns a `results` array plus `total`/`limit`/`offset`:
+
+```json
+{
+  "results": [
+    {
+      "id": "harnessprotocol/harness-kit",
+      "latest-version": "1.2.0",
+      "metadata": { "name": "data-engineer", "description": "…", "tags": ["sql", "dbt"], "license": "Apache-2.0" },
+      "indexed-at": "2026-03-09T14:30:22Z",
+      "url": "https://harnessprotocol.io/profiles/harnessprotocol/harness-kit"
+    }
+  ],
+  "total": 1, "limit": 20, "offset": 0
+}
+```
+
+**Fragment search** (`GET /api/v1/fragments`) and **plugin search** (`GET /api/v1/plugins`) have identical semantics scoped to `kind: fragment` documents and `plugin.json` manifests respectively. **Profile metadata** (`GET /api/v1/profiles/{owner}/{repo}`) and **version list** (`.../versions`) return the indexed entry/entries with hashes. Results can be filtered by declared schema version (`?schema-version=1`) so a client that supports only v1 can exclude newer documents.
+
+**Integrity verification** — `GET /api/v1/verify?repo={owner/repo}&ref={ref}` returns the registry's stored SHA-256. A client fetches the document from GitHub, computes the SHA-256 locally, and compares. A mismatch means either the GitHub ref was altered after indexing (force-push, tag replacement) or the registry was tampered with.
+
+---
+
+## Namespace
+
+Profiles are addressed by `owner/repo` — the same namespace as GitHub. This means no registry-assigned IDs (so no squatting before a registry exists), the address already works in v1 `extends` entries, and it is human-verifiable (visit `github.com/owner/repo`). Multiple documents in one repo are addressed by `path` (e.g., `owner/repo/harness/go.yaml`); the default path is `harness.yaml` at the root. The registry stores the GitHub URL rather than assuming the address is permanent, and hashes document content rather than addresses, so a GitHub rename does not silently corrupt an entry.
+
+---
+
+## Transparency Log
+
+The registry maintains an **append-only** transparency log of every indexing event, published at `https://harnessprotocol.io/transparency-log` as NDJSON. Each line is a `transparencyLogEntry` validated by `registry.schema.json`.
+
+An `index` event:
+
+```json
+{"seq":1042,"timestamp":"2026-03-09T14:30:22Z","event":"index","id":"harnessprotocol/harness-kit@v1.2.0","sha256":"a3f1…e1f2","kind":"profile","schema-version":"1"}
+```
+
+A `delist` event (content is marked delisted, never silently removed):
+
+```json
+{"seq":1099,"timestamp":"2026-03-10T09:00:00Z","event":"delist","id":"bad-actor/malware-harness@v1.0.0","reason":"manifest-malicious-intent","detail":"Instructions designed to bypass security controls."}
+```
+
+The log serves three purposes: **auditability** (anyone can verify the index matches the log; an index entry absent from the log signals tampering), **first-seen timestamps** (provenance — "was this version published before or after the incident?"), and **delisting transparency** (removals are recorded with a reason, never silent). `seq` is gap-free and strictly increasing.
+
+---
+
+## Trust Model
+
+The trust chain runs: **user trusts the GitHub source → registry provides the hash → implementation verifies the fetched content matches → user reviews and confirms before applying.** The registry's hash guarantees "when this entry was created, the content hashed to this value" — not "this profile is safe." The registry can **delist** (remove from the search index) but cannot **alter** content at the GitHub source; delisting removes discoverability, not content, and is always logged with a reason.
+
+How the Registry's SHA-256 integrity relates to Exchange's ed25519 transit identity and the v3 minisign publisher-signing track is mapped in [crypto-map](/docs/security/crypto-map). The Registry threat model is in [Registry security](/docs/security/registry).
+
+---
+
+## Content Policy
+
+The content policy protects users of the index, not creative control over content. **Grounds for delisting** (v2): schema invalidity (the document no longer validates against its declared version); manifest malicious intent (content explicitly designed to harm — a human-review decision, not an automated flag); author request; binding legal requirement. **Not grounds for delisting**: a profile being opinionated/unusual; broad declared permissions (users consent at apply time); aggressive instructions (user-reviewed at apply time). The policy is published at `https://harnessprotocol.io/content-policy`; delisting appeals follow [GOVERNANCE.md](https://github.com/harnessprotocol/harness-protocol/blob/main/GOVERNANCE.md).
+
+---
+
+## Versioning and v2/v3 Boundary
+
+The discovery API is versioned under `/api/v1/`; breaking changes require `/api/v2/`, with the prior version available for at least 12 months. Additive changes (new optional query params or response fields) are not breaking.
+
+**v2 delivers:** basic indexing of submitted `owner/repo` repos, search by name/description/tags, SHA-256 integrity hashing, the transparency log, a public browse UI, and **no approval gate**. **v3 adds:** verified-author badges (signed proof of GitHub identity), curated collections, minisign-based registry signing (so clients verify registry integrity beyond TLS), semantic similarity search, download metrics, and a plugin-compatibility matrix. The boundary is placed to keep v2 shippable quickly — the core value ("search for fragments by purpose") arrives in v2; the trust-and-curation layer arrives in v3 when there is enough indexed content to make curation meaningful.

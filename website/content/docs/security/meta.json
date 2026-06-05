@@ -8,6 +8,9 @@
     "permissions",
     "integrity",
     "instruction-injection",
-    "skill-injection"
+    "skill-injection",
+    "exchange",
+    "registry",
+    "crypto-map"
   ]
 }

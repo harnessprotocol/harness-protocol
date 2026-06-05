@@ -10,6 +10,8 @@
     "inheritance",
     "application",
     "source-resolution",
-    "plugin-manifest"
+    "plugin-manifest",
+    "exchange",
+    "registry"
   ]
 }

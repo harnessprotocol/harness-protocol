@@ -86,6 +86,14 @@ Spec versions follow semantic versioning: `vMAJOR.MINOR.PATCH`.
 
 Protocol layer versions (Schema v1, Exchange v2, etc.) are tracked separately from the overall spec version.
 
+**Layer versions vs. milestone versions vs. document-format versions.** Three distinct version numbers coexist and must not be conflated:
+
+- A **milestone** (v1, v2, …) is a release that introduces or advances one or more layers. "v2" is the milestone that introduces the Exchange and Registry layers. New schema artifacts for a milestone are grouped under a `$id` path namespace — `/schema/v1/…`, `/schema/v2/…` — and a published `$id` is immutable once shipped.
+- A **layer** is versioned by its own normative format, independently of the milestone. The Exchange offer-envelope carries its own `version` field (starting at `"1"`); the Registry exposes a versioned HTTP API (`/api/v1/`).
+- A **document-format** version is the `version` field inside a document. The `harness.yaml` `version: "1"` is **not** changed by the v2 milestone — Exchange and Registry are additive and add no `harness.yaml` fields. A document declaring `version: "1"` remains valid across milestones until a future MAJOR bump explicitly says otherwise.
+
+The practical rule: introducing a new layer is a new milestone with new `$id`-namespaced schemas, not a breaking change to an existing document format.
+
 ### Release Process
 
 1. Maintainers agree that the spec is ready for a release.

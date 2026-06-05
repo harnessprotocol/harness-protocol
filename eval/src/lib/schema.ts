@@ -23,9 +23,17 @@ const harnessSchema = JSON.parse(
 const pluginSchema = JSON.parse(
   readFileSync(join(schemaDir, 'plugin.schema.json'), 'utf-8')
 );
+const exchangeSchema = JSON.parse(
+  readFileSync(join(schemaDir, 'exchange.schema.json'), 'utf-8')
+);
+const registrySchema = JSON.parse(
+  readFileSync(join(schemaDir, 'registry.schema.json'), 'utf-8')
+);
 
 const validateHarnessCompiled = ajv.compile(harnessSchema);
 const validatePluginCompiled = ajv.compile(pluginSchema);
+const validateExchangeCompiled = ajv.compile(exchangeSchema);
+const validateRegistryCompiled = ajv.compile(registrySchema);
 
 export interface ValidationResult {
   valid: boolean;
@@ -47,6 +55,34 @@ export function validatePlugin(doc: unknown): ValidationResult {
   return {
     valid,
     errors: valid ? [] : (validatePluginCompiled.errors ?? []).map(
+      (e: ErrorObject) => `${e.instancePath} ${e.message}`
+    ),
+  };
+}
+
+// Validates an Exchange-layer offer envelope against exchange.schema.json.
+// The envelope's wrapped fragment is opaque to this schema — callers that
+// need to confirm the fragment is itself well-formed validate it separately
+// with validateHarness (the spec requires both checks before apply).
+export function validateExchange(doc: unknown): ValidationResult {
+  const valid = validateExchangeCompiled(doc);
+  return {
+    valid,
+    errors: valid ? [] : (validateExchangeCompiled.errors ?? []).map(
+      (e: ErrorObject) => `${e.instancePath} ${e.message}`
+    ),
+  };
+}
+
+// Validates a Registry-layer document — a transparency-log entry (index or
+// delist event) or a registration request/response body — against
+// registry.schema.json. The document is valid if it matches exactly one of
+// those shapes.
+export function validateRegistry(doc: unknown): ValidationResult {
+  const valid = validateRegistryCompiled(doc);
+  return {
+    valid,
+    errors: valid ? [] : (validateRegistryCompiled.errors ?? []).map(
       (e: ErrorObject) => `${e.instancePath} ${e.message}`
     ),
   };
