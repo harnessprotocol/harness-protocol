@@ -12,15 +12,18 @@ pnpm test
 
 ## What's Tested
 
-**216 tests** across 10 test files validating 46+ testable claims from the spec.
+**248 tests** across 14 test files validating the testable claims from the spec.
 
-### Schema Conformance (55 tests)
+### Schema Conformance (81 tests)
 
 Validates `harness.schema.json` and `plugin.schema.json` using Ajv 2020-12.
 
 - **Positive** (`harness-valid.test.ts`) — All 5 example files pass, plus edge cases: fragments, empty collections, all 4 transport types, extension fields, import-modes, boundary values.
 - **Negative** (`harness-invalid.test.ts`) — Every constraint that should reject: version format, metadata patterns, source format, env naming, integrity hashes, tags limits, sensitive+default interaction, transport requirements, unknown fields.
 - **Plugin** (`plugin-schema.test.ts`) — Plugin manifest validation: required fields, version format, name pattern.
+- **Skills** (`skills.test.ts`) — First-class `skills` section (HEP-4): required fields, name pattern, loading enum, integrity hash, `additionalProperties`.
+- **MCP modernization** (`mcp-modernization.test.ts`) — `streamable-http` transport, `http` alias, legacy `sse`, server `source`/`version`/`integrity` provenance, integrity rejected on remote transports (HEP-5).
+- **Policy** (`policy.test.ts`) — Governance `policy` section (HEP-6): allow/deny source lists, permission ceilings, `require-integrity`, structural rejections.
 
 ### Semantic Validation (11 tests)
 
@@ -30,13 +33,14 @@ Cross-field constraints that JSON Schema can't express (`semantic.ts`):
 - `plugins[].name` must be unique
 - `env[].name` must be unique
 
-### Inheritance Resolution (53 tests)
+### Inheritance Resolution (58 tests)
 
-Reference implementation of all 12 merge rules from `protocol/inheritance.md` (`resolver.ts`):
+Reference implementation of the merge rules from `protocol/inheritance.md` (`resolver.ts`):
 
 | Section | Rule |
 |---------|------|
 | `plugins` | Union by name; child wins |
+| `skills` | Union by name; child wins (`enabled: false` suppresses) |
 | `mcp-servers` | Union by name; full object replacement |
 | `env` | Union by name; child wins |
 | `instructions` | Governed by `import-mode` (merge/replace/skip) |

@@ -9,6 +9,7 @@ import type { EffectiveConfiguration } from '../../lib/types.js'
 function makeConfig(overrides: Partial<EffectiveConfiguration> = {}): EffectiveConfiguration {
   return {
     plugins: [],
+    skills: [],
     'mcp-servers': {},
     env: [],
     instructions: {

@@ -9,6 +9,7 @@ import type { EffectiveConfiguration } from '../../lib/types.js'
 function makeConfig(overrides: Partial<EffectiveConfiguration> = {}): EffectiveConfiguration {
   return {
     plugins: [],
+    skills: [],
     'mcp-servers': {},
     env: [],
     instructions: {
@@ -333,6 +334,7 @@ describe('full pipeline', () => {
     const config: EffectiveConfiguration = {
       metadata: { name: 'data-engineer', description: 'Full stack data engineering harness' },
       plugins: [{ name: 'lineage', source: 'org/lineage', version: '1.0.0' }],
+      skills: [],
       'mcp-servers': {
         postgres: {
           transport: 'stdio',
