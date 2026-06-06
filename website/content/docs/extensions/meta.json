@@ -3,10 +3,10 @@
   "pages": [
     "index",
     "extension-points",
+    "exchange",
+    "registry",
     "---v2 Design Sketches (pre-HEP)---",
     "hooks",
-    "exchange",
-    "compiler-targets",
-    "registry"
+    "compiler-targets"
   ]
 }

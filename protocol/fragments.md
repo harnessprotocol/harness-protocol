@@ -145,17 +145,14 @@ A fragment may itself use `extends` to compose from other fragments. The full in
 
 ---
 
-## Relationship to the v2 Exchange Layer
+## Relationship to the v2 Exchange and Registry Layers
 
-*Non-normative:* Fragments are the foundational concept for the v2 Exchange layer. The Exchange layer will define a transport protocol (push/pull commands) and tooling for sharing fragments between developers, teams, and the public registry — an "AirDrop for harnesses."
+*Non-normative:* Fragments are the foundational unit for the v2 layers, which build on them in complementary ways:
 
-In v2, a developer will be able to:
+- **[Exchange](./exchange.md)** — peer-to-peer (1:1) sharing of a fragment through a signed, consent-first offer flow ("AirDrop for harnesses"). See [HEP-7](../heps/hep-0007-exchange-layer.md).
+- **[Registry](./registry.md)** — hosted, one-to-many discovery: publish a fragment to a public index, then search and fetch it by purpose at `harnessprotocol.io`. See [HEP-8](../heps/hep-0008-registry-layer.md).
 
-- `harness fragment publish my-org/postgres-mcp` — publish a fragment to the registry.
-- `harness fragment pull my-org/postgres-mcp@^1.0.0` — fetch a fragment and add it to their profile.
-- Browse and search published fragments at `harnessprotocol.io`.
-
-The v1 fragment format is designed to require no changes when v2 ships. A fragment authored today will be directly publishable to the v2 registry. The schema is stable; v2 adds the transport, not new document concepts.
+The v1 fragment format is designed to require no changes when these ship: a fragment authored today is Exchange-compatible and Registry-indexable unmodified. The schema is stable; v2 adds transport and discovery, not new document concepts.
 
 ---
 

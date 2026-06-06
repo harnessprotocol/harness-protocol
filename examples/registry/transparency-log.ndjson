@@ -1,0 +1,2 @@
+{"seq":1042,"timestamp":"2026-03-09T14:30:22Z","event":"index","id":"harnessprotocol/harness-kit@v1.2.0","sha256":"a3f1e2b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2","kind":"profile","schema-version":"1"}
+{"seq":1099,"timestamp":"2026-03-10T09:00:00Z","event":"delist","id":"bad-actor/malware-harness@v1.0.0","reason":"manifest-malicious-intent","detail":"Profile declared instructions designed to bypass security controls."}

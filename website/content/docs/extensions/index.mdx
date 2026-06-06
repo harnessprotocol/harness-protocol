@@ -1,15 +1,26 @@
 ---
 title: Extensions
-description: The x- prefix convention, extension points, HEP governance process, and v2 design sketches for the Exchange and Registry layers.
+description: The x- prefix convention, extension points, the HEP governance process, and the remaining pre-HEP v2 design sketches.
 ---
 
 import { Cards, Card } from 'fumadocs-ui/components/card';
 import { Callout } from 'fumadocs-ui/components/callout';
 
-Extensions define how the Harness Protocol can grow beyond v1 without breaking existing implementations. The `x-` prefix reserves namespace for implementation-specific fields and future HEPs (Harness Enhancement Proposals). The v2 design sketches below are pre-HEP — they describe the intended direction for Exchange and Registry but are not yet normative.
+Extensions define how the Harness Protocol can grow beyond v1 without breaking existing implementations. The `x-` prefix reserves namespace for implementation-specific fields and future HEPs (Harness Enhancement Proposals).
 
 <Cards className="mt-8">
   <Card title="Extension Points" description="x- prefix convention, reserved fields, schema versioning, backward compatibility guarantees, and the HEP process." href="/docs/extensions/extension-points" />
+</Cards>
+
+## Promoted to the specification
+
+<Callout type="info" title="Now normative">
+  The Exchange and Registry layers began as the design sketches below and have been promoted into the normative specification through the HEP process. See the specification pages for the authoritative definitions.
+</Callout>
+
+<Cards className="mt-4">
+  <Card title="Exchange (v2)" description="Now specified: the signed offer envelope and consent-first peer-to-peer sharing flow (HEP-7)." href="/docs/specification/exchange" />
+  <Card title="Registry (v2)" description="Now specified: hosted discovery, integrity hashing, and the transparency log (HEP-8)." href="/docs/specification/registry" />
 </Cards>
 
 ## v2 Design Sketches
@@ -20,7 +31,5 @@ Extensions define how the Harness Protocol can grow beyond v1 without breaking e
 
 <Cards className="mt-4">
   <Card title="Hooks" description="Pre/post-apply hooks for running shell commands at lifecycle points in the application pipeline." href="/docs/extensions/hooks" />
-  <Card title="Exchange" description="Harness-to-harness sharing — publish, fetch, and compose harnesses between tools and teams." href="/docs/extensions/exchange" />
   <Card title="Compiler Targets" description="Tool-specific compilation from harness.yaml to native formats (Claude Code, Cursor, Copilot)." href="/docs/extensions/compiler-targets" />
-  <Card title="Registry" description="Hosted discovery — search, publish, version resolution, and integrity for the broader ecosystem." href="/docs/extensions/registry" />
 </Cards>

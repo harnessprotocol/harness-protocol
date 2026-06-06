@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://harnessprotocol.io/schema/v2/registry.schema.json",
+  "title": "Harness Protocol v2 — Registry Documents",
+  "description": "Schemas for the concrete JSON documents the Registry layer produces and consumes: transparency-log entries and registration request/response bodies. The HTTP discovery API (search queries and result pages) is specified in prose, not validated here. The registry indexes existing v1 profile/fragment/plugin documents and adds no harness.yaml fields. A document is valid if it matches exactly one of the defined shapes.",
+  "oneOf": [
+    { "$ref": "#/$defs/transparencyLogEntry" },
+    { "$ref": "#/$defs/registrationRequest" },
+    { "$ref": "#/$defs/registrationResponse" }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "Lowercase hex-encoded SHA-256 of the indexed document content."
+    },
+    "entryId": {
+      "type": "string",
+      "description": "Registry entry identifier: 'owner/repo' or 'owner/repo@ref' (optionally with a '/path' segment for non-root documents)."
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["profile", "fragment", "plugin"],
+      "description": "The indexed content type. 'profile' and 'fragment' are harness.yaml kinds; 'plugin' is a plugin.json manifest."
+    },
+    "transparencyLogEntry": {
+      "description": "One append-only transparency-log record. Served as a line of NDJSON at /transparency-log.",
+      "oneOf": [
+        { "$ref": "#/$defs/indexEvent" },
+        { "$ref": "#/$defs/delistEvent" }
+      ]
+    },
+    "indexEvent": {
+      "type": "object",
+      "title": "index event",
+      "description": "Records that a specific document version was added to the index.",
+      "required": ["seq", "timestamp", "event", "id", "sha256", "kind", "schema-version"],
+      "properties": {
+        "seq": { "type": "integer", "minimum": 0, "description": "Monotonic sequence number; gap-free and strictly increasing." },
+        "timestamp": { "type": "string", "format": "date-time", "description": "When the event was recorded." },
+        "event": { "const": "index" },
+        "id": { "$ref": "#/$defs/entryId" },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "kind": { "$ref": "#/$defs/kind" },
+        "schema-version": { "type": "string", "description": "The Harness Protocol schema version the indexed document declares (e.g., '1')." }
+      },
+      "additionalProperties": false
+    },
+    "delistEvent": {
+      "type": "object",
+      "title": "delist event",
+      "description": "Records that an indexed entry was removed from the search index. The content is not deleted from the log.",
+      "required": ["seq", "timestamp", "event", "id", "reason"],
+      "properties": {
+        "seq": { "type": "integer", "minimum": 0 },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "event": { "const": "delist" },
+        "id": { "$ref": "#/$defs/entryId" },
+        "reason": {
+          "type": "string",
+          "enum": ["schema-invalidity", "manifest-malicious-intent", "author-request", "legal-requirement"],
+          "description": "Grounds for delisting, per the published content policy."
+        },
+        "detail": { "type": "string", "description": "Optional human-readable detail about the delisting decision." }
+      },
+      "additionalProperties": false
+    },
+    "registrationRequest": {
+      "type": "object",
+      "title": "registration request",
+      "description": "Body of POST /api/v1/register.",
+      "required": ["repo"],
+      "properties": {
+        "repo": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_][a-zA-Z0-9_.-]*/[a-zA-Z0-9_][a-zA-Z0-9_.-]*$",
+          "description": "Public GitHub repository in 'owner/repo' form."
+        },
+        "ref": { "type": "string", "description": "Git tag or commit SHA to index. Defaults to the repository default branch if omitted. Authors are encouraged to register tags, not branches." },
+        "path": { "type": "string", "description": "Path to the document within the repo. Defaults to 'harness.yaml' at the repo root." }
+      },
+      "additionalProperties": false
+    },
+    "registrationResponse": {
+      "type": "object",
+      "title": "registration response (success)",
+      "description": "Successful response body from POST /api/v1/register.",
+      "required": ["id", "url", "sha256", "indexed-at"],
+      "properties": {
+        "id": { "$ref": "#/$defs/entryId" },
+        "url": { "type": "string", "format": "uri", "description": "Registry page URL for the indexed entry." },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "indexed-at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    }
+  }
+}
