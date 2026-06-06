@@ -114,6 +114,8 @@ A `delist` event (content is marked delisted, never silently removed):
 
 The log serves three purposes: **auditability** (anyone can verify the index matches the log; an index entry absent from the log signals tampering), **first-seen timestamps** (provenance — "was this version published before or after the incident?"), and **delisting transparency** (removals are recorded with a reason, never silent). `seq` is gap-free and strictly increasing.
 
+These v2 entries are **hash-based**. When publisher signing ships (the minisign track in [Integrity](../security/integrity.md)), each release's signature is added to its log entry — the same append-only log, enriched, not a second one. See the [crypto map](../security/crypto-map.md).
+
 ---
 
 ## Trust Model

@@ -120,17 +120,15 @@ The preview MUST NOT apply any part of the fragment before the receiver decides,
 
 ### Apply and provenance
 
-An accepted fragment is applied via the same inheritance mechanism as any other `extends` entry (see [Inheritance](./inheritance.md)) — it gains no special privilege from having arrived through Exchange. The receiver's harness records provenance:
+An accepted fragment is applied via the same inheritance mechanism as any other `extends` entry (see [Inheritance](./inheritance.md)) — it gains no special privilege from having arrived through Exchange. The receiver writes the fragment into a local exchange store and references it with a standard v1 **local source** (a `./` relative path; see [Source Resolution](./source-resolution.md)). No new `harness.yaml` fields and no new source schemes are introduced:
 
 ```yaml
 extends:
-  - source: local://exchange/postgres-mcp-20260309T143022Z
+  - source: ./.harness/exchange/postgres-mcp-20260309T143022Z.harness.yaml
     version: "1.0.0"
-    x-exchange-received-from: "blake2b:a3f1e2b4c5d6e7f8"
-    x-exchange-received-at: "2026-03-09T14:30:22Z"
 ```
 
-Implementations without `local://` source resolution SHOULD write the fragment to a conventional path (e.g., `.harness/exchange/postgres-mcp.harness.yaml`) and reference it via a `file://` source.
+Provenance — the sender key fingerprint, the received-at time, and whether the receiver edited the fragment at Accept — is retained by the implementation in its exchange store (for example, a sidecar entry keyed by file name), **not** as fields on the `extends` entry: under v1 an `extends` item admits only `source` and `version`, so annotating it would make the applied harness invalid against the unchanged v1 schema. The protocol defines the provenance an implementation MUST retain; the on-disk format of the exchange store is an implementation concern.
 
 ---
 

@@ -103,7 +103,7 @@
     {
       "title": "Plaintext offer",
       "required": ["fragment"],
-      "not": { "required": ["encrypted-fragment"] }
+      "not": { "anyOf": [{ "required": ["encrypted-fragment"] }, { "required": ["recipient"] }] }
     },
     {
       "title": "Encrypted offer",

@@ -37,6 +37,8 @@ Answers "is this published release from the author it claims to be, across versi
 
 A **separate, later application** of minisign is **registry-index signing**: the registry signing its *own* index entries so a client can verify the registry beyond the TLS channel. That is **v3** Registry scope (see [Registry](../protocol/registry.md) and [Registry Security](./registry.md)), distinct from author release signing even though both use minisign.
 
+**One transparency log, enriched over time.** The Registry maintains a single append-only transparency log. In **v2** its entries are hash-based `index`/`delist` events ([Registry](../protocol/registry.md)). When publisher signing ships, each release's minisign signature is added to its entry (the [Integrity](./integrity.md) track). The signed-entry description in [Integrity](./integrity.md) and the v2 entry shape in [`registry.schema.json`](../schema/draft/registry.schema.json) are the **same log at two points in its evolution**, not two competing designs.
+
 ---
 
 ## How they compose

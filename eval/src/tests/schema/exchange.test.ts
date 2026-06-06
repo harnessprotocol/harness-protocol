@@ -145,6 +145,12 @@ describe('Schema — Exchange offer envelope (HEP-7)', () => {
       }
       expect(validateExchange(doc).valid).toBe(false)
     })
+
+    it('plaintext offer carrying a recipient fails (unaddressed invariant)', () => {
+      // A known recipient means the payload must be encrypted; a plaintext
+      // offer is unaddressed and MUST NOT carry a recipient.
+      expect(validateExchange(offer({ recipient: { key: 'c'.repeat(64) } })).valid).toBe(false)
+    })
   })
 
   // The envelope schema treats the wrapped fragment as opaque. The spec requires
@@ -169,6 +175,39 @@ describe('Schema — Exchange offer envelope (HEP-7)', () => {
       })
       expect(validateExchange(doc).valid).toBe(true)
       expect(validateHarness(doc.fragment).valid).toBe(false)
+    })
+  })
+
+  // Apply step: an accepted fragment is referenced from `extends` via a
+  // standard v1 local (./) source, with provenance kept off the harness file.
+  // This guards the "v2 is additive — no harness.yaml schema change" claim.
+  describe('apply step — received-fragment reference is valid under the unchanged v1 schema', () => {
+    it('a profile referencing a received fragment via a ./ local source passes', () => {
+      const doc = {
+        version: '1',
+        metadata: { name: 'recipient-harness', description: 'after accepting an offer' },
+        extends: [
+          { source: './.harness/exchange/postgres-mcp-20260309T143022Z.harness.yaml', version: '1.0.0' },
+        ],
+      }
+      const r = validateHarness(doc)
+      expect(r.valid, r.errors.join('\n')).toBe(true)
+    })
+
+    it('annotating the extends entry with x-exchange-* provenance is REJECTED by v1 (why provenance stays off the harness file)', () => {
+      const doc = {
+        version: '1',
+        metadata: { name: 'recipient-harness', description: 'illegal provenance form' },
+        extends: [
+          {
+            source: './.harness/exchange/postgres-mcp.harness.yaml',
+            version: '1.0.0',
+            'x-exchange-received-from': 'blake2b:a3f1e2b4c5d6e7f8',
+            'x-exchange-received-at': '2026-03-09T14:30:22Z',
+          },
+        ],
+      }
+      expect(validateHarness(doc).valid).toBe(false)
     })
   })
 })

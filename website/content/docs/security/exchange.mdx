@@ -35,6 +35,8 @@ An attacker captures an offer (e.g., from a relay or a shared file) and re-deliv
 
 **Mitigation.** Every offer carries an `expires` timestamp; receivers MUST NOT apply an expired offer. HTTP-pull relays SHOULD additionally enforce single-use links. Expiry bounds the window in which a captured offer is useful and prevents indefinite replay.
 
+Note that `expires` is envelope metadata and is **not** covered by the signature (which spans only the fragment/ciphertext bytes), so an attacker with write access to relay storage could extend it. Relay implementations therefore MUST enforce expiry against their own admission clock rather than trusting the offer's `expires` field alone, and receivers SHOULD reject offers whose `expires` is implausibly far in the future.
+
 ### T4 — Relay or channel observation of fragment contents
 
 When an offer travels over a relay or HTTP, the operator (or a network observer) could read the fragment, which may reference sensitive `env` variables or reveal internal configuration.

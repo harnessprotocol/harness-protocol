@@ -51,15 +51,15 @@ Offer → Preview → Accept / Edit / Reject → Apply
 
 There is no "push and apply" shortcut — this is a security property, not UX polish. At **Preview** the implementation MUST show the sender key fingerprint (not just `display`), the signature verification status, the full untruncated fragment, every `env` declaration with `sensitive` entries highlighted, and every MCP server command; it MUST NOT apply any part of the fragment before the receiver decides, and MUST NOT truncate content to make it look simpler. **Accept** applies the fragment via the standard v1 `extends`/import-mode machinery. **Edit** re-validates after the receiver's changes and records the result as a user-edited import (not a verbatim acceptance). **Reject** discards the offer; nothing is applied.
 
-On Apply, the receiver's harness records provenance via `x-` annotations on the resulting `extends` entry:
+On Apply, the receiver writes the fragment into a local exchange store and references it with a standard v1 **local source** (a `./` relative path) — introducing no new `harness.yaml` fields and no new source schemes:
 
 ```yaml
 extends:
-  - source: local://exchange/postgres-mcp-20260309T143022Z
+  - source: ./.harness/exchange/postgres-mcp-20260309T143022Z.harness.yaml
     version: "1.0.0"
-    x-exchange-received-from: "blake2b:a3f1e2b4c5d6e7f8"
-    x-exchange-received-at: "2026-03-09T14:30:22Z"
 ```
+
+Provenance (sender fingerprint, received-at, edited-or-not) is retained by the implementation in its exchange store, **not** as fields on the `extends` entry — a v1 `extends` item admits only `source` and `version` (`additionalProperties: false`, no `x-` carve-out at that level). Keeping provenance off the harness file is what makes Apply valid against the unchanged v1 schema.
 
 ### Resolutions to the open questions
 
@@ -69,7 +69,7 @@ The pre-HEP sketch left six questions open. They are resolved as follows:
 2. **Fingerprint format.** The **canonical** fingerprint is `blake2b:` + the first 16 hex chars of a BLAKE2b-256 hash of the raw key material; the **display** form groups those 16 chars as `a3f1:e2b4:c5d6:e7f8` for visual comparison. Hashing (rather than truncating the raw key) avoids structure-based fingerprint collisions.
 3. **Offer receipt.** Deferred. v2 is fire-and-forget; the `type: "receipt"` value is reserved (and rejected by the v2 schema) for a future signed-acknowledgement extension.
 4. **Known-keys / addressbook.** The spec defines only the **trust assertion** ("I recognize this fingerprint"). On-disk key management (an SSH-`known_hosts`-style store, a `trust-key` command) is an implementation concern for harness-kit, not normative.
-5. **Fragment storage.** Received fragments are written to a local store (`.harness/exchange/`), are **not** auto-committed, and are referenced from `extends` with the provenance annotations above. Promoting a received fragment to a published registry entry is a separate, explicit step (see HEP-8), never automatic.
+5. **Fragment storage.** Received fragments are written to a local store (`.harness/exchange/`), are **not** auto-committed, and are referenced from `extends` via a standard v1 local (`./`) source; provenance lives in the exchange store, not on the harness file (see above). Promoting a received fragment to a published registry entry is a separate, explicit step (see HEP-8), never automatic.
 6. **Team distribution.** Out of scope for Exchange. Exchange is strictly **1:1 push**; one-to-many distribution (publish once, many fetch) is the **Registry's** job ([HEP-8](hep-0008-registry-layer.md)). This boundary keeps the two layers cohesive.
 
 ## Rationale

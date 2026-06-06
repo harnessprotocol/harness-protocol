@@ -100,6 +100,8 @@ However, "optional" does not mean "silent." The v1 rules are:
 
 ## v2 Behavior: Required Hashes and Minisign Signing
 
+> **Scope note.** "v2" here labels a *supply-chain hardening* track — making `integrity.sha256` required and adding publisher signing. It is distinct from the **Exchange** and **Registry** layers ([HEP-7](../heps/hep-0007-exchange-layer.md), [HEP-8](../heps/hep-0008-registry-layer.md)) that open the v2 milestone and add no `harness.yaml` fields. Promoting integrity to required and adding minisign signing are normative changes that require their own HEP. The Registry's transparency log (HEP-8) records hash-based `index`/`delist` events in v2; the per-release minisign signatures described below are added to those log entries when publisher signing ships. See the [crypto map](./crypto-map.md) and [Registry](../protocol/registry.md).
+
 v2 will make `integrity.sha256` required for all plugin declarations. The "absent hash" warning path will be eliminated: a profile without an integrity hash on a plugin entry will fail schema validation and be rejected before installation begins.
 
 v2 will also introduce signing, using **minisign** as the signing tool. The choice reflects two design priorities:
