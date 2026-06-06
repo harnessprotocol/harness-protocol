@@ -10,10 +10,10 @@ Work on the **v2 milestone** has begun. v2 is **additive**: it introduces two ne
 
 ### Added (draft)
 
-- **Exchange layer:** the signed **offer envelope** (`exchange.schema.json`) and the consent-first `Offer → Preview → Accept / Edit / Reject → Apply` flow for peer-to-peer (1:1) fragment sharing — "AirDrop for harnesses." ed25519 sender identity; optional X25519 payload encryption. Normative draft in [protocol/exchange.md](protocol/exchange.md), specified by [HEP-7](heps/hep-0007-exchange-layer.md). *Status: Draft.*
-- **Registry layer:** hosted discovery at harnessprotocol.io — indexing of public `owner/repo` profiles/fragments/plugins, search, SHA-256 integrity hashing, and an append-only transparency log (`registry.schema.json`). GitHub stays authoritative; the registry is a discovery convenience, not a trust anchor. Normative draft in [protocol/registry.md](protocol/registry.md), specified by [HEP-8](heps/hep-0008-registry-layer.md). *Status: Draft.* Verified authors, curation, and minisign registry signing are deferred to v3.
+- **Exchange layer:** the signed **offer envelope** (`exchange.schema.json`) and the consent-first `Offer → Preview → Accept / Edit / Reject → Apply` flow for peer-to-peer (1:1) fragment sharing — "AirDrop for harnesses." ed25519 sender identity; optional X25519 payload encryption. Normative draft in [protocol/exchange.md](protocol/exchange.md), specified by [HEP-7](heps/hep-0007-exchange-layer.md). *Status: Review.*
+- **Registry layer:** hosted discovery at harnessprotocol.io — indexing of public `owner/repo` profiles/fragments/plugins, search, SHA-256 integrity hashing, and an append-only transparency log (`registry.schema.json`). GitHub stays authoritative; the registry is a discovery convenience, not a trust anchor. Normative draft in [protocol/registry.md](protocol/registry.md), specified by [HEP-8](heps/hep-0008-registry-layer.md). *Status: Review.* Verified authors, curation, and minisign registry signing are deferred to v3.
 
-These layers are in **Draft** status under the HEP process and are not yet released. Schema mirrors under `website/public/schema/v2/` are published at release, not during draft.
+These layers are in **Review** status under the HEP process and are not yet released. Schema mirrors under `website/public/schema/v2/` are published at release, not during draft.
 
 ## [v1.0.0] — 2026-06-05
 

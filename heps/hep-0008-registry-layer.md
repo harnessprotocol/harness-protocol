@@ -2,7 +2,7 @@
 title: Registry layer — hosted discovery for harnesses
 hep: 8
 type: Standards Track
-status: Draft
+status: Review
 authors: [siracusa5 <siracusa5>]
 sponsor: siracusa5 <siracusa5>
 created: 2026-06-05
