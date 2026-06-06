@@ -2,7 +2,7 @@
 title: Exchange layer — peer-to-peer harness fragment sharing
 hep: 7
 type: Standards Track
-status: Draft
+status: Review
 authors: [siracusa5 <siracusa5>]
 sponsor: siracusa5 <siracusa5>
 created: 2026-06-05
