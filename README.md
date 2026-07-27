@@ -15,7 +15,7 @@ The specification is organized into three layers, each building on the previous.
 | Layer | Description | Status |
 |-------|-------------|--------|
 | **Schema** | The `harness.yaml` format, JSON Schema validation, security model, plugin manifest | v1 — current |
-| **Exchange** | Harness-to-harness sharing: publish, fetch, and compose harnesses across tools and teams | v2 — draft ([HEP-7](heps/hep-0007-exchange-layer.md)) |
+| **Exchange** | Harness-to-harness sharing: publish, fetch, and compose harnesses across tools and teams | v2 — accepted ([HEP-7](heps/hep-0007-exchange-layer.md)) |
 | **Registry** | Hosted discovery at harnessprotocol.io: search, publish, version resolution, integrity verification | v2/v3 — draft ([HEP-8](heps/hep-0008-registry-layer.md)) |
 
 Layers are intentionally decoupled. A tool can implement Schema-layer validation today without any dependency on exchange or registry infrastructure.
@@ -104,7 +104,7 @@ Full documentation is available at [harnessprotocol.io/spec](https://harnessprot
 | [protocol/inheritance.md](protocol/inheritance.md) | `extends` resolution order and per-section merge rules |
 | [protocol/application.md](protocol/application.md) | Application pipeline, effective configuration, error handling |
 | [protocol/source-resolution.md](protocol/source-resolution.md) | Source resolution algorithm for `owner/repo` and local path references |
-| [protocol/exchange.md](protocol/exchange.md) | *(v2 draft)* Exchange layer — the signed offer envelope and consent-first sharing flow |
+| [protocol/exchange.md](protocol/exchange.md) | *(v2)* Exchange layer — the signed offer envelope and consent-first sharing flow |
 | [protocol/registry.md](protocol/registry.md) | *(v2 draft)* Registry layer — hosted discovery, integrity hashing, and the transparency log |
 | [security/threat-model.md](security/threat-model.md) | Threat model and security design |
 | [security/trust-boundaries.md](security/trust-boundaries.md) | Trust boundaries between spec, implementations, profiles, and remote content |
@@ -113,7 +113,7 @@ Full documentation is available at [harnessprotocol.io/spec](https://harnessprot
 | [security/integrity.md](security/integrity.md) | Content integrity verification |
 | [security/instruction-injection.md](security/instruction-injection.md) | Instruction injection threat and mitigations |
 | [security/skill-injection.md](security/skill-injection.md) | Skill behavioral injection threat and mitigations |
-| [security/exchange.md](security/exchange.md) | *(v2 draft)* Exchange threat model — authenticity, consent, confidentiality in transit |
+| [security/exchange.md](security/exchange.md) | *(v2)* Exchange threat model — authenticity, consent, confidentiality in transit |
 | [security/registry.md](security/registry.md) | *(v2 draft)* Registry threat model — the registry is an index, not a trust anchor |
 | [security/crypto-map.md](security/crypto-map.md) | How SHA-256 integrity, ed25519 (Exchange), and minisign signing compose |
 

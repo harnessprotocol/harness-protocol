@@ -12,15 +12,15 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## Protocol Layers
 
-The Harness Protocol is organized into three layers, each building on the previous. Version 1 delivers the Schema layer. The Exchange and Registry layers are in draft for v2 — see [HEP-7](../heps/hep-0007-exchange-layer.md) and [HEP-8](../heps/hep-0008-registry-layer.md), and the normative drafts in [Exchange](./exchange.md) and [Registry](./registry.md).
+The Harness Protocol is organized into three layers, each building on the previous. Version 1 delivers the Schema layer. The Exchange layer is accepted for v2 ([HEP-7](../heps/hep-0007-exchange-layer.md), normative spec in [Exchange](./exchange.md)); the Registry layer remains in draft for v2 ([HEP-8](../heps/hep-0008-registry-layer.md), normative draft in [Registry](./registry.md)).
 
 | Layer | Description | Status |
 |-------|-------------|--------|
 | **Schema** | The `harness.yaml` format: structure, validation rules, security model, inheritance semantics | v1 (current) |
-| **Exchange** | Harness-to-harness sharing — a protocol for publishing, fetching, and composing harnesses between tools and teams ("AirDrop for harnesses") | v2 (draft — HEP-7) |
+| **Exchange** | Harness-to-harness sharing — a protocol for publishing, fetching, and composing harnesses between tools and teams ("AirDrop for harnesses") | v2 (accepted — HEP-7) |
 | **Registry** | Hosted discovery at harnessprotocol.io — search, publish, version resolution, integrity verification for the broader ecosystem | v2/v3 (draft — HEP-8) |
 
-The layers are intentionally decoupled. A tool can implement Schema-layer validation today without any dependency on exchange or registry infrastructure. When Exchange ships, tools opt in incrementally.
+The layers are intentionally decoupled. A tool can implement Schema-layer validation today without any dependency on exchange or registry infrastructure. Exchange has shipped; tools opt in incrementally. Registry will follow the same pattern once accepted.
 
 ## What v1 Delivers
 
@@ -90,7 +90,7 @@ MCP, AGENTS.md, and Agent Skills are stewarded under the **Agentic AI Foundation
 | [Environment](./environment.md) | Environment variable declarations, sensitive handling |
 | [Fragments](./fragments.md) | `kind: fragment` — partial harness documents for composition |
 | [Source Resolution](./source-resolution.md) | Source resolution algorithm for `owner/repo` and local path references |
-| [Exchange](./exchange.md) | *(v2 draft)* The signed offer envelope and consent-first peer-to-peer sharing flow |
+| [Exchange](./exchange.md) | *(v2)* The signed offer envelope and consent-first peer-to-peer sharing flow |
 | [Registry](./registry.md) | *(v2 draft)* Hosted discovery, integrity hashing, namespace design, transparency log |
 | [Application](./application.md) | Application pipeline, effective configuration, error handling |
 | [Inheritance](./inheritance.md) | `extends` resolution order and per-section merge rules |

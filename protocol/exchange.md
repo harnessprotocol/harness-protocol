@@ -2,7 +2,7 @@
 
 This document specifies the **Exchange layer** of the Harness Protocol: a push-based, consent-required flow for sharing a single `kind: fragment` document from one person to another. Exchange is introduced in the v2 milestone and is specified normatively by [HEP-7](../heps/hep-0007-exchange-layer.md). The offer envelope is validated by [`schema/draft/exchange.schema.json`](../schema/draft/exchange.schema.json).
 
-> **Status:** Draft (v2). The format is specified here; runtime behavior is implemented in the reference implementation. Normative language ("MUST", "SHOULD", etc.) follows [BCP 14](https://www.rfc-editor.org/info/bcp14), as in the rest of the specification.
+> **Status:** Accepted (v2). The format is specified here; runtime behavior is implemented in the reference implementation. Normative language ("MUST", "SHOULD", etc.) follows [BCP 14](https://www.rfc-editor.org/info/bcp14), as in the rest of the specification.
 
 ---
 

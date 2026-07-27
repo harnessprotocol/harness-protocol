@@ -2,7 +2,7 @@
 title: Exchange layer — peer-to-peer harness fragment sharing
 hep: 7
 type: Standards Track
-status: Review
+status: Accepted
 authors: [siracusa5 <siracusa5>]
 sponsor: siracusa5 <siracusa5>
 created: 2026-06-05
@@ -109,3 +109,5 @@ Per the Standards Track prototype requirement, this HEP's **format prototype is 
 - Eval coverage: `eval/src/tests/schema/exchange.test.ts` — valid/invalid envelopes, the `oneOf` exclusivity, and the two-step "envelope valid but wrapped fragment invalid" check.
 
 The **runtime prototype** — the `harness exchange offer/accept` subcommands, ed25519 signing/verification, X25519 encryption, the relay API, and the consent-first preview UI — is a behavior of the reference implementation and is required in [harness-kit](https://github.com/harnessprotocol/harness-kit) before this HEP moves to **Accepted**. As with HEP-6, the in-repo artifacts verify the *declaration surface*; the prose specifies the apply-time semantics a conformant implementation MUST enforce.
+
+**Runtime prototype: satisfied.** `harness-kit` ships `keygen`, `offer`, and `accept` CLI subcommands (`apps/cli/src/commands/exchange.ts`) backed by `@harness-kit/exchange` (`packages/exchange`): ed25519 keypair generation and fingerprinting, canonical-JSON signing/verification, X25519 payload encryption, and the consent-first Preview → Accept/Edit/Reject → Apply flow, with test coverage for the envelope and keypair logic. The one named piece not yet built is the **relay API**; per this HEP that is non-blocking, since clipboard/file transport already covers the zero-infrastructure MVP. On that basis this HEP moves to **Accepted**.

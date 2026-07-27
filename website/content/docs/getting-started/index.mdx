@@ -15,15 +15,15 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## Protocol Layers
 
-The Harness Protocol is organized into three layers, each building on the previous. Version 1 delivers the Schema layer. The Exchange and Registry layers are in draft for v2 — see [Exchange](/docs/specification/exchange) and [Registry](/docs/specification/registry).
+The Harness Protocol is organized into three layers, each building on the previous. Version 1 delivers the Schema layer. The Exchange layer is accepted for v2 — see [Exchange](/docs/specification/exchange). The Registry layer remains in draft for v2 — see [Registry](/docs/specification/registry).
 
 | Layer | Description | Status |
 |-------|-------------|--------|
 | **Schema** | The `harness.yaml` format: structure, validation rules, security model, inheritance semantics | v1 (current) |
-| **Exchange** | Harness-to-harness sharing — a protocol for publishing, fetching, and composing harnesses between tools and teams ("AirDrop for harnesses") | v2 (draft — HEP-7) |
+| **Exchange** | Harness-to-harness sharing — a protocol for publishing, fetching, and composing harnesses between tools and teams ("AirDrop for harnesses") | v2 (accepted — HEP-7) |
 | **Registry** | Hosted discovery at harnessprotocol.io — search, publish, version resolution, integrity verification for the broader ecosystem | v2/v3 (draft — HEP-8) |
 
-The layers are intentionally decoupled. A tool can implement Schema-layer validation today without any dependency on exchange or registry infrastructure. When Exchange ships, tools opt in incrementally.
+The layers are intentionally decoupled. A tool can implement Schema-layer validation today without any dependency on exchange or registry infrastructure. Exchange has shipped; tools opt in incrementally. Registry will follow the same pattern once accepted.
 
 ## What v1 Delivers
 
