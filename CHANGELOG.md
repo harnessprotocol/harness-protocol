@@ -6,14 +6,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). The Har
 
 ## [Unreleased] — v2 (in progress)
 
-Work on the **v2 milestone** has begun. v2 is **additive**: it introduces two new protocol layers on top of the stable Schema layer and does **not** change `harness.yaml` — the `version` field stays `"1"` and the `harness.schema.json` `$id` (`/schema/v1/...`) is frozen. A fragment authored against v1 is Exchange-compatible without modification. New v2 schema artifacts are grouped under the `/schema/v2/` `$id` namespace.
+Work on the **v2 milestone** continues. v2 is **additive**: it introduces two new protocol layers on top of the stable Schema layer and does **not** change `harness.yaml` — the `version` field stays `"1"` and the `harness.schema.json` `$id` (`/schema/v1/...`) is frozen. A fragment authored against v1 is Exchange-compatible without modification. New v2 schema artifacts are grouped under the `/schema/v2/` `$id` namespace.
 
 ### Added (draft)
 
-- **Exchange layer:** the signed **offer envelope** (`exchange.schema.json`) and the consent-first `Offer → Preview → Accept / Edit / Reject → Apply` flow for peer-to-peer (1:1) fragment sharing — "AirDrop for harnesses." ed25519 sender identity; optional X25519 payload encryption. Normative draft in [protocol/exchange.md](protocol/exchange.md), specified by [HEP-7](heps/hep-0007-exchange-layer.md). *Status: Review.*
-- **Registry layer:** hosted discovery at harnessprotocol.io — indexing of public `owner/repo` profiles/fragments/plugins, search, SHA-256 integrity hashing, and an append-only transparency log (`registry.schema.json`). GitHub stays authoritative; the registry is a discovery convenience, not a trust anchor. Normative draft in [protocol/registry.md](protocol/registry.md), specified by [HEP-8](heps/hep-0008-registry-layer.md). *Status: Review.* Verified authors, curation, and minisign registry signing are deferred to v3.
+- **Registry layer:** hosted discovery at harnessprotocol.io — indexing of public `owner/repo` profiles/fragments/plugins, search, SHA-256 integrity hashing, and an append-only transparency log (`registry.schema.json`). GitHub stays authoritative; the registry is a discovery convenience, not a trust anchor. Normative draft in [protocol/registry.md](protocol/registry.md), specified by [HEP-8](heps/hep-0008-registry-layer.md). *Status: Review.* Verified authors, curation, and minisign registry signing are deferred to v3. The service prototype (hosted index, registration/discovery APIs, transparency-log server) required for Accepted has not started.
 
-These layers are in **Review** status under the HEP process and are not yet released. Schema mirrors under `website/public/schema/v2/` are published at release, not during draft.
+This layer is in **Review** status under the HEP process and is not yet released. Its schema mirror under `website/public/schema/v2/` is published at release, not during draft.
+
+## [v1.1.0] — 2026-07-27
+
+**Exchange layer accepted** — the first of the two v2-milestone layers to ship; Registry remains in Review (see Unreleased above). [HEP-7](heps/hep-0007-exchange-layer.md) moves from Review to **Accepted**: both the format prototype (schema, examples, eval tests) and the runtime prototype (ed25519/X25519 signing and verification, canonicalization, and the `harness exchange keygen/offer/accept` flow, shipped in [harness-kit](https://github.com/harnessprotocol/harness-kit)) are satisfied. Backward-compatible: Exchange adds no `harness.yaml` fields, the `version` field stays `"1"`, and the v1 schema `$id` is unchanged.
+
+### Added
+
+- **Exchange layer:** the signed **offer envelope** (`exchange.schema.json`) and the consent-first `Offer → Preview → Accept / Edit / Reject → Apply` flow for peer-to-peer (1:1) fragment sharing — "AirDrop for harnesses." ed25519 sender identity; optional X25519 payload encryption. Normative in [protocol/exchange.md](protocol/exchange.md), specified by [HEP-7](heps/hep-0007-exchange-layer.md). The `schema/draft/` schema is snapshotted to `schema/2026-07-27/` and published to `website/public/schema/v2/exchange.schema.json`.
 
 ## [v1.0.0] — 2026-06-05
 

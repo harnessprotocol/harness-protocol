@@ -1,6 +1,6 @@
 ---
 title: Exchange Security
-description: "(v2 draft) Threat model for the Exchange layer — authenticity, consent, and confidentiality in transit."
+description: "(v2) Threat model for the Exchange layer — authenticity, consent, and confidentiality in transit."
 ---
 
 This document specifies the threat model for the **Exchange layer** ([Exchange](/docs/specification/exchange), [HEP-7](https://github.com/harnessprotocol/harness-protocol/blob/main/heps/hep-0007-exchange-layer.md)). Exchange moves a fragment from a sender to a receiver over an untrusted channel, so its security properties are about **authenticity, consent, and confidentiality in transit** — not about making received content inherently trustworthy. An applied fragment is subject to the same trust constraints as any other `extends` entry; Exchange grants it no privilege.
