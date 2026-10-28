@@ -1,0 +1,31 @@
+name: Website CI
+
+on:
+  pull_request:
+    paths: [website/**, .github/workflows/website-ci.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: website-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: website/pnpm-lock.yaml
+      - run: cd website && pnpm install --frozen-lockfile
+      - run: cd website && pnpm exec opennextjs-cloudflare build
