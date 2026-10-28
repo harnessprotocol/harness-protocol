@@ -12,8 +12,8 @@
   "devDependencies": {
     "typescript": "^5.4.0",
     "@types/node": "^20.0.0",
-    "vite": "^7.0.0",
-    "vitest": "^4.1.0"
+    "vite": "^7.3.7",
+    "vitest": "^5.0.5"
   },
   "dependencies": {
     "ajv": "^8.17.1",
