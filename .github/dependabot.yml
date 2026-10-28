@@ -1,0 +1,34 @@
+version: 2
+updates:
+  # Monthly, grouped: minor and patch updates share one PR, majors get one PR each.
+  # Every entry waits `cooldown` days after a release before Dependabot proposes it.
+  # Hijacked releases are usually caught and pulled within days, so the wait keeps them
+  # out. Security updates ignore the cooldown and the schedule.
+  # eval/ and website/ have separate pnpm lockfiles; one group spans both.
+  - package-ecosystem: "npm"
+    directories:
+      - "/eval"
+      - "/website"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 3
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+    groups:
+      npm-minor-and-patch:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 2
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        applies-to: version-updates
+        patterns: ["*"]
