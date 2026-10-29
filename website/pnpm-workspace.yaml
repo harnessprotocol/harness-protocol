@@ -1,0 +1,9 @@
+# Keep overrides here, not in package.json. pnpm 11 and later ignore the "pnpm" field, and
+# Dependabot resolves with a current pnpm, so overrides in package.json are dropped from its lockfile.
+overrides:
+  fast-xml-builder@1: '>=1.1.6'
+  brace-expansion@5: '>=5.0.6'
+  postcss@8: '>=8.5.10'
+  fast-xml-parser@5: '>=5.7.0'
+  ws@8: '>=8.20.1'
+  qs@6: '>=6.15.2'
