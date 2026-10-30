@@ -1,11 +1,11 @@
 name: Deploy
 
+# RETIRED as an automatic deploy: harnessprotocol.io is now served by the
+# harnessprotocol/harnessprotocol.io repo, which deploys the harness-protocol
+# Worker. Running this workflow would clobber that site with the old
+# website/ build. Manual dispatch is kept only as an escape hatch.
 on:
-  push:
-    branches: [main]
-    paths: [website/**]
-  release:
-    types: [published]
+  workflow_dispatch:
 
 permissions:
   contents: read
