@@ -7,3 +7,4 @@ overrides:
   fast-xml-parser@5: '>=5.7.0'
   ws@8: '>=8.20.1'
   qs@6: '>=6.15.2'
+  proxy-addr@2: '>=2.0.8'
