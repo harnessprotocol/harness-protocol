@@ -15,6 +15,10 @@ updates:
     cooldown:
       default-days: 7
       semver-major-days: 14
+    ignore:
+      # @types/node tracks the CI runtime (Node 22); bump it by hand with node-version.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       npm-minor-and-patch:
         applies-to: version-updates

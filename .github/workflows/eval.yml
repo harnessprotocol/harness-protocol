@@ -5,6 +5,7 @@ on:
     paths: [schema/**, protocol/**, examples/**, eval/**]
   pull_request:
     paths: [schema/**, protocol/**, examples/**, eval/**]
+  workflow_call:
 
 permissions:
   contents: read

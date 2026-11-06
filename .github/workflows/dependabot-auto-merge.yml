@@ -1,0 +1,75 @@
+name: Dependabot Auto-Merge
+
+# Merges Dependabot patch and minor updates once CI passes, and flags majors for a
+# human. main has no branch protection, so GitHub's native auto-merge would merge
+# before CI ran. Instead this workflow runs the CI workflows itself (workflow_call,
+# every path, so an actions-only PR is still built) and merges only after both pass.
+#
+# Prerequisite (one-time): a `needs-manual-review` label must exist.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependabot-auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  meta:
+    # Gate on the PR author, not github.actor: a comment can make Dependabot
+    # force-push, which turns it into the actor of a PR it did not write.
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    outputs:
+      update-type: ${{ steps.meta.outputs.update-type }}
+      dependency-names: ${{ steps.meta.outputs.dependency-names }}
+    steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  website:
+    needs: meta
+    if: needs.meta.outputs.update-type == 'version-update:semver-patch' || needs.meta.outputs.update-type == 'version-update:semver-minor'
+    uses: ./.github/workflows/website-ci.yml
+
+  eval:
+    needs: meta
+    if: needs.meta.outputs.update-type == 'version-update:semver-patch' || needs.meta.outputs.update-type == 'version-update:semver-minor'
+    uses: ./.github/workflows/eval.yml
+
+  merge:
+    needs: [meta, website, eval]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Squash-merge
+        run: gh pr merge --squash --delete-branch "$PR_URL"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+
+  flag-major:
+    needs: meta
+    if: needs.meta.outputs.update-type == 'version-update:semver-major'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Flag major update for manual review
+        run: |
+          gh pr edit "$PR_URL" --add-label "needs-manual-review"
+          gh pr comment "$PR_URL" --body \
+            "⚠️ **Major version update** (\`${DEP}\`): auto-merge skipped. A human should review the changelog before merging."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          DEP: ${{ needs.meta.outputs.dependency-names }}
