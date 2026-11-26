@@ -142,6 +142,11 @@ Spec changes go through the HEP (Harness Enhancement Proposal) process. Editoria
 
 See [SECURITY.md](SECURITY.md) for the security policy and responsible disclosure process.
 
+## Contact
+
+- **General**: [contact@harnessprotocol.io](mailto:contact@harnessprotocol.io)
+- **Security**: [security@harnessprotocol.io](mailto:security@harnessprotocol.io)
+
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).

@@ -152,6 +152,8 @@ If you believe you have found a vulnerability in the Harness Protocol specificat
 Use GitHub Security Advisories at:
 [github.com/harnessprotocol/harness-protocol/security/advisories](https://github.com/harnessprotocol/harness-protocol/security/advisories)
 
+Or email [security@harnessprotocol.io](mailto:security@harnessprotocol.io).
+
 Do not open a public GitHub issue for security vulnerabilities. Public disclosure before a fix is available puts all users of conforming implementations at risk.
 
 **What to include in your report:**
